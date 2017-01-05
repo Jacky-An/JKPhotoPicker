@@ -14,6 +14,7 @@
 #import "JKPhotoTitleButton.h"
 #import "JKPhotoBrowserViewController.h"
 #import <Photos/Photos.h>
+#import <AVFoundation/AVFoundation.h>
 
 #define JKScreenW [UIScreen mainScreen].bounds.size.width
 #define JKScreenH [UIScreen mainScreen].bounds.size.height
@@ -394,8 +395,19 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
 
 - (void)updateIconWithSourType:(UIImagePickerControllerSourceType)sourceType{
     
-    if (![UIImagePickerController isSourceTypeAvailable:sourceType]) {
-        UIAlertController *alertVc = [UIAlertController alertControllerWithTitle:@"提示" message:@"当前程序未获得相机权限，是否打开？" preferredStyle:(UIAlertControllerStyleAlert)];
+    
+    AVAuthorizationStatus videoAuthStatus = [AVCaptureDevice authorizationStatusForMediaType:AVMediaTypeVideo];
+    
+    if (videoAuthStatus == AVAuthorizationStatusNotDetermined) {// 未询问用户是否授权
+        
+    }else if(videoAuthStatus == AVAuthorizationStatusRestricted || videoAuthStatus == AVAuthorizationStatusDenied) {// 未授权
+        
+    }else{// 已授权
+        
+    }
+    
+    if (videoAuthStatus == AVAuthorizationStatusDenied) {
+        UIAlertController *alertVc = [UIAlertController alertControllerWithTitle:@"提示" message:@"当前程序未获得相机权限，是否打开？由于iOS系统原因，设置相机权限会导致app崩溃，请知晓。" preferredStyle:(UIAlertControllerStyleAlert)];
         
         [alertVc addAction:[UIAlertAction actionWithTitle:@"不用了" style:(UIAlertActionStyleDefault) handler:nil]];
         [alertVc addAction:[UIAlertAction actionWithTitle:@"去打开" style:(UIAlertActionStyleDefault) handler:^(UIAlertAction * _Nonnull action) {
@@ -403,7 +415,23 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
             [[UIApplication sharedApplication]openURL:[NSURL URLWithString:UIApplicationOpenSettingsURLString]];
         }]];
         
-        [[UIApplication sharedApplication].keyWindow.rootViewController presentViewController:alertVc animated:YES completion:nil];
+        [self presentViewController:alertVc animated:YES completion:nil];
+        
+        return;
+    }
+    
+//    [AVCaptureDevice requestAccessForMediaType:AVMediaTypeVideo completionHandler:^(BOOL granted) {
+//        
+//        if (granted){// 用户同意授权
+//            
+//        }else {// 用户拒绝授权
+//            
+//        }
+//        
+//    }];
+    
+    if (![UIImagePickerController isSourceTypeAvailable:sourceType]) {
+        
         return;
     }
     
