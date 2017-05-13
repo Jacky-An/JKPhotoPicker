@@ -20,6 +20,9 @@
 /** 照片 */
 @property (nonatomic, weak) UIImageView *photoImageView;
 
+/** collectionView */
+@property (nonatomic, weak) UICollectionView *collectionView;
+
 /** 监听点击选中照片的block */
 @property (nonatomic, copy) BOOL(^selectBlock)(BOOL selected, JKPhotoBrowserCollectionViewCell *currentCell);
 

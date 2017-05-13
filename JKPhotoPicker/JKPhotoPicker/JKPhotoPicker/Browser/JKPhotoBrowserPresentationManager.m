@@ -53,7 +53,7 @@
 // 告诉系统展现和消失的动画时长。在这里统一控制动画时长
 - (NSTimeInterval)transitionDuration:(id<UIViewControllerContextTransitioning>)transitionContext{
     
-    return 0.25;
+    return 0.3;
 }
 
 // 专门用于管理modal如何展现和消失的，无论是展现还是消失都会调用该方法
@@ -74,6 +74,15 @@
     UIView *toView = [transitionContext viewForKey:UITransitionContextToViewKey];
     if (toView == nil) return;
     
+    UIView *blackBgView = [[UIView alloc] initWithFrame:[UIScreen mainScreen].bounds];
+    blackBgView.backgroundColor = [UIColor blackColor];
+    [[transitionContext containerView] addSubview:blackBgView];
+    
+    UIView *whiteView = [[UIView alloc] initWithFrame:self.presentFrame];
+    whiteView.backgroundColor = [UIColor whiteColor];
+    [[transitionContext containerView] insertSubview:whiteView atIndex:0];
+    self.whiteView = whiteView;
+    
     // 2.将需要弹出的视图添加到containerView上
     [[transitionContext containerView] addSubview:toView];
     [[transitionContext containerView] setBackgroundColor:[UIColor blackColor]];
@@ -92,6 +101,7 @@
     imageView.frame = self.presentFrame;
     [[transitionContext containerView] addSubview:imageView];
     toView.userInteractionEnabled = NO;
+//    self.fromImageView.hidden = YES;
     
     [UIView animateWithDuration:[self transitionDuration:transitionContext] animations:^{
 //        toView.transform = CGAffineTransformIdentity;
@@ -100,12 +110,14 @@
     } completion:^(BOOL finished) {
         
         // 注意：自定义转场动画，在执行完动画之后一定要告诉系统动画执行完毕了！！
+        [[transitionContext containerView] setBackgroundColor:[UIColor clearColor]];
         [transitionContext completeTransition:YES];
         toView.hidden = NO;
+        [imageView removeFromSuperview];
+        [blackBgView removeFromSuperview];
         
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.3 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
             toView.userInteractionEnabled = YES;
-            [imageView removeFromSuperview];
         });
         
 //        [toView performSelector:@selector(setUserInteractionEnabled:) withObject:@(YES) afterDelay:0.3];
@@ -120,12 +132,12 @@
     
     // 默认动画是从中间慢慢放大的，这是因为图层默认的锚点是(0.5，0.5)
 //    fromView.layer.anchorPoint = CGPointMake(0.5, 0);
-    
+//    self.fromImageView.hidden = YES;
     UIImageView *imageView = [[UIImageView alloc] init];
     imageView.contentMode = UIViewContentModeScaleAspectFill;
     imageView.clipsToBounds = YES;
     imageView.image = self.touchImage;
-    [self calculateImageCoverViewFrameWithImageView:imageView];
+    imageView.frame = [self calculateImageCoverViewFrameWithImageView:self.touchImageView];
     [[transitionContext containerView] addSubview:imageView];
     
     fromView.hidden = YES;
@@ -142,29 +154,34 @@
         }
         
     } completion:^(BOOL finished) {
-        
+        [self.whiteView removeFromSuperview];
         [imageView removeFromSuperview];
         
         // 注意：自定义转场动画，在执行完动画之后一定要告诉系统动画执行完毕了！！
         [transitionContext completeTransition:YES];
+//        self.fromImageView.hidden = NO;
     }];
 }
 
-- (void)calculateImageCoverViewFrameWithImageView:(UIImageView *)imageView{
+- (CGRect)calculateImageCoverViewFrameWithImageView:(UIImageView *)imageView{
     
-    CGFloat imageW = imageView.image.size.width;
-    CGFloat imageH = imageView.image.size.height;
-    CGFloat imageAspectRatio = imageW / imageH;
+    CGRect rect = [imageView.superview convertRect:imageView.frame toView:[UIApplication sharedApplication].keyWindow];
     
-    if (imageW / imageH >= JKScreenW / JKScreenH) { // 宽高比大于屏幕宽高比，基于宽度缩放
-        imageView.frame = CGRectMake(0, 0, JKScreenW, JKScreenW / imageAspectRatio);
-        
-    }else{
-        
-        // 宽高比小于屏幕宽高比，基于高度缩放
-        imageView.frame = CGRectMake(0, 0, JKScreenH * imageAspectRatio, JKScreenH);
-    }
+    return rect;
     
-    imageView.center = CGPointMake(JKScreenW * 0.5, JKScreenH * 0.5);
+//    CGFloat imageW = imageView.image.size.width;
+//    CGFloat imageH = imageView.image.size.height;
+//    CGFloat imageAspectRatio = imageW / imageH;
+//    
+//    if (imageW / imageH >= JKScreenW / JKScreenH) { // 宽高比大于屏幕宽高比，基于宽度缩放
+//        imageView.frame = CGRectMake(0, 0, JKScreenW, JKScreenW / imageAspectRatio);
+//        
+//    }else{
+//        
+//        // 宽高比小于屏幕宽高比，基于高度缩放
+//        imageView.frame = CGRectMake(0, 0, JKScreenH * imageAspectRatio, JKScreenH);
+//    }
+//    
+//    imageView.center = CGPointMake(JKScreenW * 0.5, JKScreenH * 0.5);
 }
 @end

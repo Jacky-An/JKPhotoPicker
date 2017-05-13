@@ -63,6 +63,8 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
     vc.transitioningDelegate = vc.presentationManager;
     vc.presentationManager.presentFrame = presentFrame;
     vc.presentationManager.touchImage = imageView.image;
+    vc.presentationManager.touchImageView = imageView;
+    vc.presentationManager.fromImageView = imageView;
     vc.modalPresentationStyle = UIModalPresentationCustom;
     
     vc.allPhotos = dataDict[@"allPhotos"];
@@ -106,15 +108,14 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
 - (void)viewWillDisappear:(BOOL)animated{
     [super viewWillDisappear:animated];
     
-    [UIApplication sharedApplication].statusBarHidden = NO;
+//    [[UIApplication sharedApplication] setStatusBarHidden:NO withAnimation:(UIStatusBarAnimationSlide)];
 }
 
 - (void)viewDidLoad {
     [super viewDidLoad];
     
     self.view.backgroundColor = [UIColor clearColor];
-    
-    [UIApplication sharedApplication].statusBarHidden = YES;
+//    [[UIApplication sharedApplication] setStatusBarHidden:YES withAnimation:(UIStatusBarAnimationSlide)];
     
     [self setupCollectionView];
     [self.collectionView scrollToItemAtIndexPath:self.indexPath atScrollPosition:(UICollectionViewScrollPositionNone) animated:YES];
@@ -128,7 +129,7 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
     flowLayout.scrollDirection = UICollectionViewScrollDirectionHorizontal;
     
     UICollectionView *collectionView = [[UICollectionView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height) collectionViewLayout:flowLayout];
-    collectionView.backgroundColor = [UIColor clearColor];
+    collectionView.backgroundColor = [UIColor blackColor];
     collectionView.showsHorizontalScrollIndicator = NO;
     collectionView.pagingEnabled = YES;
     collectionView.dataSource = self;
@@ -169,6 +170,8 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
     cell.photoItem = item;
     
     [self solveSelectBlockWithCell:cell];
+    
+    cell.collectionView = self.collectionView;
     
     return cell;
 }
@@ -222,11 +225,13 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
 #pragma mark - 退出
     if (!cell.dismissBlock) {
         [cell setDismissBlock:^(JKPhotoBrowserCollectionViewCell *currentCell) {
+            weakSelf.presentationManager.touchImageView = currentCell.photoImageView;
             weakSelf.presentationManager.touchImage = currentCell.photoImageView.image;
             
             weakSelf.indexPath = (weakSelf.isRealIndex) ? currentCell.indexPath : [NSIndexPath indexPathForItem:currentCell.indexPath.item + 1 inSection:currentCell.indexPath.section];
             
             JKPhotoCollectionViewCell *fromCell = (JKPhotoCollectionViewCell *)[weakSelf.fromCollectionView cellForItemAtIndexPath:weakSelf.indexPath];
+            weakSelf.presentationManager.fromImageView = fromCell.photoImageView;
             
             CGRect presentFrame = (fromCell.frame.size.width != fromCell.photoImageView.frame.size.width) ? [[UIApplication sharedApplication].keyWindow convertRect:fromCell.photoImageView.frame fromView:fromCell.photoImageView.superview] : [[UIApplication sharedApplication].keyWindow convertRect:fromCell.frame fromView:fromCell.superview];
             NSLog(@"presentFrame--->%@", NSStringFromCGRect(presentFrame));
@@ -273,6 +278,7 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
 //    JKPhotoBrowserCollectionViewCell *cell = (JKPhotoBrowserCollectionViewCell *)[collectionView cellForItemAtIndexPath:indexPath];
 //    
 //    self.presentationManager.touchImage = cell.photoImageView.image;
+//    self.presentationManager.touchImageView = cell.photoImageView;
 //    
 //    self.indexPath = (self.isRealIndex) ? indexPath : [NSIndexPath indexPathForItem:indexPath.item + 1 inSection:indexPath.section];
 //    
@@ -298,6 +304,16 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
 #pragma mark - scrollView代理
 - (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView{
     
+    
+    NSLog(@"可见cell--->%zd", self.collectionView.visibleCells.count);
+    
+    self.indexPath = [NSIndexPath indexPathForItem:(self.isRealIndex) ? scrollView.contentOffset.x / JKScreenW : scrollView.contentOffset.x / JKScreenW + 1 inSection:0];
+
+    JKPhotoCollectionViewCell *fromCell = (JKPhotoCollectionViewCell *)[self.fromCollectionView cellForItemAtIndexPath:self.indexPath];
+
+    CGRect presentFrame = (fromCell.frame.size.width != fromCell.photoImageView.frame.size.width) ? [[UIApplication sharedApplication].keyWindow convertRect:fromCell.photoImageView.frame fromView:fromCell.photoImageView.superview] : [[UIApplication sharedApplication].keyWindow convertRect:fromCell.frame fromView:fromCell.superview];
+    
+    self.presentationManager.whiteView.frame = presentFrame;
 }
 
 - (void)didReceiveMemoryWarning {

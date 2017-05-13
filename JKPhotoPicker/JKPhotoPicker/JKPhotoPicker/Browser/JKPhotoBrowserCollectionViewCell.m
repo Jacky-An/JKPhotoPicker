@@ -17,6 +17,7 @@
 @interface JKPhotoBrowserCollectionViewCell () <UIScrollViewDelegate, UIGestureRecognizerDelegate>
 {
     CGFloat _screenAspectRatio;
+    BOOL isGonnaDismiss;
 }
 /** 照片选中按钮 */
 @property (nonatomic, weak) UIButton *selectButton;
@@ -26,6 +27,18 @@
 
 /** scrollView */
 @property (nonatomic, weak) UIScrollView *scrollView;
+
+/** 当前的ZoomScale */
+@property (nonatomic, assign) CGFloat currentZoomScale;
+
+/** 是否双击 */
+@property (nonatomic, assign) BOOL isDoubleTap;
+
+/** 是否正在缩放 */
+@property (nonatomic, assign) BOOL isZooming;
+
+/** 缩放比例 */
+@property (nonatomic, assign) CGFloat transformScale;
 @end
 
 @implementation JKPhotoBrowserCollectionViewCell
@@ -38,6 +51,7 @@
 }
 
 - (void)initialization{
+    self.currentZoomScale = 1;
     
     // 当前屏幕宽高比
     _screenAspectRatio = JKScreenW / JKScreenH;
@@ -56,6 +70,9 @@
     scrollView.delegate = self;
     scrollView.minimumZoomScale = 1;
     scrollView.maximumZoomScale = 3;
+//    scrollView.backgroundColor = [UIColor blackColor];
+    scrollView.alwaysBounceVertical = YES;
+    
     [self.contentView insertSubview:scrollView atIndex:0];
     self.scrollView = scrollView;
     
@@ -106,6 +123,7 @@
 }
 
 - (void)doubleTap:(UITapGestureRecognizer *)tap{
+    self.isDoubleTap = YES;
     
     CGPoint touchPoint = [tap locationInView:self.contentView];
     
@@ -233,6 +251,51 @@
 }
 
 #pragma mark - UIScrollViewDelegate
+- (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView{
+    self.isDoubleTap = NO;
+}
+
+- (void)scrollViewWillEndDragging:(UIScrollView *)scrollView withVelocity:(CGPoint)velocity targetContentOffset:(inout CGPoint *)targetContentOffset{
+//    scrollView.userInteractionEnabled = NO;
+    if (scrollView.contentOffset.y < -80 - scrollView.contentInset.top) {
+        isGonnaDismiss = YES;
+        scrollView.bounces = NO;
+        //        [self selfDismiss];
+        !self.dismissBlock ? : self.dismissBlock(self);
+    }
+}
+
+- (void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate{
+//    scrollView.userInteractionEnabled = YES;
+}
+
+- (void)scrollViewWillBeginZooming:(UIScrollView *)scrollView withView:(UIView *)view{
+    self.isZooming = YES;
+}
+
+- (void)scrollViewDidScroll:(UIScrollView *)scrollView{
+    NSLog(@"contentOffset --> %@", NSStringFromCGPoint(scrollView.contentOffset));
+    if (scrollView.contentOffset.y + scrollView.contentInset.top >= 0) {
+        return;
+    }
+    
+    if (self.isZooming || isGonnaDismiss || self.isDoubleTap) {
+        return;
+    }
+    NSLog(@"正在形变！！！");
+    
+    self.transformScale = self.currentZoomScale - (scrollView.contentOffset.y + scrollView.contentInset.top) / (-350 - scrollView.contentInset.top) * 1.0;
+    self.transformScale = self.transformScale < 0.2 ? 0.2 : self.transformScale;
+    self.photoImageView.transform = CGAffineTransformMakeScale(self.transformScale, self.transformScale);
+    self.collectionView.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:1 - (scrollView.contentOffset.y + scrollView.contentInset.top) / (-80 - scrollView.contentInset.top)];
+}
+
+- (void)scrollViewDidEndZooming:(UIScrollView *)scrollView withView:(UIView *)view atScale:(CGFloat)scale{
+    self.currentZoomScale = scale;
+    self.isZooming = NO;
+    NSLog(@"当前zoomScale ---> %.2f", scale);
+}
+
 - (UIView *)viewForZoomingInScrollView:(UIScrollView *)scrollView{
     return self.photoImageView;
 }

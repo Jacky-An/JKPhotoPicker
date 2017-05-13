@@ -21,6 +21,18 @@
 /** 点击的图片 */
 @property (nonatomic, strong) UIImage *touchImage;
 
+/** 点击的图片view 点开时 == fromImageView，缩小返回时是点击的图片浏览器的imageView */
+@property (nonatomic, weak) UIImageView *touchImageView;
+
+/** 列表中点击的图片view */
+@property (nonatomic, weak) UIImageView *fromImageView;
+
+/** 遮盖原来图片的白色View */
+@property (nonatomic, weak) UIView *whiteView;
+
+/** fromView */
+@property (nonatomic, weak) UIView *fromView;
+
 /** 是否执行放大动画 */
 @property (nonatomic, assign) BOOL isZoomUpAnimation;
 @end
