@@ -10,11 +10,12 @@
 
 #import "JKPhotoPicker.h"
 
-@interface JKTestViewController ()
+@interface JKTestViewController () <UIImagePickerControllerDelegate, UINavigationControllerDelegate>
 /** 已选择的照片容器view */
 @property (nonatomic, weak) JKPhotoSelectCompleteView *selectCompleteView;
 @property (weak, nonatomic) IBOutlet UIScrollView *uploadScrollView;
 @property (weak, nonatomic) IBOutlet UIActivityIndicatorView *indicatorView;
+@property (weak, nonatomic) UIImageView *imageView;
 @end
 
 @implementation JKTestViewController
@@ -27,18 +28,23 @@
 }
 
 - (IBAction)photoAction:(UIButton *)sender {
-    [JKPhotoPickerViewController showWithMaxSelectCount:7 seletedPhotos:self.selectCompleteView.photoItems completeHandler:^(NSArray *photoItems) {
-        self.selectCompleteView.photoItems = photoItems;
-    }];
-    return;
+    //    [JKPhotoPickerViewController showWithMaxSelectCount:7 seletedPhotos:self.selectCompleteView.photoItems completeHandler:^(NSArray *photoItems) {
+    //        [self.imageView removeFromSuperview];
+    //        self.imageView = nil;
+    //        self.selectCompleteView.photoItems = photoItems;
+    //    }];
+    //    return;
     UIAlertController *alertVc = [UIAlertController alertControllerWithTitle:nil message:nil preferredStyle:(UIAlertControllerStyleActionSheet)];
     
     [alertVc addAction:[UIAlertAction actionWithTitle:@"拍照" style:(UIAlertActionStyleDefault) handler:^(UIAlertAction * _Nonnull action) {
         
+        [self updateIconWithSourType:(UIImagePickerControllerSourceTypeCamera)];
     }]];
     
     [alertVc addAction:[UIAlertAction actionWithTitle:@"从相册选择" style:(UIAlertActionStyleDefault) handler:^(UIAlertAction * _Nonnull action) {
         [JKPhotoPickerViewController showWithMaxSelectCount:7 seletedPhotos:self.selectCompleteView.photoItems completeHandler:^(NSArray *photoItems) {
+            [self.imageView removeFromSuperview];
+            self.imageView = nil;
             self.selectCompleteView.photoItems = photoItems;;
         }];
     }]];
@@ -48,6 +54,34 @@
     [self presentViewController:alertVc animated:YES completion:nil];
 }
 
+- (void)updateIconWithSourType:(UIImagePickerControllerSourceType)sourceType{
+    
+    if (![UIImagePickerController isSourceTypeAvailable:sourceType]) return;
+    
+    UIImagePickerController *imagePicker = [[UIImagePickerController alloc] init];
+    imagePicker.sourceType = sourceType;
+    imagePicker.allowsEditing = YES;
+    
+    imagePicker.delegate = self;
+    [self presentViewController:imagePicker animated:YES completion:nil];
+}
+
+#pragma mark - <UIImagePickerControllerDelegate>
+- (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary<NSString *,id> *)info{
+    
+    UIImage *image = info[UIImagePickerControllerEditedImage];
+    
+    [self.imageView removeFromSuperview];
+    self.imageView = nil;
+    
+    UIImageView *imageView = [[UIImageView alloc] initWithImage:image];
+    imageView.frame = CGRectMake(0, 0, self.selectCompleteView.frame.size.height, self.selectCompleteView.frame.size.height);
+    [self.selectCompleteView addSubview:imageView];
+    self.imageView = imageView;
+    
+    [self dismissViewControllerAnimated:YES completion:nil];
+}
+
 - (IBAction)uploadImages:(UIButton *)sender {
     
     if (self.selectCompleteView.photoItems.count <= 0) {
@@ -55,6 +89,8 @@
     }
     
     sender.selected = !sender.selected;
+    
+    [[UIApplication sharedApplication] setStatusBarHidden:sender.selected withAnimation:UIStatusBarAnimationSlide];
     
     if (!sender.selected) {
         [self.uploadScrollView.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];

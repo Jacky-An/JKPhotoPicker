@@ -27,5 +27,5 @@
 @property (nonatomic, copy) BOOL(^selectBlock)(BOOL selected, JKPhotoBrowserCollectionViewCell *currentCell);
 
 /** 监听点击选中照片的block */
-@property (nonatomic, copy) void(^dismissBlock)(JKPhotoBrowserCollectionViewCell *currentCell);
+@property (nonatomic, copy) void(^dismissBlock)(JKPhotoBrowserCollectionViewCell *currentCell, CGRect dismissFrame);
 @end

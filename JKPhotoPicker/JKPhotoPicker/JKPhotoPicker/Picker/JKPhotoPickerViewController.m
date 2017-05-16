@@ -74,6 +74,10 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
     }];
 }
 
++ (void)initialize{
+    [[UIView appearance] setExclusiveTouch:YES];
+}
+
 #pragma mark - 懒加载
 - (NSMutableArray *)allPhotos{
     if (!_allPhotos) {
@@ -124,6 +128,7 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
 #pragma mark - 初始化
 - (void)viewDidLoad {
     [super viewDidLoad];
+    self.automaticallyAdjustsScrollViewInsets = NO;
     self.view.backgroundColor = [UIColor whiteColor];
     
     if (self.maxSelectCount <= 0) {

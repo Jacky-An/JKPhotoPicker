@@ -12,6 +12,9 @@
 /** popover显示的frame */
 @property (nonatomic, assign) CGRect presentFrame;
 
+/** popover消失时的frame */
+@property (nonatomic, assign) CGRect dismissFrame;
+
 /** popover显示的动画时长 */
 //@property (nonatomic, assign) NSTimeInterval animationDuration;
 
@@ -29,9 +32,6 @@
 
 /** 遮盖原来图片的白色View */
 @property (nonatomic, weak) UIView *whiteView;
-
-/** fromView */
-@property (nonatomic, weak) UIView *fromView;
 
 /** 是否执行放大动画 */
 @property (nonatomic, assign) BOOL isZoomUpAnimation;

@@ -72,13 +72,19 @@
     scrollView.maximumZoomScale = 3;
 //    scrollView.backgroundColor = [UIColor blackColor];
     scrollView.alwaysBounceVertical = YES;
+//    scrollView.alwaysBounceHorizontal = YES;
     
     [self.contentView insertSubview:scrollView atIndex:0];
     self.scrollView = scrollView;
     
-    self.scrollView.userInteractionEnabled = NO;
-    [self.contentView addGestureRecognizer:self.scrollView.panGestureRecognizer];
-    [self.contentView addGestureRecognizer:self.scrollView.pinchGestureRecognizer];
+//    UIPanGestureRecognizer *contentPan = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(contentPan:)];
+//    [self.contentView addGestureRecognizer:contentPan];
+//    
+//    contentPan.delegate = self;
+    
+//    self.scrollView.userInteractionEnabled = NO;
+//    [self.contentView addGestureRecognizer:self.scrollView.panGestureRecognizer];
+//    [self.contentView addGestureRecognizer:self.scrollView.pinchGestureRecognizer];
     
     // 照片约束
     //    scrollView.translatesAutoresizingMaskIntoConstraints = NO;
@@ -119,7 +125,7 @@
 #pragma mark - 单击和双击手势
 - (void)singleTap:(UITapGestureRecognizer *)tap{
     
-    !self.dismissBlock ? : self.dismissBlock(self);
+    [self selfDismiss];
 }
 
 - (void)doubleTap:(UITapGestureRecognizer *)tap{
@@ -219,6 +225,8 @@
 }
 
 - (void)resetView{
+    self.currentZoomScale = 1;
+    
     self.scrollView.contentOffset = CGPointZero;
     self.scrollView.contentInset = UIEdgeInsetsZero;
     self.scrollView.contentSize = CGSizeZero;
@@ -256,17 +264,45 @@
 }
 
 - (void)scrollViewWillEndDragging:(UIScrollView *)scrollView withVelocity:(CGPoint)velocity targetContentOffset:(inout CGPoint *)targetContentOffset{
+    
 //    scrollView.userInteractionEnabled = NO;
-    if (scrollView.contentOffset.y < -80 - scrollView.contentInset.top) {
+    if (scrollView.contentOffset.y < -120 - scrollView.contentInset.top) {
         isGonnaDismiss = YES;
-        scrollView.bounces = NO;
-        //        [self selfDismiss];
-        !self.dismissBlock ? : self.dismissBlock(self);
+//        scrollView.bounces = NO;
+        [self selfDismiss];
+    }else{
+        
+        [UIView animateWithDuration:0.25 animations:^{
+            [UIView setAnimationCurve:(7)];
+            CGAffineTransform transform = CGAffineTransformMakeScale(self.currentZoomScale, self.currentZoomScale);//CGAffineTransformTranslate(self.photoImageView.transform, 0, 0);
+            self.photoImageView.transform = CGAffineTransformTranslate(transform, 0, 0);
+        } completion:^(BOOL finished) {
+            
+            scrollView.pinchGestureRecognizer.enabled = YES;
+        }];
     }
 }
 
+- (void)selfDismiss{
+    
+    CGRect rect = [self.photoImageView.superview convertRect:self.photoImageView.frame toView:[UIApplication sharedApplication].keyWindow];
+    
+    self.photoImageView.frame = rect;
+    [self.contentView addSubview:self.photoImageView];
+    [self.scrollView removeFromSuperview];
+    self.scrollView = nil;
+    
+//    self.scrollView.contentInset = UIEdgeInsetsMake(rect.origin.y, 0, 0, 0);
+    
+    [UIView animateWithDuration:0.3 animations:^{
+        self.collectionView.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:0];
+    }];
+    
+    !self.dismissBlock ? : self.dismissBlock(self, rect);
+}
+
 - (void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate{
-//    scrollView.userInteractionEnabled = YES;
+    //    scrollView.userInteractionEnabled = YES;
 }
 
 - (void)scrollViewWillBeginZooming:(UIScrollView *)scrollView withView:(UIView *)view{
@@ -282,12 +318,33 @@
     if (self.isZooming || isGonnaDismiss || self.isDoubleTap) {
         return;
     }
+    
+    self.collectionView.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:1 - (scrollView.contentOffset.y + scrollView.contentInset.top) / (-180 - scrollView.contentInset.top)];
+    
+    if (!scrollView.isDragging) {
+        return;
+    }
+    
+    scrollView.pinchGestureRecognizer.enabled = NO;
+    
+    CGPoint point = [scrollView.panGestureRecognizer translationInView:scrollView.panGestureRecognizer.view];
+    NSLog(@"%@", NSStringFromCGPoint(point));
+    
     NSLog(@"正在形变！！！");
     
     self.transformScale = self.currentZoomScale - (scrollView.contentOffset.y + scrollView.contentInset.top) / (-350 - scrollView.contentInset.top) * 1.0;
     self.transformScale = self.transformScale < 0.2 ? 0.2 : self.transformScale;
-    self.photoImageView.transform = CGAffineTransformMakeScale(self.transformScale, self.transformScale);
-    self.collectionView.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:1 - (scrollView.contentOffset.y + scrollView.contentInset.top) / (-80 - scrollView.contentInset.top)];
+    CGAffineTransform transform = CGAffineTransformMakeScale(self.transformScale, self.transformScale);
+    
+    self.photoImageView.transform = CGAffineTransformTranslate(transform, self.currentZoomScale > 1 ? 0 : point.x, self.currentZoomScale > 1 ? 0 : point.y * 0.5);
+}
+
+- (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView{
+//    if (!isGonnaDismiss && self.transformScale <= 1) {
+//        [UIView animateWithDuration:0.25 animations:^{
+//            self.photoImageView.transform = CGAffineTransformIdentity;
+//        }];
+//    }
 }
 
 - (void)scrollViewDidEndZooming:(UIScrollView *)scrollView withView:(UIView *)view atScale:(CGFloat)scale{
@@ -314,5 +371,22 @@
     offsetY = (offsetY < 0) ? 0 : offsetY;
     
     self.scrollView.contentInset = UIEdgeInsetsMake(offsetY, offsetX, offsetY, offsetX);//UIEdgeInsets(top: offsetY, left: offsetX, bottom: offsetY, right: offsetX)
+}
+
+#pragma mark - UIGestureRecognizerDelegate
+- (BOOL)gestureRecognizerShouldBegin:(UIGestureRecognizer *)gestureRecognizer{
+    if ([gestureRecognizer isKindOfClass:[UIPanGestureRecognizer class]]) {
+        
+        UIPanGestureRecognizer *pan = (UIPanGestureRecognizer *)gestureRecognizer;
+        CGPoint pos = [pan velocityInView:pan.view];
+        NSLog(@"手势--->%@", NSStringFromCGPoint(pos));
+//        if (pos.y > 0) {
+//            self.scrollView.scrollEnabled = NO;
+//            return YES;
+//        }
+        return YES;
+    }
+    
+    return NO;
 }
 @end

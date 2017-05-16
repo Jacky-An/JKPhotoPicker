@@ -137,10 +137,12 @@
     imageView.contentMode = UIViewContentModeScaleAspectFill;
     imageView.clipsToBounds = YES;
     imageView.image = self.touchImage;
-    imageView.frame = [self calculateImageCoverViewFrameWithImageView:self.touchImageView];
+    imageView.frame = self.dismissFrame;//[self calculateImageCoverViewFrameWithImageView:self.touchImageView];
     [[transitionContext containerView] addSubview:imageView];
     
-    fromView.hidden = YES;
+    self.touchImageView.hidden = YES;
+    
+//    fromView.hidden = YES;
     [[transitionContext containerView] setBackgroundColor:[UIColor clearColor]];
     
     [UIView animateWithDuration:[self transitionDuration:transitionContext] animations:^{

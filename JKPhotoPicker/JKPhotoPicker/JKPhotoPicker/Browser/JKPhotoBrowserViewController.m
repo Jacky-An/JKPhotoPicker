@@ -86,9 +86,9 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
     [viewController presentViewController:vc animated:YES completion:nil];
 }
 
-- (BOOL)prefersStatusBarHidden{
-    return YES;
-}
+//- (BOOL)prefersStatusBarHidden{
+//    return YES;
+//}
 
 #pragma mark - 懒加载
 - (NSMutableArray *)selectedPhotos{
@@ -108,14 +108,15 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
 - (void)viewWillDisappear:(BOOL)animated{
     [super viewWillDisappear:animated];
     
-//    [[UIApplication sharedApplication] setStatusBarHidden:NO withAnimation:(UIStatusBarAnimationSlide)];
+//    [[UIApplication sharedApplication] setStatusBarHidden:NO withAnimation:UIStatusBarAnimationFade];
 }
-
 - (void)viewDidLoad {
     [super viewDidLoad];
-    
     self.view.backgroundColor = [UIColor clearColor];
-//    [[UIApplication sharedApplication] setStatusBarHidden:YES withAnimation:(UIStatusBarAnimationSlide)];
+    
+    
+    
+//    [[UIApplication sharedApplication] setStatusBarHidden:YES withAnimation:UIStatusBarAnimationFade];
     
     [self setupCollectionView];
     [self.collectionView scrollToItemAtIndexPath:self.indexPath atScrollPosition:(UICollectionViewScrollPositionNone) animated:YES];
@@ -224,9 +225,10 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
     
 #pragma mark - 退出
     if (!cell.dismissBlock) {
-        [cell setDismissBlock:^(JKPhotoBrowserCollectionViewCell *currentCell) {
+        [cell setDismissBlock:^(JKPhotoBrowserCollectionViewCell *currentCell, CGRect dismissFrame) {
             weakSelf.presentationManager.touchImageView = currentCell.photoImageView;
             weakSelf.presentationManager.touchImage = currentCell.photoImageView.image;
+            weakSelf.presentationManager.dismissFrame = dismissFrame;
             
             weakSelf.indexPath = (weakSelf.isRealIndex) ? currentCell.indexPath : [NSIndexPath indexPathForItem:currentCell.indexPath.item + 1 inSection:currentCell.indexPath.section];
             
@@ -303,7 +305,6 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
 
 #pragma mark - scrollView代理
 - (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView{
-    
     
     NSLog(@"可见cell--->%zd", self.collectionView.visibleCells.count);
     
