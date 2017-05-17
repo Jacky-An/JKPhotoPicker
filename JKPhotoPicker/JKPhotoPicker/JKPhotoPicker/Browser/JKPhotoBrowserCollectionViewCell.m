@@ -70,21 +70,21 @@
     scrollView.delegate = self;
     scrollView.minimumZoomScale = 1;
     scrollView.maximumZoomScale = 3;
-//    scrollView.backgroundColor = [UIColor blackColor];
+    //    scrollView.backgroundColor = [UIColor blackColor];
     scrollView.alwaysBounceVertical = YES;
-//    scrollView.alwaysBounceHorizontal = YES;
+    scrollView.alwaysBounceHorizontal = YES;
     
     [self.contentView insertSubview:scrollView atIndex:0];
     self.scrollView = scrollView;
     
-//    UIPanGestureRecognizer *contentPan = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(contentPan:)];
-//    [self.contentView addGestureRecognizer:contentPan];
-//    
-//    contentPan.delegate = self;
+    //    UIPanGestureRecognizer *contentPan = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(contentPan:)];
+    //    [self.contentView addGestureRecognizer:contentPan];
+    //
+    //    contentPan.delegate = self;
     
-//    self.scrollView.userInteractionEnabled = NO;
-//    [self.contentView addGestureRecognizer:self.scrollView.panGestureRecognizer];
-//    [self.contentView addGestureRecognizer:self.scrollView.pinchGestureRecognizer];
+    //    self.scrollView.userInteractionEnabled = NO;
+    //    [self.contentView addGestureRecognizer:self.scrollView.panGestureRecognizer];
+    //    [self.contentView addGestureRecognizer:self.scrollView.pinchGestureRecognizer];
     
     // 照片约束
     //    scrollView.translatesAutoresizingMaskIntoConstraints = NO;
@@ -100,7 +100,7 @@
     photoImageView.clipsToBounds = YES;
     [self.scrollView insertSubview:photoImageView atIndex:0];
     self.photoImageView = photoImageView;
-//    photoImageView.frame = JKScreenBounds;
+    //    photoImageView.frame = JKScreenBounds;
     // 照片约束
     //    photoImageView.translatesAutoresizingMaskIntoConstraints = NO;
     //    NSArray *photoImageViewCons1 = [NSLayoutConstraint constraintsWithVisualFormat:@"H:|-0-[photoImageView]-0-|" options:0 metrics:nil views:@{@"photoImageView" : photoImageView}];
@@ -109,7 +109,7 @@
     //    NSArray *photoImageViewCons2 = [NSLayoutConstraint constraintsWithVisualFormat:@"V:|-0-[photoImageView]-0-|" options:0 metrics:nil views:@{@"photoImageView" : photoImageView}];
     //    [self.scrollView addConstraints:photoImageViewCons2];
     
-//    self.photoImageView.userInteractionEnabled = YES;
+    //    self.photoImageView.userInteractionEnabled = YES;
     UITapGestureRecognizer *doubleTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(doubleTap:)];
     doubleTap.numberOfTapsRequired = 2;
     [self.contentView addGestureRecognizer:doubleTap];
@@ -265,10 +265,10 @@
 
 - (void)scrollViewWillEndDragging:(UIScrollView *)scrollView withVelocity:(CGPoint)velocity targetContentOffset:(inout CGPoint *)targetContentOffset{
     
-//    scrollView.userInteractionEnabled = NO;
-    if (scrollView.contentOffset.y < -120 - scrollView.contentInset.top) {
+    //    scrollView.userInteractionEnabled = NO;
+    if (scrollView.contentOffset.y < -80 - scrollView.contentInset.top) {
         isGonnaDismiss = YES;
-//        scrollView.bounces = NO;
+        //        scrollView.bounces = NO;
         [self selfDismiss];
     }else{
         
@@ -279,6 +279,7 @@
         } completion:^(BOOL finished) {
             
             scrollView.pinchGestureRecognizer.enabled = YES;
+            self.collectionView.scrollEnabled = YES;
         }];
     }
 }
@@ -292,7 +293,7 @@
     [self.scrollView removeFromSuperview];
     self.scrollView = nil;
     
-//    self.scrollView.contentInset = UIEdgeInsetsMake(rect.origin.y, 0, 0, 0);
+    //    self.scrollView.contentInset = UIEdgeInsetsMake(rect.origin.y, 0, 0, 0);
     
     [UIView animateWithDuration:0.3 animations:^{
         self.collectionView.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:0];
@@ -326,8 +327,10 @@
     }
     
     scrollView.pinchGestureRecognizer.enabled = NO;
+    self.collectionView.scrollEnabled = NO;
     
-    CGPoint point = [scrollView.panGestureRecognizer translationInView:scrollView.panGestureRecognizer.view];
+    
+    CGPoint point = [scrollView.panGestureRecognizer translationInView:scrollView.panGestureRecognizer.view.superview];
     NSLog(@"%@", NSStringFromCGPoint(point));
     
     NSLog(@"正在形变！！！");
@@ -340,11 +343,11 @@
 }
 
 - (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView{
-//    if (!isGonnaDismiss && self.transformScale <= 1) {
-//        [UIView animateWithDuration:0.25 animations:^{
-//            self.photoImageView.transform = CGAffineTransformIdentity;
-//        }];
-//    }
+    //    if (!isGonnaDismiss && self.transformScale <= 1) {
+    //        [UIView animateWithDuration:0.25 animations:^{
+    //            self.photoImageView.transform = CGAffineTransformIdentity;
+    //        }];
+    //    }
 }
 
 - (void)scrollViewDidEndZooming:(UIScrollView *)scrollView withView:(UIView *)view atScale:(CGFloat)scale{
@@ -380,10 +383,10 @@
         UIPanGestureRecognizer *pan = (UIPanGestureRecognizer *)gestureRecognizer;
         CGPoint pos = [pan velocityInView:pan.view];
         NSLog(@"手势--->%@", NSStringFromCGPoint(pos));
-//        if (pos.y > 0) {
-//            self.scrollView.scrollEnabled = NO;
-//            return YES;
-//        }
+        //        if (pos.y > 0) {
+        //            self.scrollView.scrollEnabled = NO;
+        //            return YES;
+        //        }
         return YES;
     }
     
