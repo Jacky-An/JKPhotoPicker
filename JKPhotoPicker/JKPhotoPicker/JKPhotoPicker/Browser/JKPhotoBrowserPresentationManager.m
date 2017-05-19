@@ -78,7 +78,10 @@
     blackBgView.backgroundColor = [UIColor blackColor];
     [[transitionContext containerView] addSubview:blackBgView];
     
-    UIView *whiteView = [[UIView alloc] initWithFrame:self.presentFrame];
+    CGFloat Y = self.presentFrame.origin.y < 64 ? 64 : self.presentFrame.origin.y;
+    CGFloat H = (CGRectGetMaxY(self.presentFrame) > JKScreenH - 70 ? JKScreenH - 70 : CGRectGetMaxY(self.presentFrame)) - Y;
+    
+    UIView *whiteView = [[UIView alloc] initWithFrame:CGRectMake(self.presentFrame.origin.x, Y, self.presentFrame.size.width, H)];
     whiteView.backgroundColor = [UIColor whiteColor];
     [[transitionContext containerView] insertSubview:whiteView atIndex:0];
     self.whiteView = whiteView;
@@ -105,7 +108,7 @@
     
     [UIView animateWithDuration:[self transitionDuration:transitionContext] animations:^{
 //        toView.transform = CGAffineTransformIdentity;
-        imageView.frame = [UIScreen mainScreen].bounds;
+        imageView.frame = [self calculateImageViewSizeWithImage:imageView.image];//[UIScreen mainScreen].bounds;
         
     } completion:^(BOOL finished) {
         
@@ -123,6 +126,29 @@
 //        [toView performSelector:@selector(setUserInteractionEnabled:) withObject:@(YES) afterDelay:0.3];
 //        [imageView performSelector:@selector(removeFromSuperview) withObject:nil afterDelay:0.2];
     }];
+}
+
+- (CGRect)calculateImageViewSizeWithImage:(UIImage *)image{
+    //图片要显示的尺寸
+    CGFloat pictureX = 0;
+    CGFloat pictureY = 0;
+    CGFloat pictureW = JKScreenW;
+    CGFloat pictureH = JKScreenW * image.size.height / image.size.width;
+    
+    if (pictureH > JKScreenH) {//图片高过屏幕
+        //        self.imageView.frame = CGRectMake(0, 0, pictureW, pictureH);
+        //设置scrollView的contentSize
+        //        self.scrollView.contentSize = CGSizeMake(pictureW, pictureH);
+        //        NSLog(@"更新了contentSize");
+        
+    }else{//图片不高于屏幕
+        pictureY = (JKScreenH - pictureH) * 0.5;
+        //        self.imageView.frame = CGRectMake(0, 0, pictureW, pictureH);//CGSizeMake(pictureW, pictureH);
+        //图片显示在中间
+        //        self.imageView.center= CGPointMake(JKScreenW * 0.5, JKScreenH * 0.5);
+    }
+    
+    return CGRectMake(pictureX, pictureY, pictureW, pictureH);
 }
 
 #pragma mark - 执行消失的动画

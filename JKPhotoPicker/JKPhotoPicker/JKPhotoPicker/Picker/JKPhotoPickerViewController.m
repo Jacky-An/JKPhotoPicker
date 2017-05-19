@@ -313,7 +313,7 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
                 }
                 
                 [weakSelf.bottomCollectionView reloadData];
-                [weakSelf.collectionView reloadData];
+//                [weakSelf.collectionView reloadData];
                 
                 [weakSelf changeSelectedCount];
                 NSLog(@"取消选中,当前选中了%ld个", (unsigned long)weakSelf.selectedPhotos.count);
@@ -391,9 +391,15 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
     [JKPhotoBrowserViewController showWithViewController:self dataDict:dict completion:^(NSArray *seletedPhotos) {
         
         [self.selectedPhotos removeAllObjects];
-        [self.selectedPhotos addObjectsFromArray:seletedPhotos];
+        
+        NSMutableArray *indexArr = [NSMutableArray array];
+        for (JKPhotoItem *itm in seletedPhotos) {
+            [self.selectedPhotos  addObject:itm];
+            [indexArr addObject:[NSIndexPath indexPathForItem:[self.allPhotos indexOfObject:itm] inSection:0]];
+        }
+        
+        [self.collectionView reloadItemsAtIndexPaths:indexArr];
         [self.bottomCollectionView reloadData];
-        [self.collectionView reloadData];
         [self changeSelectedCount];
     }];
 }

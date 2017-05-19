@@ -18,6 +18,7 @@
 {
     CGFloat _screenAspectRatio;
     BOOL isGonnaDismiss;
+    CGFloat originalHeight;
 }
 /** 照片选中按钮 */
 @property (nonatomic, weak) UIButton *selectButton;
@@ -70,21 +71,21 @@
     scrollView.delegate = self;
     scrollView.minimumZoomScale = 1;
     scrollView.maximumZoomScale = 3;
-    //    scrollView.backgroundColor = [UIColor blackColor];
+//    scrollView.backgroundColor = [UIColor blackColor];
     scrollView.alwaysBounceVertical = YES;
     scrollView.alwaysBounceHorizontal = YES;
     
     [self.contentView insertSubview:scrollView atIndex:0];
     self.scrollView = scrollView;
     
-    //    UIPanGestureRecognizer *contentPan = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(contentPan:)];
-    //    [self.contentView addGestureRecognizer:contentPan];
-    //
-    //    contentPan.delegate = self;
+//    UIPanGestureRecognizer *contentPan = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(contentPan:)];
+//    [self.contentView addGestureRecognizer:contentPan];
+//    
+//    contentPan.delegate = self;
     
-    //    self.scrollView.userInteractionEnabled = NO;
-    //    [self.contentView addGestureRecognizer:self.scrollView.panGestureRecognizer];
-    //    [self.contentView addGestureRecognizer:self.scrollView.pinchGestureRecognizer];
+//    self.scrollView.userInteractionEnabled = NO;
+//    [self.contentView addGestureRecognizer:self.scrollView.panGestureRecognizer];
+//    [self.contentView addGestureRecognizer:self.scrollView.pinchGestureRecognizer];
     
     // 照片约束
     //    scrollView.translatesAutoresizingMaskIntoConstraints = NO;
@@ -100,7 +101,7 @@
     photoImageView.clipsToBounds = YES;
     [self.scrollView insertSubview:photoImageView atIndex:0];
     self.photoImageView = photoImageView;
-    //    photoImageView.frame = JKScreenBounds;
+//    photoImageView.frame = JKScreenBounds;
     // 照片约束
     //    photoImageView.translatesAutoresizingMaskIntoConstraints = NO;
     //    NSArray *photoImageViewCons1 = [NSLayoutConstraint constraintsWithVisualFormat:@"H:|-0-[photoImageView]-0-|" options:0 metrics:nil views:@{@"photoImageView" : photoImageView}];
@@ -109,7 +110,7 @@
     //    NSArray *photoImageViewCons2 = [NSLayoutConstraint constraintsWithVisualFormat:@"V:|-0-[photoImageView]-0-|" options:0 metrics:nil views:@{@"photoImageView" : photoImageView}];
     //    [self.scrollView addConstraints:photoImageViewCons2];
     
-    //    self.photoImageView.userInteractionEnabled = YES;
+//    self.photoImageView.userInteractionEnabled = YES;
     UITapGestureRecognizer *doubleTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(doubleTap:)];
     doubleTap.numberOfTapsRequired = 2;
     [self.contentView addGestureRecognizer:doubleTap];
@@ -140,7 +141,7 @@
     }
     
     // 双击缩小
-    if (self.photoImageView.frame.size.width > JKScreenW) {
+    if (self.scrollView.zoomScale > 1) {
         [self.scrollView setZoomScale:1 animated:YES];
         return;
     }
@@ -198,11 +199,35 @@
     [[PHImageManager defaultManager] requestImageForAsset:_photoItem.photoAsset targetSize:PHImageManagerMaximumSize contentMode:PHImageContentModeAspectFit options:nil resultHandler:^(UIImage * _Nullable result, NSDictionary * _Nullable info) {
         
         self.photoImageView.image = result;
-        [self calculateImageCoverViewFrame];
+        [self calculateImageViewSizeWithImage:result];
     }];
     
     // 这样会很卡，而且内存警告直接崩，还不清晰
     //    self.photoImageView.image = _photoItem.thumImage;
+}
+
+
+
+- (void)calculateImageViewSizeWithImage:(UIImage *)image{
+    //图片要显示的尺寸
+    CGFloat pictureW = JKScreenW;
+    CGFloat pictureH = JKScreenW * image.size.height / image.size.width;
+    
+    if (pictureH > JKScreenH) {//图片高过屏幕
+        self.photoImageView.frame = CGRectMake(0, 0, pictureW, pictureH);
+        //设置scrollView的contentSize
+        //        self.scrollView.contentSize = CGSizeMake(pictureW, pictureH);
+        //        NSLog(@"更新了contentSize");
+        
+    }else{//图片不高于屏幕
+        
+        self.photoImageView.frame = CGRectMake(0, 0, pictureW, pictureH);//CGSizeMake(pictureW, pictureH);
+        //图片显示在中间
+        //        self.imageView.center= CGPointMake(JKScreenW * 0.5, JKScreenH * 0.5);
+    }
+    self.scrollView.contentSize = CGSizeMake(pictureW, pictureH);
+    [self setInset];
+    originalHeight = pictureH;
 }
 
 - (void)calculateImageCoverViewFrame{
@@ -265,10 +290,10 @@
 
 - (void)scrollViewWillEndDragging:(UIScrollView *)scrollView withVelocity:(CGPoint)velocity targetContentOffset:(inout CGPoint *)targetContentOffset{
     
-    //    scrollView.userInteractionEnabled = NO;
+//    scrollView.userInteractionEnabled = NO;
     if (scrollView.contentOffset.y < -80 - scrollView.contentInset.top) {
         isGonnaDismiss = YES;
-        //        scrollView.bounces = NO;
+//        scrollView.bounces = NO;
         [self selfDismiss];
     }else{
         
@@ -293,7 +318,7 @@
     [self.scrollView removeFromSuperview];
     self.scrollView = nil;
     
-    //    self.scrollView.contentInset = UIEdgeInsetsMake(rect.origin.y, 0, 0, 0);
+//    self.scrollView.contentInset = UIEdgeInsetsMake(rect.origin.y, 0, 0, 0);
     
     [UIView animateWithDuration:0.3 animations:^{
         self.collectionView.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:0];
@@ -339,15 +364,15 @@
     self.transformScale = self.transformScale < 0.2 ? 0.2 : self.transformScale;
     CGAffineTransform transform = CGAffineTransformMakeScale(self.transformScale, self.transformScale);
     
-    self.photoImageView.transform = CGAffineTransformTranslate(transform, self.currentZoomScale > 1 ? 0 : point.x, self.currentZoomScale > 1 ? 0 : point.y * 0.5);
+    self.photoImageView.transform = CGAffineTransformTranslate(transform, self.currentZoomScale > 1 ? 0 : point.x, self.currentZoomScale > 1 ? 0 : (originalHeight > JKScreenH + 100 ? 0 : point.y * 0.5));
 }
 
 - (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView{
-    //    if (!isGonnaDismiss && self.transformScale <= 1) {
-    //        [UIView animateWithDuration:0.25 animations:^{
-    //            self.photoImageView.transform = CGAffineTransformIdentity;
-    //        }];
-    //    }
+//    if (!isGonnaDismiss && self.transformScale <= 1) {
+//        [UIView animateWithDuration:0.25 animations:^{
+//            self.photoImageView.transform = CGAffineTransformIdentity;
+//        }];
+//    }
 }
 
 - (void)scrollViewDidEndZooming:(UIScrollView *)scrollView withView:(UIView *)view atScale:(CGFloat)scale{
@@ -383,10 +408,10 @@
         UIPanGestureRecognizer *pan = (UIPanGestureRecognizer *)gestureRecognizer;
         CGPoint pos = [pan velocityInView:pan.view];
         NSLog(@"手势--->%@", NSStringFromCGPoint(pos));
-        //        if (pos.y > 0) {
-        //            self.scrollView.scrollEnabled = NO;
-        //            return YES;
-        //        }
+//        if (pos.y > 0) {
+//            self.scrollView.scrollEnabled = NO;
+//            return YES;
+//        }
         return YES;
     }
     
