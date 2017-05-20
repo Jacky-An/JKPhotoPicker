@@ -389,10 +389,17 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
     dict[@"indexPath"] = (collectionView == self.collectionView) ? [NSIndexPath indexPathForItem:indexPath.item - 1 inSection:indexPath.section] : indexPath;
     
     [JKPhotoBrowserViewController showWithViewController:self dataDict:dict completion:^(NSArray *seletedPhotos) {
+        NSMutableArray *indexArr = [NSMutableArray array];
+        
+        for (JKPhotoItem *itm in self.selectedPhotos) {
+            if (itm.isSelected) {
+                continue;
+            }
+            [indexArr addObject:[NSIndexPath indexPathForItem:[self.allPhotos indexOfObject:itm] inSection:0]];
+        }
         
         [self.selectedPhotos removeAllObjects];
         
-        NSMutableArray *indexArr = [NSMutableArray array];
         for (JKPhotoItem *itm in seletedPhotos) {
             [self.selectedPhotos  addObject:itm];
             [indexArr addObject:[NSIndexPath indexPathForItem:[self.allPhotos indexOfObject:itm] inSection:0]];
