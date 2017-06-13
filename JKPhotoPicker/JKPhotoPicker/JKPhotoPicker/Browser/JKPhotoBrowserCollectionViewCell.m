@@ -167,17 +167,18 @@
     
     // 照片选中标识
     UIImageView *selectIconImageView = [[UIImageView alloc] init];
-    selectIconImageView.image = [UIImage imageWithContentsOfFile:[[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"resource.bundle/images/deselected_icon.png"]];
-    selectIconImageView.highlightedImage = [UIImage imageWithContentsOfFile:[[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"resource.bundle/images/selected_icon.png"]];
+    selectIconImageView.contentMode = PHImageContentModeAspectFit;
+    selectIconImageView.image = [UIImage imageWithContentsOfFile:[[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"JKPhotoPickerResource.bundle/images/deselected_icon@3x.png"]];
+    selectIconImageView.highlightedImage = [UIImage imageWithContentsOfFile:[[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"JKPhotoPickerResource.bundle/images/selected_icon@3x.png"]];
     [self.contentView addSubview:selectIconImageView];
     self.selectIconImageView = selectIconImageView;
     
     // 照片选中标识约束
     selectIconImageView.translatesAutoresizingMaskIntoConstraints = NO;
-    NSArray *selectIconImageViewCons1 = [NSLayoutConstraint constraintsWithVisualFormat:@"H:[selectIconImageView(40)]-3-|" options:0 metrics:nil views:@{@"selectIconImageView" : selectIconImageView}];
+    NSArray *selectIconImageViewCons1 = [NSLayoutConstraint constraintsWithVisualFormat:@"H:[selectIconImageView(25)]-10-|" options:0 metrics:nil views:@{@"selectIconImageView" : selectIconImageView}];
     [self.contentView addConstraints:selectIconImageViewCons1];
     
-    NSArray *selectIconImageViewCons2 = [NSLayoutConstraint constraintsWithVisualFormat:@"V:[selectIconImageView(40)]-3-|" options:0 metrics:nil views:@{@"selectIconImageView" : selectIconImageView}];
+    NSArray *selectIconImageViewCons2 = [NSLayoutConstraint constraintsWithVisualFormat:@"V:[selectIconImageView(25)]-10-|" options:0 metrics:nil views:@{@"selectIconImageView" : selectIconImageView}];
     [self.contentView addConstraints:selectIconImageViewCons2];
 }
 

@@ -23,7 +23,7 @@
         // 删除按钮
         UIButton *deleteButton = [UIButton buttonWithType:(UIButtonTypeCustom)];
         [self.contentView addSubview:deleteButton];
-        [deleteButton setBackgroundImage:[UIImage imageWithContentsOfFile:[[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"resource.bundle/images/delete_icon@3x.png"]] forState:(UIControlStateNormal)];
+        [deleteButton setBackgroundImage:[UIImage imageWithContentsOfFile:[[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"JKPhotoPickerResource.bundle/images/delete_icon@3x.png"]] forState:(UIControlStateNormal)];
         _deleteButton = deleteButton;
         
         [deleteButton addTarget:self action:@selector(deleteButtonClick) forControlEvents:(UIControlEventTouchUpInside)];

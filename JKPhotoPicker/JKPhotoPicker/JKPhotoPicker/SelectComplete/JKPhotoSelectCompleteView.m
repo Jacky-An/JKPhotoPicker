@@ -22,9 +22,6 @@
 /** 选中的图片数组 */
 @property (nonatomic, strong) NSMutableArray *selectedPhotos;
 
-/** 流水布局 */
-@property (nonatomic, strong) UICollectionViewFlowLayout *flowLayout;
-
 /** 父控件所在的控制器 */
 @property (nonatomic, weak) UIViewController *superViewController;
 
@@ -109,7 +106,7 @@ static NSString * const reuseID = @"JKPhotoSelectCompleteCollectionViewCell"; //
 //    flowLayout.itemSize = (self.itemSize.width <= 0 || self.itemSize.height <= 0) ? CGSizeMake((self.frame.size.width - 3) / 4, (self.frame.size.width - 3) / 4 + 10) : self.itemSize;
     flowLayout.minimumLineSpacing = 1;
     flowLayout.minimumInteritemSpacing = 1;
-    self.flowLayout = flowLayout;
+    _flowLayout = flowLayout;
     
     UICollectionView *collectionView = [[UICollectionView alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, self.frame.size.height) collectionViewLayout:flowLayout];
     collectionView.backgroundColor = [UIColor clearColor];

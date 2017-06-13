@@ -42,10 +42,10 @@
     }]];
     
     [alertVc addAction:[UIAlertAction actionWithTitle:@"从相册选择" style:(UIAlertActionStyleDefault) handler:^(UIAlertAction * _Nonnull action) {
-        [JKPhotoPickerViewController showWithMaxSelectCount:7 seletedPhotos:self.selectCompleteView.photoItems completeHandler:^(NSArray *photoItems) {
+        [JKPhotoPickerViewController showWithPresentVc:self maxSelectCount:7 seletedPhotos:self.selectCompleteView.photoItems isPenCameraFirst:NO completeHandler:^(NSArray<JKPhotoItem *> *photoItems) {
             [self.imageView removeFromSuperview];
             self.imageView = nil;
-            self.selectCompleteView.photoItems = photoItems;;
+            self.selectCompleteView.photoItems = photoItems;
         }];
     }]];
     

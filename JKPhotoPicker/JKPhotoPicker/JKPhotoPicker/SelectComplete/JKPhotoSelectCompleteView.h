@@ -16,6 +16,9 @@
 /** 选中的图片数组 */
 @property (nonatomic, strong, readonly) NSArray *selectedImages;
 
+/** 流水布局 */
+@property (nonatomic, strong, readonly) UICollectionViewFlowLayout *flowLayout;
+
 /**
  * 类方法
  * superView : 父控件

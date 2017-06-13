@@ -55,7 +55,7 @@ static NSString * const reuseID = @"JKPhotoCollectionViewCell"; // 重用ID
 static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; // 选中的照片重用ID
 
 #pragma mark - 类方法
-+ (void)showWithMaxSelectCount:(NSUInteger)maxSelectCount seletedPhotos:(NSArray *)seletedPhotos completeHandler:(void (^)(NSArray *photoItems))completeHandler{
++ (void)showWithPresentVc:(UIViewController *)presentVc maxSelectCount:(NSUInteger)maxSelectCount seletedPhotos:(NSArray <JKPhotoItem *> *)seletedPhotos isPenCameraFirst:(BOOL)isPenCameraFirst completeHandler:(void(^)(NSArray <JKPhotoItem *> *photoItems))completeHandler{
     
     [JKPhotoManager checkPhotoAccessFinished:^(BOOL isAccessed) {
         if (!isAccessed) {
@@ -70,7 +70,20 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
         
         UINavigationController *nav = [[UINavigationController alloc] initWithRootViewController:vc];
         
-        [[UIApplication sharedApplication].keyWindow.rootViewController presentViewController:nav animated:YES completion:nil];
+        if (presentVc && [presentVc isKindOfClass:[UIViewController class]]) {
+            [presentVc presentViewController:nav animated:YES completion:^{
+                if (isPenCameraFirst) {
+                    [vc updateIconWithSourType:(UIImagePickerControllerSourceTypeCamera)];
+                }
+            }];
+            return;
+        }
+        
+        [[UIApplication sharedApplication].keyWindow.rootViewController presentViewController:nav animated:YES completion:^{
+            if (isPenCameraFirst) {
+                [vc updateIconWithSourType:(UIImagePickerControllerSourceTypeCamera)];
+            }
+        }];
     }];
 }
 
@@ -154,8 +167,8 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
     titleButton.frame = CGRectMake(0, 0, 200, 40);
     [titleButton setTitleColor:[UIColor blackColor] forState:(UIControlStateNormal)];
     [titleButton setTitle:@"相机胶卷  " forState:(UIControlStateNormal)];
-    [titleButton setImage:[UIImage imageWithContentsOfFile:[[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"resource.bundle/images/arrow_down@2x.png"]] forState:(UIControlStateNormal)];
-    [titleButton setImage:[UIImage imageWithContentsOfFile:[[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"resource.bundle/images/arrow_up@2x.png"]] forState:(UIControlStateSelected)];
+    [titleButton setImage:[UIImage imageWithContentsOfFile:[[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"JKPhotoPickerResource.bundle/images/arrow_down@2x.png"]] forState:(UIControlStateNormal)];
+    [titleButton setImage:[UIImage imageWithContentsOfFile:[[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"JKPhotoPickerResource.bundle/images/arrow_up@2x.png"]] forState:(UIControlStateSelected)];
     
     [titleButton addTarget:self action:@selector(titleViewClick:) forControlEvents:(UIControlEventTouchUpInside)];
     
@@ -347,7 +360,10 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
             currentCell.photoItem.isSelected = NO;
             [weakSelf.selectedPhotos removeObject:currentCell.photoItem];
             [weakSelf.bottomCollectionView reloadData];
-            [weakSelf.collectionView reloadData];
+            
+            
+            [weakSelf.collectionView reloadItemsAtIndexPaths:@[[NSIndexPath indexPathForItem:[self.allPhotos indexOfObject:currentCell.photoItem] inSection:0]]];
+            
             [weakSelf changeSelectedCount];
         }];
     }

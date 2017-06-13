@@ -30,7 +30,7 @@
     if (!_cameraIconButton) {
         UIButton *cameraIconButton = [UIButton buttonWithType:(UIButtonTypeCustom)];
         cameraIconButton.hidden = YES;
-        [cameraIconButton setBackgroundImage:[UIImage imageWithContentsOfFile:[[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"resource.bundle/images/take_photo.png"]] forState:(UIControlStateNormal)];
+        [cameraIconButton setBackgroundImage:[UIImage imageWithContentsOfFile:[[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"JKPhotoPickerResource.bundle/images/take_photo.png"]] forState:(UIControlStateNormal)];
         [self.contentView addSubview:cameraIconButton];
         _cameraIconButton = cameraIconButton;
         
@@ -96,8 +96,8 @@
     
     // 照片选中标识
     UIImageView *selectIconImageView = [[UIImageView alloc] init];
-    selectIconImageView.image = [UIImage imageWithContentsOfFile:[[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"resource.bundle/images/deselected_icon.png"]];
-    selectIconImageView.highlightedImage = [UIImage imageWithContentsOfFile:[[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"resource.bundle/images/selected_icon.png"]];
+    selectIconImageView.image = [UIImage imageWithContentsOfFile:[[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"JKPhotoPickerResource.bundle/images/deselected_icon@3x.png"]];
+    selectIconImageView.highlightedImage = [UIImage imageWithContentsOfFile:[[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"JKPhotoPickerResource.bundle/images/selected_icon@3x.png"]];
     [self.contentView addSubview:selectIconImageView];
     self.selectIconImageView = selectIconImageView;
     
