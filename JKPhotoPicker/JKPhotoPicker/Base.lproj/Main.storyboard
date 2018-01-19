@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="11762" systemVersion="16C67" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="YzC-yI-evi">
+    <device id="retina4_7" orientation="portrait">
+        <adaptation id="fullscreen"/>
+    </device>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="11757"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <scenes>
+        <!--View Controller-->
+        <scene sceneID="anv-qX-arj">
+            <objects>
+                <viewController id="C7B-fV-7P7" customClass="ViewController" sceneMemberID="viewController">
+                    <layoutGuides>
+                        <viewControllerLayoutGuide type="top" id="t7T-ou-fVe"/>
+                        <viewControllerLayoutGuide type="bottom" id="1uO-U2-gJ1"/>
+                    </layoutGuides>
+                    <view key="view" contentMode="scaleToFill" id="WG9-9O-FBX">
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="uYp-wq-Muu">
+                                <rect key="frame" x="76" y="292" width="159" height="90"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <color key="backgroundColor" red="0.0" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="28"/>
+                                <state key="normal" title="跳转"/>
+                                <connections>
+                                    <segue destination="BYZ-38-t0r" kind="show" id="VLd-vU-LCV"/>
+                                </connections>
+                            </button>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                    </view>
+                    <navigationItem key="navigationItem" id="NrW-qD-uO7"/>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="ylr-fE-mXP" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="192.80000000000001" y="112.89355322338831"/>
+        </scene>
+        <!--Test View Controller-->
+        <scene sceneID="tne-QT-ifu">
+            <objects>
+                <viewController id="BYZ-38-t0r" customClass="JKTestViewController" sceneMemberID="viewController">
+                    <layoutGuides>
+                        <viewControllerLayoutGuide type="top" id="y3c-jy-aDJ"/>
+                        <viewControllerLayoutGuide type="bottom" id="wfy-db-euE"/>
+                    </layoutGuides>
+                    <view key="view" contentMode="scaleToFill" id="8bC-Xf-vdC">
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="上传的图片在这里显示" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="AZy-9m-HFC">
+                                <rect key="frame" x="0.0" y="346" width="280" height="30"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="280" id="NFS-Cc-gS4"/>
+                                    <constraint firstAttribute="height" constant="30" id="QQy-S2-YhW"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" type="system" pointSize="24"/>
+                                <color key="textColor" red="1" green="0.5" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Ygl-TL-ZH0">
+                                <rect key="frame" x="16" y="564" width="130" height="53"/>
+                                <color key="backgroundColor" red="0.0" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="130" id="EJj-cK-E2d"/>
+                                    <constraint firstAttribute="height" constant="53" id="Unq-MC-b9u"/>
+                                </constraints>
+                                <state key="normal" title="选择照片"/>
+                                <connections>
+                                    <action selector="photoAction:" destination="BYZ-38-t0r" eventType="touchUpInside" id="NTO-Fk-6yz"/>
+                                </connections>
+                            </button>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="c3w-b4-JGP">
+                                <rect key="frame" x="0.0" y="384" width="375" height="130"/>
+                                <subviews>
+                                    <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="bdS-P8-VU6">
+                                        <rect key="frame" x="0.0" y="0.0" width="375" height="130"/>
+                                    </scrollView>
+                                </subviews>
+                                <color key="backgroundColor" red="1" green="0.5" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
+                                <constraints>
+                                    <constraint firstAttribute="trailing" secondItem="bdS-P8-VU6" secondAttribute="trailing" id="3aN-ir-bWp"/>
+                                    <constraint firstAttribute="bottom" secondItem="bdS-P8-VU6" secondAttribute="bottom" id="BVf-BS-jmT"/>
+                                    <constraint firstItem="bdS-P8-VU6" firstAttribute="leading" secondItem="c3w-b4-JGP" secondAttribute="leading" id="h1w-8i-NUA"/>
+                                    <constraint firstItem="bdS-P8-VU6" firstAttribute="top" secondItem="c3w-b4-JGP" secondAttribute="top" id="h5V-Pc-OPw"/>
+                                    <constraint firstAttribute="height" constant="130" id="nva-k9-rC9"/>
+                                </constraints>
+                            </view>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="9Oe-6d-4GD">
+                                <rect key="frame" x="229" y="564" width="130" height="53"/>
+                                <color key="backgroundColor" red="0.0" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="53" id="BgT-gT-3IN"/>
+                                    <constraint firstAttribute="width" constant="130" id="oh7-UG-W18"/>
+                                </constraints>
+                                <state key="normal" title="上传照片">
+                                    <color key="titleColor" red="1" green="0.5" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
+                                </state>
+                                <connections>
+                                    <action selector="uploadImages:" destination="BYZ-38-t0r" eventType="touchUpInside" id="0FV-bQ-HcM"/>
+                                </connections>
+                            </button>
+                            <activityIndicatorView hidden="YES" opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="5w4-Qd-YVl">
+                                <rect key="frame" x="332" y="580" width="20" height="20"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="20" id="0hc-ku-AAi"/>
+                                    <constraint firstAttribute="height" constant="20" id="MiW-Th-4tx"/>
+                                </constraints>
+                            </activityIndicatorView>
+                        </subviews>
+                        <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                        <constraints>
+                            <constraint firstItem="Ygl-TL-ZH0" firstAttribute="top" secondItem="c3w-b4-JGP" secondAttribute="bottom" constant="50" id="EO7-j4-bfZ"/>
+                            <constraint firstItem="c3w-b4-JGP" firstAttribute="top" secondItem="AZy-9m-HFC" secondAttribute="bottom" constant="8" id="Hhc-qx-HWL"/>
+                            <constraint firstItem="wfy-db-euE" firstAttribute="top" secondItem="9Oe-6d-4GD" secondAttribute="bottom" constant="50" id="IuW-di-1pD"/>
+                            <constraint firstItem="AZy-9m-HFC" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leading" id="LaH-pk-Gzz"/>
+                            <constraint firstAttribute="trailing" secondItem="5w4-Qd-YVl" secondAttribute="trailing" constant="23" id="NAm-iA-J1b"/>
+                            <constraint firstAttribute="trailing" secondItem="c3w-b4-JGP" secondAttribute="trailing" id="QW9-F5-gqA"/>
+                            <constraint firstItem="wfy-db-euE" firstAttribute="top" secondItem="5w4-Qd-YVl" secondAttribute="bottom" constant="67" id="cSp-8G-CYJ"/>
+                            <constraint firstItem="c3w-b4-JGP" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leading" id="ds1-V6-NKx"/>
+                            <constraint firstItem="Ygl-TL-ZH0" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leading" constant="16" id="gb1-TQ-2Vx"/>
+                            <constraint firstItem="wfy-db-euE" firstAttribute="top" secondItem="Ygl-TL-ZH0" secondAttribute="bottom" constant="50" id="rcy-tA-sUg"/>
+                            <constraint firstAttribute="trailing" secondItem="9Oe-6d-4GD" secondAttribute="trailing" constant="16" id="xRu-Fm-PrY"/>
+                        </constraints>
+                    </view>
+                    <connections>
+                        <outlet property="indicatorView" destination="5w4-Qd-YVl" id="P8H-Iz-US3"/>
+                        <outlet property="uploadScrollView" destination="bdS-P8-VU6" id="I0u-df-Ykn"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="1056.8" y="123.68815592203899"/>
+        </scene>
+        <!--Navigation Controller-->
+        <scene sceneID="zYb-nZ-laR">
+            <objects>
+                <navigationController automaticallyAdjustsScrollViewInsets="NO" id="YzC-yI-evi" sceneMemberID="viewController">
+                    <toolbarItems/>
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="VaM-Ca-CZJ">
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="44"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                    </navigationBar>
+                    <nil name="viewControllers"/>
+                    <connections>
+                        <segue destination="C7B-fV-7P7" kind="relationship" relationship="rootViewController" id="jOq-9d-dJ8"/>
+                    </connections>
+                </navigationController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="ymA-fV-dRo" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="-746.39999999999998" y="112.89355322338831"/>
+        </scene>
+    </scenes>
+</document>
