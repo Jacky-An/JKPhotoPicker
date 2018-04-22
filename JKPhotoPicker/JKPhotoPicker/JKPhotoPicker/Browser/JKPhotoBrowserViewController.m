@@ -184,13 +184,19 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
     
 #pragma mark - 照片选中
     if (!cell.selectBlock) {
+        
         [cell setSelectBlock:^BOOL(BOOL selected, JKPhotoBrowserCollectionViewCell *currentCell) {
+            
             if (selected) {
+                
                 currentCell.photoItem.isSelected = NO;
                 
                 for (JKPhotoItem *it in weakSelf.selectedPhotos) {
+                    
                     if ([it.assetLocalIdentifier isEqualToString:currentCell.photoItem.assetLocalIdentifier]) {
+                        
                         [weakSelf.selectedPhotos removeObject:it];
+                        
                         break;
                     }
                 }
@@ -200,17 +206,21 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
 //                
 //                [weakSelf changeSelectedCount];
                 NSLog(@"取消选中,当前选中了%ld个", (unsigned long)weakSelf.selectedPhotos.count);
+                
                 return !selected;
             }
             
             if (weakSelf.selectedPhotos.count < weakSelf.maxSelectCount) {
+                
                 currentCell.photoItem.isSelected = YES;
+                
                 [weakSelf.selectedPhotos addObject:currentCell.photoItem];
 //                [weakSelf.bottomCollectionView reloadData];
 //                [weakSelf.bottomCollectionView scrollToItemAtIndexPath:[NSIndexPath indexPathForItem:weakSelf.selectedPhotos.count - 1 inSection:0] atScrollPosition:(UICollectionViewScrollPositionCenteredHorizontally) animated:YES];
 //                
 //                [weakSelf changeSelectedCount];
                 NSLog(@"选中了%ld个", (unsigned long)weakSelf.selectedPhotos.count);
+                
                 return !selected;
             }
             
@@ -300,7 +310,9 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
 }
 
 - (void)dismiss{
+    
     !self.completion ? : self.completion(self.selectedPhotos);
+    
     [self dismissViewControllerAnimated:YES completion:nil];
 }
 
