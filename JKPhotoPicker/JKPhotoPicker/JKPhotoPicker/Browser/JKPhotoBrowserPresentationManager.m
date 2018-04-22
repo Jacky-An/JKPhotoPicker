@@ -79,12 +79,20 @@
     [[transitionContext containerView] addSubview:blackBgView];
     
     CGFloat Y = self.presentFrame.origin.y < ([UIApplication sharedApplication].statusBarFrame.size.height + 44) ? ([UIApplication sharedApplication].statusBarFrame.size.height + 44) : self.presentFrame.origin.y;
-    CGFloat H = (CGRectGetMaxY(self.presentFrame) > JKScreenH - 70 ? JKScreenH - 70 : CGRectGetMaxY(self.presentFrame)) - Y;
+    CGFloat H = (Y > JKScreenH - 104 ? CGRectGetMaxY(self.presentFrame) : (CGRectGetMaxY(self.presentFrame) > JKScreenH - 104 ? JKScreenH - 104 : CGRectGetMaxY(self.presentFrame))) - Y;
     
     UIView *whiteView = [[UIView alloc] initWithFrame:CGRectMake(self.presentFrame.origin.x, Y, self.presentFrame.size.width, H)];
     whiteView.backgroundColor = [UIColor whiteColor];
     [[transitionContext containerView] insertSubview:whiteView atIndex:0];
     self.whiteView = whiteView;
+    
+    if (self.isSelectedCell) {
+        
+        UIButton *deleteButton = [UIButton buttonWithType:(UIButtonTypeCustom)];
+        deleteButton.frame = CGRectMake(self.presentFrame.size.width - 15, -10, 20, 20);
+        [whiteView addSubview:deleteButton];
+        [deleteButton setBackgroundImage:[UIImage imageWithContentsOfFile:[[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"JKPhotoPickerResource.bundle/images/delete_icon@3x.png"]] forState:(UIControlStateNormal)];
+    }
     
     // 2.将需要弹出的视图添加到containerView上
     [[transitionContext containerView] addSubview:toView];

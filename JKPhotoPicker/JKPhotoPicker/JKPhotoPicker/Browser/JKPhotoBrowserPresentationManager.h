@@ -33,6 +33,9 @@
 /** 遮盖原来图片的白色View */
 @property (nonatomic, weak) UIView *whiteView;
 
+/** 是否是选好的cell 有删除按钮 */
+@property (nonatomic, assign) BOOL isSelectedCell;
+
 /** 是否执行放大动画 */
 @property (nonatomic, assign) BOOL isZoomUpAnimation;
 @end

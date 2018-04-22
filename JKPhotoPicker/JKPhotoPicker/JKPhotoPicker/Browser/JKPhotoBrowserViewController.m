@@ -65,6 +65,7 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
     vc.presentationManager.touchImage = imageView.image;
     vc.presentationManager.touchImageView = imageView;
     vc.presentationManager.fromImageView = imageView;
+    vc.presentationManager.isSelectedCell = [dataDict[@"isSelectedCell"] boolValue];
     vc.modalPresentationStyle = UIModalPresentationCustom;
     
     vc.allPhotos = dataDict[@"allPhotos"];
