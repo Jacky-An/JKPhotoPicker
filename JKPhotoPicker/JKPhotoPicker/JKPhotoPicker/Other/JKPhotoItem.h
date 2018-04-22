@@ -10,11 +10,11 @@
 
 #pragma mark - 适配iOS11
 
-#define JKStatusBarHeight ([UIApplication sharedApplication].statusBarFrame.size.height)
-#define JKNavBarHeight ([UIApplication sharedApplication].statusBarFrame.size.height + 44)
-#define JKTabBarHeight (self.tabBarController.tabBar.height)
-#define JKBottomSafeAreaHeight (34)
-#define JKIsIphoneX ([UIApplication sharedApplication].statusBarFrame.size.height >= 44)
+#define JKPhotoPickerNavBarHeight (JKPhotoPickerIsIphoneX ? 88.0f : 64.0f)
+
+#define JKPhotoPickerBottomSafeAreaHeight (34.0f)
+
+#define JKPhotoPickerIsIphoneX ([UIScreen instancesRespondToSelector:@selector(currentMode)] ? CGSizeEqualToSize(CGSizeMake(1125, 2436), [[UIScreen mainScreen] currentMode].size) : NO)
 
 @class PHAsset, PHAssetCollection, PHFetchResult;
 

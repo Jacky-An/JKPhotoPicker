@@ -173,7 +173,7 @@
     NSArray *selectButtonCons1 = [NSLayoutConstraint constraintsWithVisualFormat:@"H:[selectButton(70)]-0-|" options:0 metrics:nil views:@{@"selectButton" : selectButton}];
     [self.contentView addConstraints:selectButtonCons1];
     
-    NSArray *selectButtonCons2 = [NSLayoutConstraint constraintsWithVisualFormat:[NSString stringWithFormat:@"V:[selectButton(70)]-%zd-|", (JKIsIphoneX ? JKBottomSafeAreaHeight : 0)] options:0 metrics:nil views:@{@"selectButton" : selectButton}];
+    NSArray *selectButtonCons2 = [NSLayoutConstraint constraintsWithVisualFormat:[NSString stringWithFormat:@"V:[selectButton(70)]-%.0f-|", (JKPhotoPickerIsIphoneX ? JKPhotoPickerBottomSafeAreaHeight : 0)] options:0 metrics:nil views:@{@"selectButton" : selectButton}];
     [self.contentView addConstraints:selectButtonCons2];
     
     // 照片选中标识
@@ -189,7 +189,7 @@
     NSArray *selectIconImageViewCons1 = [NSLayoutConstraint constraintsWithVisualFormat:@"H:[selectIconImageView(25)]-10-|" options:0 metrics:nil views:@{@"selectIconImageView" : selectIconImageView}];
     [self.contentView addConstraints:selectIconImageViewCons1];
     
-    NSArray *selectIconImageViewCons2 = [NSLayoutConstraint constraintsWithVisualFormat:[NSString stringWithFormat:@"V:[selectIconImageView(25)]-%zd-|", (JKIsIphoneX ? JKBottomSafeAreaHeight : 0) + 10] options:0 metrics:nil views:@{@"selectIconImageView" : selectIconImageView}];
+    NSArray *selectIconImageViewCons2 = [NSLayoutConstraint constraintsWithVisualFormat:[NSString stringWithFormat:@"V:[selectIconImageView(25)]-%.0f-|", (JKPhotoPickerIsIphoneX ? JKPhotoPickerBottomSafeAreaHeight : 0) + 10] options:0 metrics:nil views:@{@"selectIconImageView" : selectIconImageView}];
     [self.contentView addConstraints:selectIconImageViewCons2];
 }
 
@@ -278,16 +278,20 @@
 - (void)selectImageClick{
     
     if (!(!self.selectBlock ? : self.selectBlock(self.selectIconImageView.highlighted, self))) {
+        
         self.selectIconImageView.highlighted = NO;
+        
         return;
     }
     
     self.selectIconImageView.highlighted = YES;
     
     [UIView animateWithDuration:0.25 animations:^{
+        
         self.selectIconImageView.transform = CGAffineTransformMakeScale(1.3, 1.3);
         
     } completion:^(BOOL finished) {
+        
         [UIView animateWithDuration:0.25 animations:^{
             
             self.selectIconImageView.transform = CGAffineTransformIdentity;
@@ -329,10 +333,13 @@
     [self.contentView addSubview:self.photoImageView];
     [self.scrollView removeFromSuperview];
     self.scrollView = nil;
+    self.selectButton.hidden = YES;
     
 //    self.scrollView.contentInset = UIEdgeInsetsMake(rect.origin.y, 0, 0, 0);
     
     [UIView animateWithDuration:0.3 animations:^{
+        
+        self.selectIconImageView.hidden = YES;
         self.collectionView.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:0];
     }];
     

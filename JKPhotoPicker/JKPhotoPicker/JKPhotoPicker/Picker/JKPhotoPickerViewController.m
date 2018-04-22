@@ -202,8 +202,8 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
     flowLayout.minimumLineSpacing = 1;
     flowLayout.minimumInteritemSpacing = 1;
     
-    UICollectionView *collectionView = [[UICollectionView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height - 70 - (JKIsIphoneX ? JKBottomSafeAreaHeight : 0)) collectionViewLayout:flowLayout];
-    collectionView.contentInset = UIEdgeInsetsMake(JKNavBarHeight, 0, 0, 0);
+    UICollectionView *collectionView = [[UICollectionView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height - 70 - (JKPhotoPickerIsIphoneX ? JKPhotoPickerBottomSafeAreaHeight : 0)) collectionViewLayout:flowLayout];
+    collectionView.contentInset = UIEdgeInsetsMake(JKPhotoPickerNavBarHeight, 0, 0, 0);
     collectionView.backgroundColor = [UIColor clearColor];
     collectionView.alwaysBounceVertical = YES;
     collectionView.dataSource = self;
@@ -228,7 +228,7 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
     
     
     UIView *bottomContentView = [[UIView alloc] init];
-    bottomContentView.frame = CGRectMake(0, CGRectGetMaxY(collectionView.frame), self.view.frame.size.width, 70 + (JKIsIphoneX ? JKBottomSafeAreaHeight : 0));
+    bottomContentView.frame = CGRectMake(0, CGRectGetMaxY(collectionView.frame), self.view.frame.size.width, 70 + (JKPhotoPickerIsIphoneX ? JKPhotoPickerBottomSafeAreaHeight : 0));
     bottomContentView.backgroundColor = [UIColor colorWithRed:250.0 / 255.0 green:250.0 / 255.0 blue:250.0 / 255.0 alpha:1];
     [self.view addSubview:bottomContentView];
     
@@ -447,32 +447,79 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
     dict[@"indexPath"] = (collectionView == self.collectionView) ? [NSIndexPath indexPathForItem:indexPath.item - 1 inSection:indexPath.section] : indexPath;
     dict[@"isSelectedCell"] = @([cell isMemberOfClass:[JKPhotoSelectedCollectionViewCell class]]);
     
-    [JKPhotoBrowserViewController showWithViewController:self dataDict:dict completion:^(NSArray *seletedPhotos) {
-        
-        NSMutableArray *indexArr = [NSMutableArray array];
-        
-        for (JKPhotoItem *itm in self.selectedPhotos) {
-            
-            if (itm.isSelected) { continue; }
-            
-            [indexArr addObject:[NSIndexPath indexPathForItem:[self.allPhotos indexOfObject:itm] inSection:0]];
-        }
+    [JKPhotoBrowserViewController showWithViewController:self dataDict:dict completion:^(NSArray *seletedPhotos, NSArray *indexPaths) {
         
         [self.selectedPhotos removeAllObjects];
+        [self.selectedPhotos addObjectsFromArray:seletedPhotos];
         
-        for (JKPhotoItem *itm in seletedPhotos) {
+        [self.collectionView performBatchUpdates:^{
             
-            [self.selectedPhotos addObject:itm];
+            [self.collectionView reloadItemsAtIndexPaths:indexPaths];
             
-            [indexArr addObject:[NSIndexPath indexPathForItem:[self.allPhotos indexOfObject:itm] inSection:0]];
-        }
+        } completion:^(BOOL finished) {
+            
+        }];
         
-        [self.collectionView reloadItemsAtIndexPaths:indexArr];
-        [self.bottomCollectionView reloadSections:[NSIndexSet indexSetWithIndex:0]];
-        
-        [self.bottomCollectionView scrollToItemAtIndexPath:[NSIndexPath indexPathForItem:self.selectedPhotos.count - 1 inSection:0] atScrollPosition:(UICollectionViewScrollPositionCenteredHorizontally) animated:YES];
+        [self.bottomCollectionView performBatchUpdates:^{
+            
+            [self.bottomCollectionView reloadSections:[NSIndexSet indexSetWithIndex:0]];
+            
+        } completion:^(BOOL finished) {
+            
+            if (self.selectedPhotos.count > 0) {
+                
+                [self.bottomCollectionView scrollToItemAtIndexPath:[NSIndexPath indexPathForItem:self.selectedPhotos.count - 1 inSection:0] atScrollPosition:(UICollectionViewScrollPositionCenteredHorizontally) animated:YES];
+            }
+        }];
         
         [self changeSelectedCount];
+        
+        /*
+        dispatch_async(dispatch_get_global_queue(0, 0), ^{
+            
+            NSMutableArray *indexArr = [NSMutableArray array];
+            
+            for (JKPhotoItem *itm in self.selectedPhotos) {
+                
+                if (itm.isSelected) { continue; }
+                
+                [indexArr addObject:[NSIndexPath indexPathForItem:[self.allPhotos indexOfObject:itm] inSection:0]];
+            }
+            
+            [self.selectedPhotos removeAllObjects];
+            
+            for (JKPhotoItem *itm in seletedPhotos) {
+                
+                [self.selectedPhotos addObject:itm];
+                
+                [indexArr addObject:[NSIndexPath indexPathForItem:[self.allPhotos indexOfObject:itm] inSection:0]];
+            }
+            
+            dispatch_async(dispatch_get_main_queue(), ^{
+                
+                [self.collectionView performBatchUpdates:^{
+                    
+                    [self.collectionView reloadItemsAtIndexPaths:indexArr];
+                    
+                } completion:^(BOOL finished) {
+                    
+                }];
+                
+                [self.bottomCollectionView performBatchUpdates:^{
+                    
+                    [self.bottomCollectionView reloadSections:[NSIndexSet indexSetWithIndex:0]];
+                    
+                } completion:^(BOOL finished) {
+                    
+                    if (self.selectedPhotos.count > 0) {
+                        
+                        [self.bottomCollectionView scrollToItemAtIndexPath:[NSIndexPath indexPathForItem:self.selectedPhotos.count - 1 inSection:0] atScrollPosition:(UICollectionViewScrollPositionCenteredHorizontally) animated:YES];
+                    }
+                }];
+                
+                [self changeSelectedCount];
+            });
+        }); */
     }];
 }
 

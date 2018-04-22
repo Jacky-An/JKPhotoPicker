@@ -78,8 +78,13 @@
     blackBgView.backgroundColor = [UIColor blackColor];
     [[transitionContext containerView] addSubview:blackBgView];
     
-    CGFloat Y = self.presentFrame.origin.y < ([UIApplication sharedApplication].statusBarFrame.size.height + 44) ? ([UIApplication sharedApplication].statusBarFrame.size.height + 44) : self.presentFrame.origin.y;
-    CGFloat H = (Y > JKScreenH - 104 ? CGRectGetMaxY(self.presentFrame) : (CGRectGetMaxY(self.presentFrame) > JKScreenH - 104 ? JKScreenH - 104 : CGRectGetMaxY(self.presentFrame))) - Y;
+    CGFloat navBarH = ([UIScreen instancesRespondToSelector:@selector(currentMode)] ? CGSizeEqualToSize(CGSizeMake(1125, 2436), [[UIScreen mainScreen] currentMode].size) : NO) ? 88 : 64;
+    
+    CGFloat Y = self.presentFrame.origin.y < navBarH ? navBarH : self.presentFrame.origin.y;
+    
+    CGFloat bottomY = JKScreenH - (([UIScreen instancesRespondToSelector:@selector(currentMode)] ? CGSizeEqualToSize(CGSizeMake(1125, 2436), [[UIScreen mainScreen] currentMode].size) : NO) ? 104 : 70);
+    
+    CGFloat H = (Y > bottomY ? CGRectGetMaxY(self.presentFrame) : (CGRectGetMaxY(self.presentFrame) > bottomY ? bottomY : CGRectGetMaxY(self.presentFrame))) - Y;
     
     UIView *whiteView = [[UIView alloc] initWithFrame:CGRectMake(self.presentFrame.origin.x, Y, self.presentFrame.size.width, H)];
     whiteView.backgroundColor = [UIColor whiteColor];

@@ -23,7 +23,7 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     
-    self.selectCompleteView = [JKPhotoSelectCompleteView completeViewWithSuperView:self.view viewController:self frame:CGRectMake(0, ([UIApplication sharedApplication].statusBarFrame.size.height + 44), self.view.frame.size.width, 130) itemSize:CGSizeMake((self.view.frame.size.width - 3) / 4, (self.view.frame.size.width - 3) / 4 + 10) scrollDirection:UICollectionViewScrollDirectionHorizontal];
+    self.selectCompleteView = [JKPhotoSelectCompleteView completeViewWithSuperView:self.view viewController:self frame:CGRectMake(0, (([UIScreen instancesRespondToSelector:@selector(currentMode)] ? CGSizeEqualToSize(CGSizeMake(1125, 2436), [[UIScreen mainScreen] currentMode].size) : NO) ? 88 : 64), self.view.frame.size.width, 130) itemSize:CGSizeMake((self.view.frame.size.width - 3) / 4, (self.view.frame.size.width - 3) / 4 + 10) scrollDirection:UICollectionViewScrollDirectionHorizontal];
     self.selectCompleteView.backgroundColor = [UIColor cyanColor];
 }
 
@@ -90,7 +90,7 @@
     
     sender.selected = !sender.selected;
     
-    [[UIApplication sharedApplication] setStatusBarHidden:sender.selected withAnimation:UIStatusBarAnimationSlide];
+//    [[UIApplication sharedApplication] setStatusBarHidden:sender.selected withAnimation:UIStatusBarAnimationSlide];
     
     if (!sender.selected) {
         [self.uploadScrollView.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];

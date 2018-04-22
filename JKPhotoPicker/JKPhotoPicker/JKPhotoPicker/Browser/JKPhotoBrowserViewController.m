@@ -42,8 +42,11 @@
 /** 弹出是已选中图片数量 */
 @property (nonatomic, assign) NSUInteger initialSelectCount;
 
+/** 需要更新的indexPath */
+@property (nonatomic, strong) NSMutableArray *indexPaths;
+
 /** 监听退出浏览器的block */
-@property (nonatomic, copy) void (^completion)(NSArray *seletedPhotos);
+@property (nonatomic, copy) void (^completionBlock)(NSArray *seletedPhotos, NSArray *indexPaths);
 
 /** 点击的索引 */
 @property (nonatomic, strong) JKPhotoBrowserPresentationManager *presentationManager;
@@ -53,7 +56,7 @@
 
 static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用ID
 
-+ (void)showWithViewController:(UIViewController *)viewController dataDict:(NSDictionary *)dataDict completion:(void(^)(NSArray *seletedPhotos))completion{
++ (void)showWithViewController:(UIViewController *)viewController dataDict:(NSDictionary *)dataDict completion:(void(^)(NSArray *seletedPhotos, NSArray *indexPaths))completion{
     
     JKPhotoBrowserViewController *vc = [[self alloc] init];
     
@@ -76,7 +79,7 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
     vc.indexPath = dataDict[@"indexPath"];
     vc.fromCollectionView = dataDict[@"collectionView"];
     
-    vc.completion = completion;
+    vc.completionBlock = completion;
     
     [vc.selectedPhotos removeAllObjects];
     NSArray *selectedItems = dataDict[@"selectedItems"];
@@ -97,6 +100,13 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
         _selectedPhotos = [NSMutableArray array];
     }
     return _selectedPhotos;
+}
+
+- (NSMutableArray *)indexPaths{
+    if (!_indexPaths) {
+        _indexPaths = [NSMutableArray array];
+    }
+    return _indexPaths;
 }
 
 - (JKPhotoBrowserPresentationManager *)presentationManager{
@@ -157,17 +167,21 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
 }
 
 - (UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath{
+    
     JKPhotoBrowserCollectionViewCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:reuseID forIndexPath:indexPath];
+    
     cell.indexPath = indexPath;
     
     JKPhotoItem *item = (!self.isRealIndex) ? self.allPhotos[indexPath.item + 1] : self.allPhotos[indexPath.item];
     
-    item.isSelected = NO;
-    for (JKPhotoItem *it in self.selectedPhotos) {
-        if (![it.assetLocalIdentifier isEqualToString:item.assetLocalIdentifier]) continue;
-        
-        item.isSelected = YES;
-    }
+//    item.isSelected = NO;
+    
+//    for (JKPhotoItem *it in self.selectedPhotos) {
+//
+//        if (![it.assetLocalIdentifier isEqualToString:item.assetLocalIdentifier]) continue;
+//
+//        item.isSelected = YES;
+//    }
     
     cell.photoItem = item;
     
@@ -189,22 +203,31 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
             
             if (selected) {
                 
+                NSIndexPath *index = [weakSelf.collectionView indexPathForCell:currentCell];
+                
+                NSIndexPath *indexPath = [NSIndexPath indexPathForItem:(weakSelf.isRealIndex ? index.item : index.item + 1) inSection:index.section];
+                
+                [weakSelf.indexPaths addObject:indexPath];
+                
                 currentCell.photoItem.isSelected = NO;
                 
-                for (JKPhotoItem *it in weakSelf.selectedPhotos) {
+                if ([weakSelf.selectedPhotos containsObject:currentCell.photoItem]) {
                     
-                    if ([it.assetLocalIdentifier isEqualToString:currentCell.photoItem.assetLocalIdentifier]) {
+                    [weakSelf.selectedPhotos removeObject:currentCell.photoItem];
+                    
+                }else{
+                    
+                    for (JKPhotoItem *it in weakSelf.selectedPhotos) {
                         
-                        [weakSelf.selectedPhotos removeObject:it];
-                        
-                        break;
+                        if ([it.assetLocalIdentifier isEqualToString:currentCell.photoItem.assetLocalIdentifier]) {
+                            
+                            [weakSelf.selectedPhotos removeObject:it];
+                            
+                            break;
+                        }
                     }
                 }
                 
-//                [weakSelf.bottomCollectionView reloadData];
-//                [weakSelf.collectionView reloadData];
-//                
-//                [weakSelf changeSelectedCount];
                 NSLog(@"取消选中,当前选中了%ld个", (unsigned long)weakSelf.selectedPhotos.count);
                 
                 return !selected;
@@ -212,13 +235,16 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
             
             if (weakSelf.selectedPhotos.count < weakSelf.maxSelectCount) {
                 
+                NSIndexPath *index = [weakSelf.collectionView indexPathForCell:currentCell];
+                
+                NSIndexPath *indexPath = [NSIndexPath indexPathForItem:(self.isRealIndex ? index.item : index.item + 1) inSection:index.section];
+                
+                [weakSelf.indexPaths addObject:indexPath];
+                
                 currentCell.photoItem.isSelected = YES;
                 
                 [weakSelf.selectedPhotos addObject:currentCell.photoItem];
-//                [weakSelf.bottomCollectionView reloadData];
-//                [weakSelf.bottomCollectionView scrollToItemAtIndexPath:[NSIndexPath indexPathForItem:weakSelf.selectedPhotos.count - 1 inSection:0] atScrollPosition:(UICollectionViewScrollPositionCenteredHorizontally) animated:YES];
-//                
-//                [weakSelf changeSelectedCount];
+                
                 NSLog(@"选中了%ld个", (unsigned long)weakSelf.selectedPhotos.count);
                 
                 return !selected;
@@ -235,8 +261,11 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
     }
     
 #pragma mark - 退出
+    
     if (!cell.dismissBlock) {
+        
         [cell setDismissBlock:^(JKPhotoBrowserCollectionViewCell *currentCell, CGRect dismissFrame) {
+            
             weakSelf.presentationManager.touchImageView = currentCell.photoImageView;
             weakSelf.presentationManager.touchImage = currentCell.photoImageView.image;
             weakSelf.presentationManager.dismissFrame = dismissFrame;
@@ -311,9 +340,10 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
 
 - (void)dismiss{
     
-    !self.completion ? : self.completion(self.selectedPhotos);
-    
-    [self dismissViewControllerAnimated:YES completion:nil];
+    [self dismissViewControllerAnimated:YES completion:^{
+        
+        !self.completionBlock ? : self.completionBlock(self.selectedPhotos, self.indexPaths);
+    }];
 }
 
 #pragma mark - scrollView代理
