@@ -71,6 +71,7 @@
 
 // 删除选中的照片
 - (void)deleteButtonClick{
+    
     [UIView animateWithDuration:0.25 animations:^{
         self.contentView.transform = CGAffineTransformMakeScale(0.001, 0.001);
         self.contentView.alpha = 0;

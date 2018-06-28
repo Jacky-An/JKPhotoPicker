@@ -47,6 +47,9 @@
 
 /** 选中的图片数组 */
 @property (nonatomic, strong) NSMutableArray *selectedPhotos;
+
+/** 当前选中相册所有的identifier映射缓存 */
+@property (nonatomic, strong) NSCache *allPhotoIdentifierCache;
 @end
 
 @implementation JKPhotoPickerViewController
@@ -97,6 +100,13 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
         _allPhotos = [NSMutableArray array];
     }
     return _allPhotos;
+}
+
+- (NSCache *)allPhotoIdentifierCache{
+    if (!_allPhotoIdentifierCache) {
+        _allPhotoIdentifierCache = [[NSCache alloc] init];
+    }
+    return _allPhotoIdentifierCache;
 }
 
 - (NSMutableArray *)selectedPhotos{
@@ -269,7 +279,9 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
 #pragma mark - 加载数据
 - (void)loadPhotoWithPhotoItem:(JKPhotoItem *)photoItem{
     
-    NSMutableArray *photoItems = [JKPhotoManager getPhotoAssetsWithFetchResult:photoItem.albumFetchResult];
+    [self.allPhotoIdentifierCache removeAllObjects];
+    
+    NSMutableArray *photoItems = [JKPhotoManager getPhotoAssetsWithFetchResult:photoItem.albumFetchResult cache:self.allPhotoIdentifierCache];
     
     if ([photoItems.firstObject isShowCameraIcon] == NO) {
         JKPhotoItem *item1 = [[JKPhotoItem alloc] init];
@@ -315,7 +327,6 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
     
     __weak typeof(self) weakSelf = self;
     
-#pragma mark - 点击拍照
     if (!cell.cameraButtonClickBlock) {
         
         [cell setCameraButtonClickBlock:^{
@@ -326,87 +337,201 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
         }];
     }
     
-#pragma mark - 照片选中
-    
     if (!cell.selectBlock) {
         
         [cell setSelectBlock:^BOOL(BOOL selected, JKPhotoCollectionViewCell *currentCell) {
             
-            if (selected) {
+            if (selected) { // 已选中，表示要取消选中
                 
-                currentCell.photoItem.isSelected = NO;
-                
-                NSIndexPath *indexPath = nil;
-                
-                for (JKPhotoItem *it in weakSelf.selectedPhotos) {
-                    
-                    if ([it.assetLocalIdentifier isEqualToString:currentCell.photoItem.assetLocalIdentifier]) {
-                        
-                        indexPath = [NSIndexPath indexPathForItem:[weakSelf.selectedPhotos indexOfObject:it] inSection:0];
-                        
-                        [weakSelf.selectedPhotos removeObject:it];
-                        
-                        break;
-                    }
-                }
-                
-                if (indexPath != nil) {
-                    
-                    [weakSelf.bottomCollectionView deleteItemsAtIndexPaths:@[indexPath]];
-                }
-                
-//                [weakSelf.bottomCollectionView reloadData];
-                
-                [weakSelf changeSelectedCount];
-                NSLog(@"取消选中,当前选中了%ld个", (unsigned long)weakSelf.selectedPhotos.count);
+                [weakSelf deSelectedPhotoWithCell:currentCell];
                 
                 return !selected;
             }
             
             if (weakSelf.selectedPhotos.count < weakSelf.maxSelectCount) {
                 
-                currentCell.photoItem.isSelected = YES;
-                
-                [weakSelf.selectedPhotos addObject:currentCell.photoItem];
-                
-                [weakSelf.bottomCollectionView insertItemsAtIndexPaths:@[[NSIndexPath indexPathForItem:weakSelf.selectedPhotos.count - 1 inSection:0]]];
-//                [weakSelf.bottomCollectionView reloadData];
-                
-                [weakSelf.bottomCollectionView scrollToItemAtIndexPath:[NSIndexPath indexPathForItem:weakSelf.selectedPhotos.count - 1 inSection:0] atScrollPosition:(UICollectionViewScrollPositionCenteredHorizontally) animated:YES];
-                
-                [weakSelf changeSelectedCount];
-                NSLog(@"选中了%ld个", (unsigned long)weakSelf.selectedPhotos.count);
+                [weakSelf selectPhotoWithCell:currentCell];
                 
                 return !selected;
             }
             
-            UIAlertController *alertVc = [UIAlertController alertControllerWithTitle:@"提示" message:[NSString stringWithFormat:@"最多选择%ld张图片哦~~", (unsigned long)weakSelf.maxSelectCount] preferredStyle:(UIAlertControllerStyleAlert)];
-            
-            [alertVc addAction:[UIAlertAction actionWithTitle:@"确定" style:(UIAlertActionStyleDefault) handler:nil]];
-            
-            [weakSelf presentViewController:alertVc animated:YES completion:nil];
+            [weakSelf showMaxSelectCountTip];
             
             return NO;
         }];
     }
     
-#pragma mark - 删除选中的照片
     if (!cell.deleteButtonClickBlock) {
         
         [cell setDeleteButtonClickBlock:^(JKPhotoCollectionViewCell *currentCell) {
             
-            currentCell.photoItem.isSelected = NO;
+            [weakSelf deleteSelectedPhotoWithCell:currentCell];
+        }];
+    }
+}
+
+#pragma mark - 点击拍照
+
+- (void)updateIconWithSourType:(UIImagePickerControllerSourceType)sourceType{
+    
+    AVAuthorizationStatus videoAuthStatus = [AVCaptureDevice authorizationStatusForMediaType:AVMediaTypeVideo];
+    
+    if (videoAuthStatus == AVAuthorizationStatusNotDetermined) {// 未询问用户是否授权
+        
+    }else if(videoAuthStatus == AVAuthorizationStatusRestricted || videoAuthStatus == AVAuthorizationStatusDenied) {// 未授权
+        
+    }else{// 已授权
+        
+    }
+    
+    if (videoAuthStatus == AVAuthorizationStatusDenied) {
+        UIAlertController *alertVc = [UIAlertController alertControllerWithTitle:@"提示" message:@"当前程序未获得相机权限，是否打开？由于iOS系统原因，设置相机权限会导致app崩溃，请知晓。" preferredStyle:(UIAlertControllerStyleAlert)];
+        
+        [alertVc addAction:[UIAlertAction actionWithTitle:@"不用了" style:(UIAlertActionStyleDefault) handler:nil]];
+        [alertVc addAction:[UIAlertAction actionWithTitle:@"去打开" style:(UIAlertActionStyleDefault) handler:^(UIAlertAction * _Nonnull action) {
+            // 打开本程序对应的权限设置
+            [[UIApplication sharedApplication]openURL:[NSURL URLWithString:UIApplicationOpenSettingsURLString]];
+        }]];
+        
+        [self presentViewController:alertVc animated:YES completion:nil];
+        
+        return;
+    }
+    
+    //    [AVCaptureDevice requestAccessForMediaType:AVMediaTypeVideo completionHandler:^(BOOL granted) {
+    //
+    //        if (granted){// 用户同意授权
+    //
+    //        }else {// 用户拒绝授权
+    //
+    //        }
+    //
+    //    }];
+    
+    if (![UIImagePickerController isSourceTypeAvailable:sourceType]) {
+        
+        return;
+    }
+    
+    UIImagePickerController *imagePicker = [[UIImagePickerController alloc] init];
+    imagePicker.sourceType = sourceType;
+    
+    imagePicker.delegate = self;
+    [self presentViewController:imagePicker animated:YES completion:nil];
+}
+
+#pragma mark - 选中照片
+
+- (void)selectPhotoWithCell:(JKPhotoCollectionViewCell *)currentCell {
+    
+    currentCell.photoItem.isSelected = YES;
+    
+    [self.selectedPhotos addObject:currentCell.photoItem];
+    
+    [self.bottomCollectionView insertItemsAtIndexPaths:@[[NSIndexPath indexPathForItem:self.selectedPhotos.count - 1 inSection:0]]];
+    //                [weakSelf.bottomCollectionView reloadData];
+    
+    [self.bottomCollectionView scrollToItemAtIndexPath:[NSIndexPath indexPathForItem:self.selectedPhotos.count - 1 inSection:0] atScrollPosition:(UICollectionViewScrollPositionCenteredHorizontally) animated:YES];
+    
+    [self changeSelectedCount];
+    
+    NSLog(@"选中了%ld个", (unsigned long)self.selectedPhotos.count);
+}
+
+#pragma mark - 最大选择数量提示
+
+- (void)showMaxSelectCountTip{
+    
+    UIAlertController *alertVc = [UIAlertController alertControllerWithTitle:@"提示" message:[NSString stringWithFormat:@"最多选择%ld张图片哦~~", (unsigned long)self.maxSelectCount] preferredStyle:(UIAlertControllerStyleAlert)];
+    
+    [alertVc addAction:[UIAlertAction actionWithTitle:@"确定" style:(UIAlertActionStyleDefault) handler:nil]];
+    
+    [self presentViewController:alertVc animated:YES completion:nil];
+}
+
+#pragma mark - 取消选中
+
+- (void)deSelectedPhotoWithCell:(JKPhotoCollectionViewCell *)currentCell {
+    
+    currentCell.photoItem.isSelected = NO;
+    
+    NSIndexPath *indexPath = nil;
+    
+    for (JKPhotoItem *it in self.selectedPhotos) {
+        
+        if ([it.assetLocalIdentifier isEqualToString:currentCell.photoItem.assetLocalIdentifier]) {
             
-            NSIndexPath *indexPath = [NSIndexPath indexPathForItem:[weakSelf.selectedPhotos indexOfObject:currentCell.photoItem] inSection:0];
-            [weakSelf.selectedPhotos removeObject:currentCell.photoItem];
+            indexPath = [NSIndexPath indexPathForItem:[self.selectedPhotos indexOfObject:it] inSection:0];
             
-            [weakSelf.bottomCollectionView deleteItemsAtIndexPaths:@[indexPath]];
-//            [weakSelf.bottomCollectionView reloadData];
+//            [self.selectedPhotos removeObject:it];
             
+            break;
+        }
+    }
+    
+    if (indexPath != nil) {
+        
+        [UIView animateWithDuration:0.25 animations:^{
             
-            [weakSelf.collectionView reloadItemsAtIndexPaths:@[[NSIndexPath indexPathForItem:[self.allPhotos indexOfObject:currentCell.photoItem] inSection:0]]];
+            [self.bottomCollectionView scrollToItemAtIndexPath:indexPath atScrollPosition:(UICollectionViewScrollPositionCenteredHorizontally) animated:false];
             
-            [weakSelf changeSelectedCount];
+        } completion:^(BOOL finished) {
+            
+            JKPhotoCollectionViewCell *bottomCell = (JKPhotoCollectionViewCell *)[self.bottomCollectionView cellForItemAtIndexPath:indexPath];
+            
+            [UIView animateWithDuration:0.25 animations:^{
+                
+                bottomCell.contentView.transform = CGAffineTransformMakeScale(0.001, 0.001);
+                bottomCell.contentView.alpha = 0;
+                
+            } completion:^(BOOL finished) {
+                
+                bottomCell.contentView.hidden = YES;
+                bottomCell.contentView.alpha = 1;
+                bottomCell.contentView.transform = CGAffineTransformIdentity;
+                
+                [self deleteSelectedPhotoWithCell:bottomCell];
+            }];
+        }];
+        
+//        [self.bottomCollectionView deleteItemsAtIndexPaths:@[indexPath]];
+    }
+    
+    //                [weakSelf.bottomCollectionView reloadData];
+    
+//    [self changeSelectedCount];
+//    NSLog(@"取消选中,当前选中了%ld个", (unsigned long)self.selectedPhotos.count);
+}
+
+#pragma mark - 底部删除选中的照片
+
+- (void)deleteSelectedPhotoWithCell:(JKPhotoCollectionViewCell *)currentCell{
+    
+    currentCell.photoItem.isSelected = NO;
+    
+    NSIndexPath *indexPath = [NSIndexPath indexPathForItem:[self.selectedPhotos indexOfObject:currentCell.photoItem] inSection:0];
+    [self.selectedPhotos removeObject:currentCell.photoItem];
+    
+    [self.bottomCollectionView deleteItemsAtIndexPaths:@[indexPath]];
+    //            [weakSelf.bottomCollectionView reloadData];
+    
+    JKPhotoItem *itm = [self.allPhotoIdentifierCache objectForKey:currentCell.photoItem.assetLocalIdentifier];
+    
+    if (itm != nil) {
+        
+        [self.collectionView reloadItemsAtIndexPaths:@[[NSIndexPath indexPathForItem:[self.allPhotos indexOfObject:itm] inSection:0]]];
+        
+        [self changeSelectedCount];
+        
+    }else{
+        
+        [self.collectionView performBatchUpdates:^{
+            
+            [self.collectionView reloadSections:[NSIndexSet indexSetWithIndex:0]];
+            
+        } completion:^(BOOL finished) {
+            
+            [self changeSelectedCount];
         }];
     }
 }
@@ -449,6 +574,16 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
     
     [JKPhotoBrowserViewController showWithViewController:self dataDict:dict completion:^(NSArray *seletedPhotos, NSArray *indexPaths) {
         
+        NSInteger preCount = self.selectedPhotos.count;
+        NSInteger currentCount = seletedPhotos.count;
+        
+        JKPhotoItem *preLastItem = nil;
+        
+        if (preCount > 0) {
+            
+            preLastItem = self.selectedPhotos.lastObject;
+        }
+        
         [self.selectedPhotos removeAllObjects];
         [self.selectedPhotos addObjectsFromArray:seletedPhotos];
         
@@ -466,7 +601,7 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
             
         } completion:^(BOOL finished) {
             
-            if (self.selectedPhotos.count > 0) {
+            if (self.selectedPhotos.count > 0 && (preCount != currentCount || ![preLastItem.assetLocalIdentifier isEqualToString:[self.selectedPhotos.lastObject assetLocalIdentifier]])) {
                 
                 [self.bottomCollectionView scrollToItemAtIndexPath:[NSIndexPath indexPathForItem:self.selectedPhotos.count - 1 inSection:0] atScrollPosition:(UICollectionViewScrollPositionCenteredHorizontally) animated:YES];
             }
@@ -521,55 +656,6 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
             });
         }); */
     }];
-}
-
-- (void)updateIconWithSourType:(UIImagePickerControllerSourceType)sourceType{
-    
-    
-    AVAuthorizationStatus videoAuthStatus = [AVCaptureDevice authorizationStatusForMediaType:AVMediaTypeVideo];
-    
-    if (videoAuthStatus == AVAuthorizationStatusNotDetermined) {// 未询问用户是否授权
-        
-    }else if(videoAuthStatus == AVAuthorizationStatusRestricted || videoAuthStatus == AVAuthorizationStatusDenied) {// 未授权
-        
-    }else{// 已授权
-        
-    }
-    
-    if (videoAuthStatus == AVAuthorizationStatusDenied) {
-        UIAlertController *alertVc = [UIAlertController alertControllerWithTitle:@"提示" message:@"当前程序未获得相机权限，是否打开？由于iOS系统原因，设置相机权限会导致app崩溃，请知晓。" preferredStyle:(UIAlertControllerStyleAlert)];
-        
-        [alertVc addAction:[UIAlertAction actionWithTitle:@"不用了" style:(UIAlertActionStyleDefault) handler:nil]];
-        [alertVc addAction:[UIAlertAction actionWithTitle:@"去打开" style:(UIAlertActionStyleDefault) handler:^(UIAlertAction * _Nonnull action) {
-            // 打开本程序对应的权限设置
-            [[UIApplication sharedApplication]openURL:[NSURL URLWithString:UIApplicationOpenSettingsURLString]];
-        }]];
-        
-        [self presentViewController:alertVc animated:YES completion:nil];
-        
-        return;
-    }
-    
-//    [AVCaptureDevice requestAccessForMediaType:AVMediaTypeVideo completionHandler:^(BOOL granted) {
-//        
-//        if (granted){// 用户同意授权
-//            
-//        }else {// 用户拒绝授权
-//            
-//        }
-//        
-//    }];
-    
-    if (![UIImagePickerController isSourceTypeAvailable:sourceType]) {
-        
-        return;
-    }
-    
-    UIImagePickerController *imagePicker = [[UIImagePickerController alloc] init];
-    imagePicker.sourceType = sourceType;
-    
-    imagePicker.delegate = self;
-    [self presentViewController:imagePicker animated:YES completion:nil];
 }
 
 #pragma mark - <UIImagePickerControllerDelegate>

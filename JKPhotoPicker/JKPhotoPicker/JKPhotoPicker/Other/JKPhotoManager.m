@@ -109,6 +109,13 @@
 
 /** 从某一个相册结果集中获取图片实体，并把图片结果存放到数组中，返回值数组中是PHAsset对象 */
 + (NSMutableArray *)getPhotoAssetsWithFetchResult:(PHFetchResult *)fetchResult{
+    
+    return [self getPhotoAssetsWithFetchResult:fetchResult cache:nil];
+}
+
+/** 从某一个相册结果集中获取图片实体，并把图片结果存放到数组中，返回值数组中是PHAsset对象 */
++ (NSMutableArray *)getPhotoAssetsWithFetchResult:(PHFetchResult *)fetchResult cache:(NSCache *)cache{
+    
     NSMutableArray *dataArray = [NSMutableArray array];
     
     for (PHAsset *asset in fetchResult) {
@@ -118,6 +125,11 @@
         
         JKPhotoItem *item = [[JKPhotoItem alloc] init];
         item.photoAsset = asset;
+        
+        if (cache != nil) {
+            
+            [cache setObject:item forKey:item.assetLocalIdentifier];
+        }
         
         [dataArray insertObject:item atIndex:0];
     }

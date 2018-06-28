@@ -50,6 +50,9 @@
 
 /** 点击的索引 */
 @property (nonatomic, strong) JKPhotoBrowserPresentationManager *presentationManager;
+
+/** 照片标识和item的映射字典 */
+@property (nonatomic, strong) NSCache *identifierItemCache;
 @end
 
 @implementation JKPhotoBrowserViewController
@@ -87,7 +90,27 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
     vc.initialSelectCount = selectedItems.count;
     [vc.selectedPhotos addObjectsFromArray:selectedItems];
     
+    // 映射标识和item
+    [vc setupIdentifierCache];
+    
     [viewController presentViewController:vc animated:YES completion:nil];
+}
+
+- (NSCache *)identifierItemCache{
+    if (!_identifierItemCache) {
+        _identifierItemCache = [[NSCache alloc] init];
+    }
+    return _identifierItemCache;
+}
+
+- (void)setupIdentifierCache{
+    
+    [self.identifierItemCache removeAllObjects];
+    
+    for (JKPhotoItem *itm in self.selectedPhotos) {
+        
+        [self.identifierItemCache setObject:itm forKey:itm.assetLocalIdentifier];
+    }
 }
 
 //- (BOOL)prefersStatusBarHidden{
@@ -201,7 +224,7 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
         
         [cell setSelectBlock:^BOOL(BOOL selected, JKPhotoBrowserCollectionViewCell *currentCell) {
             
-            if (selected) {
+            if (selected) { // 已选中，表示要取消选中
                 
                 NSIndexPath *index = [weakSelf.collectionView indexPathForCell:currentCell];
                 
@@ -217,13 +240,22 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
                     
                 }else{
                     
-                    for (JKPhotoItem *it in weakSelf.selectedPhotos) {
+                    JKPhotoItem *itm = [self.identifierItemCache objectForKey:currentCell.photoItem.assetLocalIdentifier];
+                    
+                    if (itm != nil) {
                         
-                        if ([it.assetLocalIdentifier isEqualToString:currentCell.photoItem.assetLocalIdentifier]) {
+                        [weakSelf.selectedPhotos removeObject:itm];
+                        
+                    }else{
+                        
+                        for (JKPhotoItem *it in weakSelf.selectedPhotos) {
                             
-                            [weakSelf.selectedPhotos removeObject:it];
-                            
-                            break;
+                            if ([it.assetLocalIdentifier isEqualToString:currentCell.photoItem.assetLocalIdentifier]) {
+                                
+                                [weakSelf.selectedPhotos removeObject:it];
+                                
+                                break;
+                            }
                         }
                     }
                 }

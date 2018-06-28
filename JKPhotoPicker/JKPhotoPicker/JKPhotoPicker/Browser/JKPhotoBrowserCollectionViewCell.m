@@ -40,7 +40,12 @@
 
 /** 缩放比例 */
 @property (nonatomic, assign) CGFloat transformScale;
+
+/** 背景色alpha */
+@property (nonatomic, assign) CGFloat bgAlpha;
 @end
+
+CGFloat const dismissDistance = 80;
 
 @implementation JKPhotoBrowserCollectionViewCell
 
@@ -300,23 +305,29 @@
 }
 
 #pragma mark - UIScrollViewDelegate
+
 - (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView{
     self.isDoubleTap = NO;
 }
 
 - (void)scrollViewWillEndDragging:(UIScrollView *)scrollView withVelocity:(CGPoint)velocity targetContentOffset:(inout CGPoint *)targetContentOffset{
     
-//    scrollView.userInteractionEnabled = NO;
-    if (scrollView.contentOffset.y < -80 - scrollView.contentInset.top) {
+    if (self.isZooming) { return; }
+    
+    if (scrollView.contentOffset.y + scrollView.contentInset.top < -dismissDistance) {
+        
         isGonnaDismiss = YES;
-//        scrollView.bounces = NO;
+        
         [self selfDismiss];
+        
     }else{
         
         [UIView animateWithDuration:0.25 animations:^{
             [UIView setAnimationCurve:(7)];
+            
             CGAffineTransform transform = CGAffineTransformMakeScale(self.currentZoomScale, self.currentZoomScale);//CGAffineTransformTranslate(self.photoImageView.transform, 0, 0);
             self.photoImageView.transform = CGAffineTransformTranslate(transform, 0, 0);
+            
         } completion:^(BOOL finished) {
             
             scrollView.pinchGestureRecognizer.enabled = YES;
@@ -350,10 +361,6 @@
     //    scrollView.userInteractionEnabled = YES;
 }
 
-- (void)scrollViewWillBeginZooming:(UIScrollView *)scrollView withView:(UIView *)view{
-    self.isZooming = YES;
-}
-
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView{
     NSLog(@"contentOffset --> %@", NSStringFromCGPoint(scrollView.contentOffset));
     if (scrollView.contentOffset.y + scrollView.contentInset.top >= 0) {
@@ -364,15 +371,14 @@
         return;
     }
     
-    self.collectionView.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:1 - (scrollView.contentOffset.y + scrollView.contentInset.top) / (-180 - scrollView.contentInset.top)];
+    self.bgAlpha = 1 - ((-scrollView.contentOffset.y - scrollView.contentInset.top) / dismissDistance * 0.2);
     
-    if (!scrollView.isDragging) {
-        return;
-    }
+    self.collectionView.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:self.bgAlpha];
+    
+    if (!scrollView.isDragging) { return; }
     
     scrollView.pinchGestureRecognizer.enabled = NO;
     self.collectionView.scrollEnabled = NO;
-    
     
     CGPoint point = [scrollView.panGestureRecognizer translationInView:scrollView.panGestureRecognizer.view.superview];
     NSLog(@"%@", NSStringFromCGPoint(point));
@@ -394,9 +400,14 @@
 //    }
 }
 
+- (void)scrollViewWillBeginZooming:(UIScrollView *)scrollView withView:(UIView *)view{
+    self.isZooming = YES;
+}
+
 - (void)scrollViewDidEndZooming:(UIScrollView *)scrollView withView:(UIView *)view atScale:(CGFloat)scale{
     self.currentZoomScale = scale;
     self.isZooming = NO;
+    [self setInset];
     NSLog(@"当前zoomScale ---> %.2f", scale);
 }
 

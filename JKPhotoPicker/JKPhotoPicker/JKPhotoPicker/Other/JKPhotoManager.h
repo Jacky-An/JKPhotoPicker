@@ -29,6 +29,9 @@
 /** 从某一个相册结果集中获取图片实体，并把图片结果存放到数组中，返回值数组中是PHAsset对象 */
 + (NSMutableArray *)getPhotoAssetsWithFetchResult:(PHFetchResult *)fetchResult;
 
+/** 从某一个相册结果集中获取图片实体，并把图片结果存放到数组中，返回值数组中是PHAsset对象 */
++ (NSMutableArray *)getPhotoAssetsWithFetchResult:(PHFetchResult *)fetchResult cache:(NSCache *)cache;
+
 /** 只获取相机胶卷结果集 */
 + (PHFetchResult *)getCameraRollFetchResult;
 
