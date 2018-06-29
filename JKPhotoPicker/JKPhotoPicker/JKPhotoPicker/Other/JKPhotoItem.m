@@ -68,6 +68,8 @@
         _albumTitle = @"屏幕快照";
     }else if ([_albumTitle isEqualToString:@"Camera Roll"]) {
         _albumTitle = @"相机胶卷";
+    }else if ([_albumTitle isEqualToString:@"All Photos"]) {
+        _albumTitle = @"所有照片";
     }
     
     NSLog(@"localizedTitle == %@ \nlocalizedLocationNames == %@ \nlocalIdentifier == %@", _albumAssetCollection.localizedTitle, _albumAssetCollection.localizedLocationNames, _albumAssetCollection.localIdentifier);

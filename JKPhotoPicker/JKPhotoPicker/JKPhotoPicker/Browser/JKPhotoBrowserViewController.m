@@ -46,20 +46,23 @@
 @property (nonatomic, strong) NSMutableArray *indexPaths;
 
 /** 监听退出浏览器的block */
-@property (nonatomic, copy) void (^completionBlock)(NSArray *seletedPhotos, NSArray *indexPaths);
+@property (nonatomic, copy) void (^completionBlock)(NSArray <JKPhotoItem *> *seletedPhotos, NSArray <NSIndexPath *> *indexPaths, NSMutableDictionary *selectedPhotosIdentifierCache);
 
 /** 点击的索引 */
 @property (nonatomic, strong) JKPhotoBrowserPresentationManager *presentationManager;
 
-/** 照片标识和item的映射字典 */
-@property (nonatomic, strong) NSCache *identifierItemCache;
+/** 当前选中相册所有照片的identifier映射缓存 */
+@property (nonatomic, strong) NSCache *allPhotosIdentifierCache;
+
+/** 选中的照片标识和item的映射缓存 */
+@property (nonatomic, strong) NSMutableDictionary *selectedPhotosIdentifierCache;
 @end
 
 @implementation JKPhotoBrowserViewController
 
 static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用ID
 
-+ (void)showWithViewController:(UIViewController *)viewController dataDict:(NSDictionary *)dataDict completion:(void(^)(NSArray *seletedPhotos, NSArray *indexPaths))completion{
++ (void)showWithViewController:(UIViewController *)viewController dataDict:(NSDictionary *)dataDict completion:(void(^)(NSArray <JKPhotoItem *> *seletedPhotos, NSArray <NSIndexPath *> *indexPaths, NSMutableDictionary *selectedPhotosIdentifierCache))completion{
     
     JKPhotoBrowserViewController *vc = [[self alloc] init];
     
@@ -90,26 +93,29 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
     vc.initialSelectCount = selectedItems.count;
     [vc.selectedPhotos addObjectsFromArray:selectedItems];
     
+    vc.allPhotosIdentifierCache = dataDict[@"allPhotosCache"];
+    vc.selectedPhotosIdentifierCache = dataDict[@"selectedItemsCache"];
+    
     // 映射标识和item
-    [vc setupIdentifierCache];
+//    [vc setupIdentifierCache];
     
     [viewController presentViewController:vc animated:YES completion:nil];
 }
 
-- (NSCache *)identifierItemCache{
-    if (!_identifierItemCache) {
-        _identifierItemCache = [[NSCache alloc] init];
+- (NSMutableDictionary *)selectedPhotosIdentifierCache{
+    if (!_selectedPhotosIdentifierCache) {
+        _selectedPhotosIdentifierCache = [NSMutableDictionary dictionary];//[[NSCache alloc] init];
     }
-    return _identifierItemCache;
+    return _selectedPhotosIdentifierCache;
 }
 
 - (void)setupIdentifierCache{
     
-    [self.identifierItemCache removeAllObjects];
+    [self.selectedPhotosIdentifierCache removeAllObjects];
     
     for (JKPhotoItem *itm in self.selectedPhotos) {
         
-        [self.identifierItemCache setObject:itm forKey:itm.assetLocalIdentifier];
+        [self.selectedPhotosIdentifierCache setObject:itm forKey:itm.assetLocalIdentifier];
     }
 }
 
@@ -226,97 +232,29 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
             
             if (selected) { // 已选中，表示要取消选中
                 
-                NSIndexPath *index = [weakSelf.collectionView indexPathForCell:currentCell];
-                
-                NSIndexPath *indexPath = [NSIndexPath indexPathForItem:(weakSelf.isRealIndex ? index.item : index.item + 1) inSection:index.section];
-                
-                [weakSelf.indexPaths addObject:indexPath];
-                
-                currentCell.photoItem.isSelected = NO;
-                
-                if ([weakSelf.selectedPhotos containsObject:currentCell.photoItem]) {
-                    
-                    [weakSelf.selectedPhotos removeObject:currentCell.photoItem];
-                    
-                }else{
-                    
-                    JKPhotoItem *itm = [self.identifierItemCache objectForKey:currentCell.photoItem.assetLocalIdentifier];
-                    
-                    if (itm != nil) {
-                        
-                        [weakSelf.selectedPhotos removeObject:itm];
-                        
-                    }else{
-                        
-                        for (JKPhotoItem *it in weakSelf.selectedPhotos) {
-                            
-                            if ([it.assetLocalIdentifier isEqualToString:currentCell.photoItem.assetLocalIdentifier]) {
-                                
-                                [weakSelf.selectedPhotos removeObject:it];
-                                
-                                break;
-                            }
-                        }
-                    }
-                }
-                
-                NSLog(@"取消选中,当前选中了%ld个", (unsigned long)weakSelf.selectedPhotos.count);
+                [weakSelf deSelectedPhotoWithCell:currentCell];
                 
                 return !selected;
             }
             
             if (weakSelf.selectedPhotos.count < weakSelf.maxSelectCount) {
                 
-                NSIndexPath *index = [weakSelf.collectionView indexPathForCell:currentCell];
-                
-                NSIndexPath *indexPath = [NSIndexPath indexPathForItem:(self.isRealIndex ? index.item : index.item + 1) inSection:index.section];
-                
-                [weakSelf.indexPaths addObject:indexPath];
-                
-                currentCell.photoItem.isSelected = YES;
-                
-                [weakSelf.selectedPhotos addObject:currentCell.photoItem];
-                
-                NSLog(@"选中了%ld个", (unsigned long)weakSelf.selectedPhotos.count);
+                [weakSelf selectPhotoWithCell:currentCell];
                 
                 return !selected;
             }
             
-            UIAlertController *alertVc = [UIAlertController alertControllerWithTitle:@"提示" message:[NSString stringWithFormat:@"最多选择%ld张图片哦~~", (unsigned long)weakSelf.maxSelectCount] preferredStyle:(UIAlertControllerStyleAlert)];
-            
-            [alertVc addAction:[UIAlertAction actionWithTitle:@"确定" style:(UIAlertActionStyleDefault) handler:nil]];
-            
-            [weakSelf presentViewController:alertVc animated:YES completion:nil];
+            [weakSelf showMaxSelectCountTip];
             
             return NO;
         }];
     }
     
-#pragma mark - 退出
-    
     if (!cell.dismissBlock) {
         
         [cell setDismissBlock:^(JKPhotoBrowserCollectionViewCell *currentCell, CGRect dismissFrame) {
             
-            weakSelf.presentationManager.touchImageView = currentCell.photoImageView;
-            weakSelf.presentationManager.touchImage = currentCell.photoImageView.image;
-            weakSelf.presentationManager.dismissFrame = dismissFrame;
-            
-            weakSelf.indexPath = (weakSelf.isRealIndex) ? currentCell.indexPath : [NSIndexPath indexPathForItem:currentCell.indexPath.item + 1 inSection:currentCell.indexPath.section];
-            
-            JKPhotoCollectionViewCell *fromCell = (JKPhotoCollectionViewCell *)[weakSelf.fromCollectionView cellForItemAtIndexPath:weakSelf.indexPath];
-            weakSelf.presentationManager.fromImageView = fromCell.photoImageView;
-            
-            CGRect presentFrame = (fromCell.frame.size.width != fromCell.photoImageView.frame.size.width) ? [[UIApplication sharedApplication].keyWindow convertRect:fromCell.photoImageView.frame fromView:fromCell.photoImageView.superview] : [[UIApplication sharedApplication].keyWindow convertRect:fromCell.frame fromView:fromCell.superview];
-            NSLog(@"presentFrame--->%@", NSStringFromCGRect(presentFrame));
-            //    CGRect presentFrame = [fromCell.superview convertRect:fromCell.frame toView:[UIApplication sharedApplication].keyWindow];
-            
-            //    CGRect fromCollectionViewFrame = [self.fromCollectionView.superview convertRect:self.fromCollectionView.frame toView:[UIApplication sharedApplication].keyWindow];
-            
-            weakSelf.presentationManager.isZoomUpAnimation = (fromCell == nil) || (!CGRectIntersectsRect(presentFrame, [UIApplication sharedApplication].keyWindow.bounds)) || (weakSelf.isRealIndex && weakSelf.initialSelectCount != weakSelf.selectedPhotos.count);
-            weakSelf.presentationManager.presentFrame = presentFrame;
-            
-            [weakSelf dismiss];
+            [weakSelf prepareToDismissWithCell:currentCell dismissFrame:dismissFrame];
         }];
     }
     
@@ -330,6 +268,104 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
 //            [weakSelf changeSelectedCount];
 //        }];
 //    }
+}
+
+#pragma mark - 选中照片
+
+- (void)selectPhotoWithCell:(JKPhotoBrowserCollectionViewCell *)currentCell {
+    
+    NSIndexPath *index = [self.collectionView indexPathForCell:currentCell];
+    
+    NSIndexPath *indexPath = [NSIndexPath indexPathForItem:(self.isRealIndex ? index.item : index.item + 1) inSection:index.section];
+    
+    [self.indexPaths addObject:indexPath];
+    
+    currentCell.photoItem.isSelected = YES;
+    
+    [self.selectedPhotosIdentifierCache setObject:currentCell.photoItem forKey:currentCell.photoItem.assetLocalIdentifier];
+    
+    [self.selectedPhotos addObject:currentCell.photoItem];
+    
+    NSLog(@"选中了%ld个", (unsigned long)self.selectedPhotos.count);
+}
+
+#pragma mark - 最大选择数量提示
+
+- (void)showMaxSelectCountTip{
+    
+    UIAlertController *alertVc = [UIAlertController alertControllerWithTitle:@"提示" message:[NSString stringWithFormat:@"最多选择%ld张图片哦~~", (unsigned long)self.maxSelectCount] preferredStyle:(UIAlertControllerStyleAlert)];
+    
+    [alertVc addAction:[UIAlertAction actionWithTitle:@"确定" style:(UIAlertActionStyleDefault) handler:nil]];
+    
+    [self presentViewController:alertVc animated:YES completion:nil];
+}
+
+#pragma mark - 取消选中
+
+- (void)deSelectedPhotoWithCell:(JKPhotoBrowserCollectionViewCell *)currentCell {
+    
+    NSIndexPath *index = [self.collectionView indexPathForCell:currentCell];
+    
+    NSIndexPath *indexPath = [NSIndexPath indexPathForItem:(self.isRealIndex ? index.item : index.item + 1) inSection:index.section];
+    
+    [self.indexPaths addObject:indexPath];
+    
+    currentCell.photoItem.isSelected = NO;
+    
+    if ([self.selectedPhotos containsObject:currentCell.photoItem]) {
+        
+        [self.selectedPhotos removeObject:currentCell.photoItem];
+        
+        [self.selectedPhotosIdentifierCache removeObjectForKey:currentCell.photoItem.assetLocalIdentifier];
+        
+    }else{
+        
+        JKPhotoItem *itm = [self.selectedPhotosIdentifierCache objectForKey:currentCell.photoItem.assetLocalIdentifier];
+        
+        if (itm == nil) {
+            
+            for (JKPhotoItem *it in self.selectedPhotos) {
+                
+                if ([it.assetLocalIdentifier isEqualToString:currentCell.photoItem.assetLocalIdentifier]) {
+                    
+                    itm = it;
+                    
+                    break;
+                }
+            }
+        }
+        
+        [self.selectedPhotos removeObject:itm];
+        
+        [self.selectedPhotosIdentifierCache removeObjectForKey:currentCell.photoItem.assetLocalIdentifier];
+    }
+    
+    NSLog(@"取消选中,当前选中了%ld个", (unsigned long)self.selectedPhotos.count);
+}
+
+#pragma mark - 退出
+
+- (void)prepareToDismissWithCell:(JKPhotoBrowserCollectionViewCell *)currentCell dismissFrame:(CGRect)dismissFrame{
+    
+    self.presentationManager.touchImageView = currentCell.photoImageView;
+    self.presentationManager.touchImage = currentCell.photoImageView.image;
+    self.presentationManager.dismissFrame = dismissFrame;
+    
+    self.indexPath = (self.isRealIndex) ? currentCell.indexPath : [NSIndexPath indexPathForItem:currentCell.indexPath.item + 1 inSection:currentCell.indexPath.section];
+    
+    JKPhotoCollectionViewCell *fromCell = (JKPhotoCollectionViewCell *)[self.fromCollectionView cellForItemAtIndexPath:self.indexPath];
+    self.presentationManager.fromImageView = fromCell.photoImageView;
+    
+    CGRect presentFrame = (fromCell.frame.size.width != fromCell.photoImageView.frame.size.width) ? [[UIApplication sharedApplication].keyWindow convertRect:fromCell.photoImageView.frame fromView:fromCell.photoImageView.superview] : [[UIApplication sharedApplication].keyWindow convertRect:fromCell.frame fromView:fromCell.superview];
+    NSLog(@"presentFrame--->%@", NSStringFromCGRect(presentFrame));
+    //    CGRect presentFrame = [fromCell.superview convertRect:fromCell.frame toView:[UIApplication sharedApplication].keyWindow];
+    
+    //    CGRect fromCollectionViewFrame = [self.fromCollectionView.superview convertRect:self.fromCollectionView.frame toView:[UIApplication sharedApplication].keyWindow];
+    
+    self.presentationManager.isZoomUpAnimation = (fromCell == nil) || (!CGRectIntersectsRect(presentFrame, [UIApplication sharedApplication].keyWindow.bounds)) || (self.isRealIndex && self.initialSelectCount != self.selectedPhotos.count);
+    self.presentationManager.presentFrame = presentFrame;
+    
+    [self dismiss];
 }
 
 - (void)changeSelectedCount{
@@ -374,7 +410,7 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
     
     [self dismissViewControllerAnimated:YES completion:^{
         
-        !self.completionBlock ? : self.completionBlock(self.selectedPhotos, self.indexPaths);
+        !self.completionBlock ? : self.completionBlock(self.selectedPhotos, self.indexPaths, self.selectedPhotosIdentifierCache);
     }];
 }
 

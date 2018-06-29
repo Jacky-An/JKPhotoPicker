@@ -204,7 +204,7 @@ static NSString * const reuseID = @"JKPhotoSelectCompleteCollectionViewCell"; //
     dict[@"indexPath"] = indexPath;
     dict[@"isSelectedCell"] = @(YES);
     
-    [JKPhotoBrowserViewController showWithViewController:self.superViewController dataDict:dict completion:^(NSArray *seletedPhotos, NSArray *indexPaths) {
+    [JKPhotoBrowserViewController showWithViewController:self.superViewController dataDict:dict completion:^(NSArray <JKPhotoItem *> *seletedPhotos, NSArray <NSIndexPath *> *indexPaths, NSMutableDictionary *selectedPhotosIdentifierCache) {
         
         if (self.selectedPhotos.count == seletedPhotos.count) {
             return;

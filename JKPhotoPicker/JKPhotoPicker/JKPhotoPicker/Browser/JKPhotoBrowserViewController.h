@@ -8,9 +8,11 @@
 
 #import <UIKit/UIKit.h>
 
+@class JKPhotoItem;
+
 @interface JKPhotoBrowserViewController : UIViewController
 
 //+ (void)showWithViewController:(UIViewController *)viewController allPhotos:(NSArray *)allPhotos selectedItems:(NSArray *)selectedItems maxSelectCount:(NSUInteger)maxSelectCount indexPath:(NSIndexPath *)indexPath imageView:(UIImageView *)imageView completion:(void(^)(NSArray *seletedPhotos))completion;
 
-+ (void)showWithViewController:(UIViewController *)viewController dataDict:(NSDictionary *)dataDict completion:(void(^)(NSArray *seletedPhotos, NSArray *indexPaths))completion;
++ (void)showWithViewController:(UIViewController *)viewController dataDict:(NSDictionary *)dataDict completion:(void(^)(NSArray <JKPhotoItem *> *seletedPhotos, NSArray <NSIndexPath *> *indexPaths, NSMutableDictionary *selectedPhotosIdentifierCache))completion;
 @end
