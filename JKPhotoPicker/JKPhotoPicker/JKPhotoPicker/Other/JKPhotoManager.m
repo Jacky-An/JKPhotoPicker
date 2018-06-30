@@ -123,7 +123,7 @@
 /** 从某一个相册结果集中获取图片实体，并把图片结果存放到数组中，返回值数组中是PHAsset对象 */
 + (NSMutableArray *)getPhotoAssetsWithFetchResult:(PHFetchResult *)fetchResult optionDict:(NSDictionary *)optionDict complete:(void(^)(NSDictionary *resultDict))complete {
     
-    NSCache *allCache = optionDict[@"allCache"];
+    NSCache *allCache = [[NSCache alloc] init];
     NSDictionary *seletedCache = optionDict[@"seletedCache"];
     
     NSMutableArray *seletedNewItems = [NSMutableArray array];
@@ -131,7 +131,7 @@
     
     NSMutableArray *dataArray = [NSMutableArray array];
     
-    __block NSInteger i = 0;
+    __block NSInteger i = seletedCache == nil ? -1 : 0;
     
     [fetchResult enumerateObjectsWithOptions:(NSEnumerationReverse) usingBlock:^(PHAsset * _Nonnull asset, NSUInteger idx, BOOL * _Nonnull stop) {
         

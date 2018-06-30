@@ -13,10 +13,6 @@
 #import <Photos/Photos.h>
 #import "JKPhotoCollectionViewCell.h"
 
-#define JKScreenW [UIScreen mainScreen].bounds.size.width
-#define JKScreenH [UIScreen mainScreen].bounds.size.height
-#define JKScreenBounds [UIScreen mainScreen].bounds
-
 @interface JKPhotoBrowserViewController () <UICollectionViewDataSource, UICollectionViewDelegate>
 /** collectionView */
 @property (nonatomic, weak) UICollectionView *collectionView;
@@ -29,9 +25,6 @@
 
 /** 需要显示的数据源数组 */
 @property (nonatomic, strong) NSArray *dataSourceArr;
-
-/** 是否是真正的索引 不需要-1 */
-@property (nonatomic, assign) BOOL isRealIndex;
 
 /** 选中的图片数组 */
 @property (nonatomic, strong) NSMutableArray *selectedPhotos;
@@ -84,11 +77,12 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
     vc.transitioningDelegate  = vc.presentationManager;
     vc.modalPresentationStyle = UIModalPresentationCustom;
     
-    vc.presentationManager.touchImage     = imageView.image;
-    vc.presentationManager.presentFrame   = presentFrame;
-    vc.presentationManager.fromImageView  = imageView;
-    vc.presentationManager.isSelectedCell = [dataDict[@"isSelectedCell"] boolValue];
-    vc.presentationManager.touchImageView = imageView;
+    vc.presentationManager.isSelectedCell     = [dataDict[@"isSelectedCell"] boolValue];
+    vc.presentationManager.touchImage         = imageView.image;
+    vc.presentationManager.fromImageView      = imageView;
+    vc.presentationManager.touchImageView     = imageView;
+    vc.presentationManager.fromCollectionView = dataDict[@"collectionView"];
+    vc.presentationManager.presentFrame       = presentFrame;
     
     vc.indexPath            = dataDict[@"indexPath"];
     vc.maxSelectCount       = [dataDict[@"maxSelectCount"] integerValue];
@@ -130,11 +124,6 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
         }
     }
     
-    
-//    vc.isRealIndex = (vc.allPhotoItems.count <= 0);
-    
-//    vc.allPhotoItems = (!vc.isRealIndex) ? vc.allPhotoItems : selectedItems;
-    
     // 映射标识和item
 //    [vc setupIdentifierCache];
     
@@ -147,9 +136,13 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
         
         JKPhotoItem *item = [self.allPhotosIdentifierCache objectForKey:itm.assetLocalIdentifier];
         
-        if (item.currentIndexPath != nil) {
+        NSIndexPath *indexPath = item.currentIndexPath;
+        
+        itm.currentIndexPath = indexPath;
+        
+        if (indexPath != nil) {
             
-            [self.dismissReloadIndexPaths addObject:item.currentIndexPath];
+            [self.dismissReloadIndexPaths addObject:indexPath];
         }
     }
 }
@@ -329,7 +322,18 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
     
     if (![self.dismissReloadIndexPaths containsObject:currentCell.photoItem.currentIndexPath]) {
         
-        [self.dismissReloadIndexPaths addObject:currentCell.photoItem.currentIndexPath];
+        if (currentCell.photoItem.currentIndexPath != nil) {
+            
+            [self.dismissReloadIndexPaths addObject:currentCell.photoItem];
+        }
+        
+//        JKPhotoItem *itm = [self.allPhotosIdentifierCache objectForKey:currentCell.photoItem.assetLocalIdentifier];
+//
+//        if (itm != nil) {
+//
+//            NSIndexPath *indexPath = [NSIndexPath indexPathForItem:[self.allPhotoItems indexOfObject:itm] inSection:0];
+//            [self.dismissReloadIndexPaths addObject:indexPath];
+//        }
     }
     
     [self.selectedPhotosIdentifierCache setObject:currentCell.photoItem forKey:currentCell.photoItem.assetLocalIdentifier];
@@ -358,7 +362,10 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
     
     if (![self.dismissReloadIndexPaths containsObject:currentCell.photoItem.currentIndexPath]) {
         
-        [self.dismissReloadIndexPaths addObject:currentCell.photoItem.currentIndexPath];
+        if (currentCell.photoItem.currentIndexPath != nil) {
+            
+            [self.dismissReloadIndexPaths addObject:currentCell.photoItem.currentIndexPath];
+        }
     }
     
     if ([self.selectedPhotos containsObject:currentCell.photoItem]) {
@@ -419,7 +426,26 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
     
     //    CGRect fromCollectionViewFrame = [self.fromCollectionView.superview convertRect:self.fromCollectionView.frame toView:[UIApplication sharedApplication].keyWindow];
     
-    self.presentationManager.isZoomUpAnimation = (fromCell == nil) || (!CGRectIntersectsRect(presentFrame, [UIApplication sharedApplication].keyWindow.bounds)) || (self.isRealIndex && self.initialSelectCount != self.selectedPhotos.count);
+    CGRect rect = CGRectMake(0, JKPhotoPickerNavBarHeight, JKScreenW, JKScreenH - JKPhotoPickerNavBarHeight - (70 + (JKPhotoPickerIsIphoneX ? JKPhotoPickerBottomSafeAreaHeight : 0)));
+    
+    CGRect bottomOrCompleteRect = [[UIApplication sharedApplication].keyWindow convertRect:self.fromCollectionView.frame fromView:self.fromCollectionView.superview];
+    
+    self.presentationManager.isZoomUpAnimation = NO;
+    
+    if (self.isShowSelectedPhotos) {
+        
+        self.presentationManager.isZoomUpAnimation = !CGRectIntersectsRect(presentFrame, bottomOrCompleteRect) || (self.initialSelectCount != self.selectedPhotos.count);
+        
+    }else{
+        
+        self.presentationManager.isZoomUpAnimation = !CGRectIntersectsRect(presentFrame, rect);
+    }
+    
+    if (fromCell == nil) {
+        
+        self.presentationManager.isZoomUpAnimation = YES;
+    }
+    
     self.presentationManager.presentFrame = presentFrame;
     
     [self dismiss];
@@ -442,25 +468,6 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
 - (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath{
     [collectionView deselectItemAtIndexPath:indexPath animated:NO];
     
-//    JKPhotoBrowserCollectionViewCell *cell = (JKPhotoBrowserCollectionViewCell *)[collectionView cellForItemAtIndexPath:indexPath];
-//    
-//    self.presentationManager.touchImage = cell.photoImageView.image;
-//    self.presentationManager.touchImageView = cell.photoImageView;
-//    
-//    self.indexPath = (self.isRealIndex) ? indexPath : [NSIndexPath indexPathForItem:indexPath.item + 1 inSection:indexPath.section];
-//    
-//    UICollectionViewCell *fromCell = [self.fromCollectionView cellForItemAtIndexPath:self.indexPath];
-//    
-//    CGRect presentFrame = [[UIApplication sharedApplication].keyWindow convertRect:fromCell.frame fromView:fromCell.superview];
-//    NSLog(@"presentFrame--->%@", NSStringFromCGRect(presentFrame));
-////    CGRect presentFrame = [fromCell.superview convertRect:fromCell.frame toView:[UIApplication sharedApplication].keyWindow];
-//    
-////    CGRect fromCollectionViewFrame = [self.fromCollectionView.superview convertRect:self.fromCollectionView.frame toView:[UIApplication sharedApplication].keyWindow];
-//    
-//    self.presentationManager.isZoomUpAnimation = (fromCell == nil) || (!CGRectIntersectsRect(presentFrame, [UIApplication sharedApplication].keyWindow.bounds)) || (self.isRealIndex && self.initialSelectCount != self.selectedPhotos.count);
-//    self.presentationManager.presentFrame = presentFrame;
-//    
-//    [self dismiss];
 }
 
 - (void)dismiss{
@@ -476,13 +483,13 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
     
     NSLog(@"可见cell--->%zd", self.collectionView.visibleCells.count);
     
-    self.indexPath = [NSIndexPath indexPathForItem:(self.isRealIndex) ? scrollView.contentOffset.x / JKScreenW : scrollView.contentOffset.x / JKScreenW + 1 inSection:0];
+    self.indexPath = [NSIndexPath indexPathForItem:(!self.isAllPhotosAlbum || self.isShowSelectedPhotos) ? scrollView.contentOffset.x / JKScreenW : scrollView.contentOffset.x / JKScreenW + 1 inSection:0];
 
     JKPhotoCollectionViewCell *fromCell = (JKPhotoCollectionViewCell *)[self.fromCollectionView cellForItemAtIndexPath:self.indexPath];
 
     CGRect presentFrame = (fromCell.frame.size.width != fromCell.photoImageView.frame.size.width) ? [[UIApplication sharedApplication].keyWindow convertRect:fromCell.photoImageView.frame fromView:fromCell.photoImageView.superview] : [[UIApplication sharedApplication].keyWindow convertRect:fromCell.frame fromView:fromCell.superview];
     
-    self.presentationManager.whiteView.frame = presentFrame;
+    self.presentationManager.presentFrame = presentFrame;
 }
 
 - (void)didReceiveMemoryWarning {

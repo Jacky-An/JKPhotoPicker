@@ -11,3 +11,6 @@
 
 // 照片选择完成的view
 #import "JKPhotoSelectCompleteView.h"
+
+/** 宏定义 */
+#import "JKPhotoPickerMacro.h"

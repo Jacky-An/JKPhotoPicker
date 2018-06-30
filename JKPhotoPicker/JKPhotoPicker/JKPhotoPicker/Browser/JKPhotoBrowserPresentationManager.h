@@ -9,8 +9,15 @@
 #import <UIKit/UIKit.h>
 
 @interface JKPhotoBrowserPresentationManager : NSObject <UIViewControllerTransitioningDelegate, UIViewControllerAnimatedTransitioning>
+
+/** 传过来的collectionView */
+@property (nonatomic, weak) UICollectionView *fromCollectionView;
+
 /** popover显示的frame */
 @property (nonatomic, assign) CGRect presentFrame;
+
+/** popover显示的frame */
+@property (nonatomic, assign) CGRect presentCellFrame;
 
 /** popover消失时的frame */
 @property (nonatomic, assign) CGRect dismissFrame;

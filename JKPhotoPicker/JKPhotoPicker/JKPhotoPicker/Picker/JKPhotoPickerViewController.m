@@ -144,6 +144,8 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
     if (!_albumListView) {
         JKPhotoAlbumListView *albumListView = [[JKPhotoAlbumListView alloc] init];
         albumListView.hidden = YES;
+        [self.view addSubview:albumListView];
+        _albumListView = albumListView;
         
         [self.titleButton setTitle:[albumListView.cameraRollItem.albumTitle stringByAppendingString:@"  "] forState:(UIControlStateNormal)];
         
@@ -168,10 +170,6 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
                 [weakSelf loadPhotoWithPhotoItem:photoItem];
             });
         }];
-        
-        [self.view addSubview:albumListView];
-        
-        _albumListView = albumListView;
     }
     return _albumListView;
 }
@@ -341,11 +339,17 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
     
     [self.allPhotosIdentifierCache removeAllObjects];
     
-    NSMutableArray *photoItems = [JKPhotoManager getPhotoAssetsWithFetchResult:photoItem.albumFetchResult optionDict:@{@"allCache" : self.allPhotosIdentifierCache, @"seletedCache" : self.selectedPhotosIdentifierCache} complete:^(NSDictionary *resultDict) {
+    BOOL isLoadAllPhotos = [photoItem.assetLocalIdentifier isEqualToString:_albumListView.cameraRollItem.albumLocalIdentifier];
+    
+    NSMutableArray *photoItems = [JKPhotoManager getPhotoAssetsWithFetchResult:photoItem.albumFetchResult optionDict:(isLoadAllPhotos ? @{@"seletedCache" : self.selectedPhotosIdentifierCache} : nil) complete:^(NSDictionary *resultDict) {
         
         self.allPhotosIdentifierCache = resultDict[@"allCache"];
-        self.selectedPhotos = [resultDict[@"seletedItems"] mutableCopy];
-        self.selectedPhotosIdentifierCache = resultDict[@"seletedCache"];
+        
+        if (isLoadAllPhotos) {
+            
+            self.selectedPhotos = [resultDict[@"seletedItems"] mutableCopy];
+            self.selectedPhotosIdentifierCache = resultDict[@"seletedCache"];
+        }
     }];
     
     if ([photoItems.firstObject isShowCameraIcon] == NO && self.isAllPhotosAlbum) {

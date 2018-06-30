@@ -52,6 +52,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		500F63BB20E7D12B00CA883E /* JKPhotoPickerMacro.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = JKPhotoPickerMacro.h; sourceTree = "<group>"; };
 		5028B46F1E1546A000892131 /* JKTestViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JKTestViewController.h; sourceTree = "<group>"; };
 		5028B4701E1546A000892131 /* JKTestViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JKTestViewController.m; sourceTree = "<group>"; };
 		505AD61E1E1A5AAC0037BF3B /* JKPhotoAlbumListTableViewCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JKPhotoAlbumListTableViewCell.h; sourceTree = "<group>"; };
@@ -264,6 +265,7 @@
 			isa = PBXGroup;
 			children = (
 				505AD64A1E1A5C390037BF3B /* JKPhotoPicker.h */,
+				500F63BB20E7D12B00CA883E /* JKPhotoPickerMacro.h */,
 				505AD6191E1A5A470037BF3B /* Album */,
 				505AD61A1E1A5A470037BF3B /* Browser */,
 				505AD61D1E1A5A6E0037BF3B /* Other */,

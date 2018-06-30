@@ -8,10 +8,7 @@
 
 #import "JKPhotoBrowserPresentationManager.h"
 #import "JKPhotoBrowserPresentationController.h"
-
-#define JKScreenW [UIScreen mainScreen].bounds.size.width
-#define JKScreenH [UIScreen mainScreen].bounds.size.height
-#define JKScreenBounds [UIScreen mainScreen].bounds
+#import "JKPhotoPickerMacro.h"
 
 @interface JKPhotoBrowserPresentationManager ()
 /** 是否已经被present */
@@ -78,26 +75,28 @@
     blackBgView.backgroundColor = [UIColor blackColor];
     [[transitionContext containerView] addSubview:blackBgView];
     
-    CGFloat navBarH = ([UIScreen instancesRespondToSelector:@selector(currentMode)] ? CGSizeEqualToSize(CGSizeMake(1125, 2436), [[UIScreen mainScreen] currentMode].size) : NO) ? 88 : 64;
-    
-    CGFloat Y = self.presentFrame.origin.y < navBarH ? navBarH : self.presentFrame.origin.y;
-    
-    CGFloat bottomY = JKScreenH - (([UIScreen instancesRespondToSelector:@selector(currentMode)] ? CGSizeEqualToSize(CGSizeMake(1125, 2436), [[UIScreen mainScreen] currentMode].size) : NO) ? 104 : 70);
-    
-    CGFloat H = (Y > bottomY ? CGRectGetMaxY(self.presentFrame) : (CGRectGetMaxY(self.presentFrame) > bottomY ? bottomY : CGRectGetMaxY(self.presentFrame))) - Y;
-    
-    UIView *whiteView = [[UIView alloc] initWithFrame:CGRectMake(self.presentFrame.origin.x, Y, self.presentFrame.size.width, H)];
+    UIView *whiteView = [[UIView alloc] initWithFrame:self.presentCellFrame];
+    whiteView.clipsToBounds = YES;
     whiteView.backgroundColor = [UIColor whiteColor];
     [[transitionContext containerView] insertSubview:whiteView atIndex:0];
     self.whiteView = whiteView;
     
     if (self.isSelectedCell) {
         
+        whiteView.backgroundColor = nil;
+        
+        UIView *v1 = [[UIView alloc] init];
+        v1.backgroundColor = [UIColor whiteColor];
+        v1.frame = CGRectMake(5, 10, whiteView.frame.size.width - 10, whiteView.frame.size.height - 20);
+        [whiteView addSubview:v1];
+        
         UIButton *deleteButton = [UIButton buttonWithType:(UIButtonTypeCustom)];
         deleteButton.frame = CGRectMake(self.presentFrame.size.width - 15, -10, 20, 20);
-        [whiteView addSubview:deleteButton];
+        [v1 addSubview:deleteButton];
         [deleteButton setBackgroundImage:[UIImage imageWithContentsOfFile:[[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"JKPhotoPickerResource.bundle/images/delete_icon@3x.png"]] forState:(UIControlStateNormal)];
     }
+    
+    self.presentFrame = self.presentFrame;
     
     // 2.将需要弹出的视图添加到containerView上
     [[transitionContext containerView] addSubview:toView];
@@ -185,7 +184,9 @@
     [[transitionContext containerView] setBackgroundColor:[UIColor clearColor]];
     
     [UIView animateWithDuration:[self transitionDuration:transitionContext] animations:^{
+        
         if (self.isZoomUpAnimation) {
+            
             imageView.transform = CGAffineTransformMakeScale(1.3, 1.3);
             imageView.alpha = 0;
             
@@ -224,5 +225,67 @@
 //    }
 //    
 //    imageView.center = CGPointMake(JKScreenW * 0.5, JKScreenH * 0.5);
+}
+
+- (void)setPresentFrame:(CGRect)presentFrame{
+    _presentFrame = presentFrame;
+    
+    _presentCellFrame = presentFrame;
+    
+    if (self.isSelectedCell) {
+        
+        _presentCellFrame = CGRectMake(_presentFrame.origin.x - 5, _presentFrame.origin.y - 10, _presentFrame.size.width + 10, _presentFrame.size.height + 20);
+    }
+    
+    if (self.whiteView == nil) { return; }
+    
+    CGRect rect = CGRectMake(0, JKPhotoPickerNavBarHeight, JKScreenW, JKScreenH - JKPhotoPickerNavBarHeight - (70 + (JKPhotoPickerIsIphoneX ? JKPhotoPickerBottomSafeAreaHeight : 0)));
+    
+    CGRect bottomOrCompleteRect = [[UIApplication sharedApplication].keyWindow convertRect:self.fromCollectionView.frame fromView:self.fromCollectionView.superview];
+    
+    if (self.isSelectedCell) {
+        
+        if (!CGRectIntersectsRect(_presentCellFrame, bottomOrCompleteRect)) {
+            
+            _presentCellFrame = CGRectZero;
+            
+        }else{
+            
+            CGFloat Y = _presentCellFrame.origin.y < bottomOrCompleteRect.origin.y ? bottomOrCompleteRect.origin.y : _presentCellFrame.origin.y;
+            
+            CGFloat bottomY = CGRectGetMaxY(_presentCellFrame);
+            
+            CGFloat H = (Y > bottomY ? bottomY : (CGRectGetMaxY(_presentCellFrame) > bottomY ? bottomY : CGRectGetMaxY(_presentCellFrame))) - Y;
+            
+            CGFloat minX = (_presentCellFrame.origin.x < bottomOrCompleteRect.origin.x) ? bottomOrCompleteRect.origin.x : _presentCellFrame.origin.x;
+            
+            CGFloat maxX = CGRectGetMaxX(bottomOrCompleteRect);
+            
+            CGFloat cellMaxX =CGRectGetMaxX(_presentCellFrame);
+            
+            CGFloat width = (cellMaxX > maxX) ? (maxX - minX) : _presentCellFrame.size.width;
+            
+            _presentCellFrame = CGRectMake(_presentCellFrame.origin.x, Y, width, H);
+        }
+        
+    }else{
+        
+        if (!CGRectIntersectsRect(_presentCellFrame, rect)) {
+            
+            _presentCellFrame = CGRectZero;
+            
+        }else{
+            
+            CGFloat Y = _presentCellFrame.origin.y < JKPhotoPickerNavBarHeight ? JKPhotoPickerNavBarHeight : _presentCellFrame.origin.y;
+            
+            CGFloat bottomY = JKScreenH - (JKPhotoPickerIsIphoneX ? 104 : 70);
+            
+            CGFloat H = (Y > bottomY ? CGRectGetMaxY(_presentCellFrame) : (CGRectGetMaxY(_presentCellFrame) > bottomY ? bottomY : CGRectGetMaxY(_presentCellFrame))) - Y;
+            
+            _presentCellFrame = CGRectMake(_presentCellFrame.origin.x, Y, _presentCellFrame.size.width, H);
+        }
+    }
+    
+    self.whiteView.frame = _presentCellFrame;
 }
 @end
