@@ -25,7 +25,10 @@
 @property (nonatomic, weak) UICollectionView *fromCollectionView;
 
 /** 所有的图片数组 */
-@property (nonatomic, strong) NSArray *allPhotos;
+@property (nonatomic, strong) NSArray *allPhotoItems;
+
+/** 需要显示的数据源数组 */
+@property (nonatomic, strong) NSArray *dataSourceArr;
 
 /** 是否是真正的索引 不需要-1 */
 @property (nonatomic, assign) BOOL isRealIndex;
@@ -39,13 +42,16 @@
 /** 最多选择图片数量 默认3 */
 @property (nonatomic, assign) NSUInteger maxSelectCount;
 
-/** 弹出是已选中图片数量 */
+/** 所有的图片的数量 allPhotoItems.count 包括拍照那个item */
+@property (nonatomic, assign) NSUInteger allPhotoItemsCount;
+
+/** 弹出时已选中图片数量 */
 @property (nonatomic, assign) NSUInteger initialSelectCount;
 
-/** 需要更新的indexPath */
-@property (nonatomic, strong) NSMutableArray *indexPaths;
+/** dismiss后需要更新的indexPath */
+@property (nonatomic, strong) NSMutableArray *dismissReloadIndexPaths;
 
-/** 监听退出浏览器的block */
+/** 监听退出图片浏览器的block */
 @property (nonatomic, copy) void (^completionBlock)(NSArray <JKPhotoItem *> *seletedPhotos, NSArray <NSIndexPath *> *indexPaths, NSMutableDictionary *selectedPhotosIdentifierCache);
 
 /** 点击的索引 */
@@ -56,6 +62,9 @@
 
 /** 选中的照片标识和item的映射缓存 */
 @property (nonatomic, strong) NSMutableDictionary *selectedPhotosIdentifierCache;
+
+/** 是否显示的已选中的照片 */
+@property (nonatomic, assign) BOOL isShowSelectedPhotos;
 @end
 
 @implementation JKPhotoBrowserViewController
@@ -69,32 +78,54 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
     UIImageView *imageView = dataDict[@"imageView"];
     CGRect presentFrame = [imageView.superview convertRect:imageView.frame toView:[UIApplication sharedApplication].keyWindow];
     
-    vc.transitioningDelegate = vc.presentationManager;
-    vc.presentationManager.presentFrame = presentFrame;
-    vc.presentationManager.touchImage = imageView.image;
-    vc.presentationManager.touchImageView = imageView;
-    vc.presentationManager.fromImageView = imageView;
-    vc.presentationManager.isSelectedCell = [dataDict[@"isSelectedCell"] boolValue];
+    vc.transitioningDelegate  = vc.presentationManager;
     vc.modalPresentationStyle = UIModalPresentationCustom;
     
-    vc.allPhotos = dataDict[@"allPhotos"];
-    vc.isRealIndex = (vc.allPhotos.count <= 0);
+    vc.presentationManager.touchImage     = imageView.image;
+    vc.presentationManager.presentFrame   = presentFrame;
+    vc.presentationManager.fromImageView  = imageView;
+    vc.presentationManager.isSelectedCell = [dataDict[@"isSelectedCell"] boolValue];
+    vc.presentationManager.touchImageView = imageView;
     
-    vc.maxSelectCount = [dataDict[@"maxSelectCount"] integerValue];
+    vc.indexPath            = dataDict[@"indexPath"];
+    vc.maxSelectCount       = [dataDict[@"maxSelectCount"] integerValue];
+    vc.completionBlock      = completion;
+    vc.fromCollectionView   = dataDict[@"collectionView"];
+    vc.isShowSelectedPhotos = [dataDict[@"isShowSelectedPhotos"] boolValue];
     
-    vc.indexPath = dataDict[@"indexPath"];
-    vc.fromCollectionView = dataDict[@"collectionView"];
+    vc.allPhotoItems      = dataDict[@"allPhotos"];
+    vc.allPhotoItemsCount = vc.allPhotoItems.count;
     
-    vc.completionBlock = completion;
+    vc.allPhotosIdentifierCache      = dataDict[@"allPhotosCache"];
+    vc.selectedPhotosIdentifierCache = dataDict[@"selectedItemsCache"];
     
     [vc.selectedPhotos removeAllObjects];
     NSArray *selectedItems = dataDict[@"selectedItems"];
-    vc.allPhotos = (!vc.isRealIndex) ? vc.allPhotos : selectedItems;
-    vc.initialSelectCount = selectedItems.count;
+    vc.initialSelectCount  = selectedItems.count;
     [vc.selectedPhotos addObjectsFromArray:selectedItems];
     
-    vc.allPhotosIdentifierCache = dataDict[@"allPhotosCache"];
-    vc.selectedPhotosIdentifierCache = dataDict[@"selectedItemsCache"];
+//    [vc.dismissReloadIndexPaths addObjectsFromArray:[vc.selectedPhotos valueForKeyPath:@"currentIndexPath"]];
+    
+    [vc addReloadIndexPaths];
+    
+    if (vc.isShowSelectedPhotos) {
+        
+        vc.dataSourceArr = selectedItems;
+        
+    }else{
+        
+        if (vc.allPhotoItemsCount > 1) {
+            
+            NSMutableArray *mArr = [vc.allPhotoItems mutableCopy];
+            [mArr removeObjectAtIndex:0];
+            vc.dataSourceArr = [mArr copy];
+        }
+    }
+    
+    
+//    vc.isRealIndex = (vc.allPhotoItems.count <= 0);
+    
+//    vc.allPhotoItems = (!vc.isRealIndex) ? vc.allPhotoItems : selectedItems;
     
     // 映射标识和item
 //    [vc setupIdentifierCache];
@@ -102,11 +133,17 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
     [viewController presentViewController:vc animated:YES completion:nil];
 }
 
-- (NSMutableDictionary *)selectedPhotosIdentifierCache{
-    if (!_selectedPhotosIdentifierCache) {
-        _selectedPhotosIdentifierCache = [NSMutableDictionary dictionary];//[[NSCache alloc] init];
+- (void)addReloadIndexPaths{
+    
+    for (JKPhotoItem *itm in self.selectedPhotos) {
+        
+        JKPhotoItem *item = [self.allPhotosIdentifierCache objectForKey:itm.assetLocalIdentifier];
+        
+        if (item.currentIndexPath != nil) {
+            
+            [self.dismissReloadIndexPaths addObject:item.currentIndexPath];
+        }
     }
-    return _selectedPhotosIdentifierCache;
 }
 
 - (void)setupIdentifierCache{
@@ -131,11 +168,18 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
     return _selectedPhotos;
 }
 
-- (NSMutableArray *)indexPaths{
-    if (!_indexPaths) {
-        _indexPaths = [NSMutableArray array];
+- (NSMutableDictionary *)selectedPhotosIdentifierCache{
+    if (!_selectedPhotosIdentifierCache) {
+        _selectedPhotosIdentifierCache = [NSMutableDictionary dictionary];//[[NSCache alloc] init];
     }
-    return _indexPaths;
+    return _selectedPhotosIdentifierCache;
+}
+
+- (NSMutableArray *)dismissReloadIndexPaths{
+    if (!_dismissReloadIndexPaths) {
+        _dismissReloadIndexPaths = [NSMutableArray array];
+    }
+    return _dismissReloadIndexPaths;
 }
 
 - (JKPhotoBrowserPresentationManager *)presentationManager{
@@ -150,11 +194,10 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
     
 //    [[UIApplication sharedApplication] setStatusBarHidden:NO withAnimation:UIStatusBarAnimationFade];
 }
+
 - (void)viewDidLoad {
     [super viewDidLoad];
     self.view.backgroundColor = [UIColor clearColor];
-    
-    
     
 //    [[UIApplication sharedApplication] setStatusBarHidden:YES withAnimation:UIStatusBarAnimationFade];
     
@@ -163,6 +206,7 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
 }
 
 - (void)setupCollectionView{
+    
     UICollectionViewFlowLayout *flowLayout = [[UICollectionViewFlowLayout alloc] init];
     flowLayout.itemSize = CGSizeMake(JKScreenW, JKScreenH);
     flowLayout.minimumLineSpacing = 0;
@@ -192,7 +236,7 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
 
 #pragma mark - collectionView数据源
 - (NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section{
-    return (!self.isRealIndex) ? self.allPhotos.count - 1 : self.allPhotos.count;
+    return self.dataSourceArr.count;
 }
 
 - (UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath{
@@ -201,7 +245,7 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
     
     cell.indexPath = indexPath;
     
-    JKPhotoItem *item = (!self.isRealIndex) ? self.allPhotos[indexPath.item + 1] : self.allPhotos[indexPath.item];
+    JKPhotoItem *item = self.dataSourceArr[indexPath.item];
     
 //    item.isSelected = NO;
     
@@ -225,7 +269,6 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
     
     __weak typeof(self) weakSelf = self;
     
-#pragma mark - 照片选中
     if (!cell.selectBlock) {
         
         [cell setSelectBlock:^BOOL(BOOL selected, JKPhotoBrowserCollectionViewCell *currentCell) {
@@ -274,13 +317,12 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
 
 - (void)selectPhotoWithCell:(JKPhotoBrowserCollectionViewCell *)currentCell {
     
-    NSIndexPath *index = [self.collectionView indexPathForCell:currentCell];
-    
-    NSIndexPath *indexPath = [NSIndexPath indexPathForItem:(self.isRealIndex ? index.item : index.item + 1) inSection:index.section];
-    
-    [self.indexPaths addObject:indexPath];
-    
     currentCell.photoItem.isSelected = YES;
+    
+    if (![self.dismissReloadIndexPaths containsObject:currentCell.photoItem.currentIndexPath]) {
+        
+        [self.dismissReloadIndexPaths addObject:currentCell.photoItem.currentIndexPath];
+    }
     
     [self.selectedPhotosIdentifierCache setObject:currentCell.photoItem forKey:currentCell.photoItem.assetLocalIdentifier];
     
@@ -304,19 +346,21 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
 
 - (void)deSelectedPhotoWithCell:(JKPhotoBrowserCollectionViewCell *)currentCell {
     
-    NSIndexPath *index = [self.collectionView indexPathForCell:currentCell];
-    
-    NSIndexPath *indexPath = [NSIndexPath indexPathForItem:(self.isRealIndex ? index.item : index.item + 1) inSection:index.section];
-    
-    [self.indexPaths addObject:indexPath];
-    
     currentCell.photoItem.isSelected = NO;
+    
+    if (![self.dismissReloadIndexPaths containsObject:currentCell.photoItem.currentIndexPath]) {
+        
+        [self.dismissReloadIndexPaths addObject:currentCell.photoItem.currentIndexPath];
+    }
     
     if ([self.selectedPhotos containsObject:currentCell.photoItem]) {
         
         [self.selectedPhotos removeObject:currentCell.photoItem];
         
-        [self.selectedPhotosIdentifierCache removeObjectForKey:currentCell.photoItem.assetLocalIdentifier];
+        if ([self.selectedPhotosIdentifierCache objectForKey:currentCell.photoItem.assetLocalIdentifier] != nil) {
+            
+            [self.selectedPhotosIdentifierCache removeObjectForKey:currentCell.photoItem.assetLocalIdentifier];
+        }
         
     }else{
         
@@ -333,11 +377,16 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
                     break;
                 }
             }
+            
+        }else{
+            
+            [self.selectedPhotosIdentifierCache removeObjectForKey:currentCell.photoItem.assetLocalIdentifier];
         }
         
-        [self.selectedPhotos removeObject:itm];
-        
-        [self.selectedPhotosIdentifierCache removeObjectForKey:currentCell.photoItem.assetLocalIdentifier];
+        if ([self.selectedPhotos containsObject:itm]) {
+            
+            [self.selectedPhotos removeObject:itm];
+        }
     }
     
     NSLog(@"取消选中,当前选中了%ld个", (unsigned long)self.selectedPhotos.count);
@@ -351,7 +400,7 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
     self.presentationManager.touchImage = currentCell.photoImageView.image;
     self.presentationManager.dismissFrame = dismissFrame;
     
-    self.indexPath = (self.isRealIndex) ? currentCell.indexPath : [NSIndexPath indexPathForItem:currentCell.indexPath.item + 1 inSection:currentCell.indexPath.section];
+    self.indexPath = (self.isShowSelectedPhotos) ? currentCell.indexPath : [NSIndexPath indexPathForItem:currentCell.indexPath.item + 1 inSection:currentCell.indexPath.section];
     
     JKPhotoCollectionViewCell *fromCell = (JKPhotoCollectionViewCell *)[self.fromCollectionView cellForItemAtIndexPath:self.indexPath];
     self.presentationManager.fromImageView = fromCell.photoImageView;
@@ -410,7 +459,7 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
     
     [self dismissViewControllerAnimated:YES completion:^{
         
-        !self.completionBlock ? : self.completionBlock(self.selectedPhotos, self.indexPaths, self.selectedPhotosIdentifierCache);
+        !self.completionBlock ? : self.completionBlock(self.selectedPhotos, self.dismissReloadIndexPaths, self.selectedPhotosIdentifierCache);
     }];
 }
 

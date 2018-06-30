@@ -69,6 +69,7 @@
 
 /** 获取全部相册 数组中是PHAssetCollection对象 */
 + (NSMutableArray *)getAlbumList{
+    
     NSMutableArray *dataArray = [NSMutableArray array];
     
     // 获取资源时的参数，为nil时则是使用系统默认值
@@ -76,11 +77,16 @@
     
     // 列出所有的智能相册
     PHFetchResult *smartAlbumsFetchResult = [PHAssetCollection fetchAssetCollectionsWithType:PHAssetCollectionTypeSmartAlbum subtype:PHAssetCollectionSubtypeAny options:fetchOptions];
+    
     for (PHAssetCollection *sub in smartAlbumsFetchResult) {
+        
         if (sub.assetCollectionSubtype == PHAssetCollectionSubtypeSmartAlbumUserLibrary) {
+            
             [dataArray insertObject:sub atIndex:0];
+            
             continue;
         }
+        
         [dataArray addObject:sub];
     }
     
@@ -89,6 +95,7 @@
     
     // 遍历
     for (PHAssetCollection *sub in smartAlbumsFetchResult1) {
+        
         [dataArray addObject:sub];
     }
     
@@ -110,29 +117,76 @@
 /** 从某一个相册结果集中获取图片实体，并把图片结果存放到数组中，返回值数组中是PHAsset对象 */
 + (NSMutableArray *)getPhotoAssetsWithFetchResult:(PHFetchResult *)fetchResult{
     
-    return [self getPhotoAssetsWithFetchResult:fetchResult cache:nil];
+    return [self getPhotoAssetsWithFetchResult:fetchResult optionDict:nil complete:nil];
 }
 
 /** 从某一个相册结果集中获取图片实体，并把图片结果存放到数组中，返回值数组中是PHAsset对象 */
-+ (NSMutableArray *)getPhotoAssetsWithFetchResult:(PHFetchResult *)fetchResult cache:(NSCache *)cache{
++ (NSMutableArray *)getPhotoAssetsWithFetchResult:(PHFetchResult *)fetchResult optionDict:(NSDictionary *)optionDict complete:(void(^)(NSDictionary *resultDict))complete {
+    
+    NSCache *allCache = optionDict[@"allCache"];
+    NSDictionary *seletedCache = optionDict[@"seletedCache"];
+    
+    NSMutableArray *seletedNewItems = [NSMutableArray array];
+    NSMutableDictionary *seletedNewCache = [NSMutableDictionary dictionary];
     
     NSMutableArray *dataArray = [NSMutableArray array];
     
-    for (PHAsset *asset in fetchResult) {
+    __block NSInteger i = 0;
+    
+    [fetchResult enumerateObjectsWithOptions:(NSEnumerationReverse) usingBlock:^(PHAsset * _Nonnull asset, NSUInteger idx, BOOL * _Nonnull stop) {
+        
         // 只添加图片类型资源，去除视频类型资源
         // 当mediatype == 2时，资源则视为视频资源
-        if (asset.mediaType != PHAssetMediaTypeImage) continue;
-        
-        JKPhotoItem *item = [[JKPhotoItem alloc] init];
-        item.photoAsset = asset;
-        
-        if (cache != nil) {
+        if (asset.mediaType == PHAssetMediaTypeImage) {
             
-            [cache setObject:item forKey:item.assetLocalIdentifier];
+            i++;
+            
+            JKPhotoItem *item = [[JKPhotoItem alloc] init];
+            item.photoAsset = asset;
+            item.currentIndexPath = [NSIndexPath indexPathForItem:i inSection:0];
+            
+            if (allCache != nil) {
+                
+                [allCache setObject:item forKey:item.assetLocalIdentifier];
+            }
+            
+            if ([seletedCache objectForKey:item.assetLocalIdentifier] != nil) {
+                
+                [seletedNewItems addObject:item];
+                [seletedNewCache setObject:item forKey:item.assetLocalIdentifier];
+            }
+            
+            [dataArray addObject:item];
         }
-        
-        [dataArray insertObject:item atIndex:0];
-    }
+    }];
+    
+    NSMutableDictionary *dictM = [NSMutableDictionary dictionary];
+    
+    dictM[@"allPhotos"] = dataArray;
+    dictM[@"allCache"] = allCache;
+    dictM[@"seletedItems"] = seletedNewItems;
+    dictM[@"seletedCache"] = seletedNewCache;
+    
+    !complete ? : complete(dictM);
+    
+//    for (PHAsset *asset in fetchResult) {
+//        // 只添加图片类型资源，去除视频类型资源
+//        // 当mediatype == 2时，资源则视为视频资源
+//        if (asset.mediaType != PHAssetMediaTypeImage) continue;
+//        
+//        i++;
+//        
+//        JKPhotoItem *item = [[JKPhotoItem alloc] init];
+//        item.photoAsset = asset;
+//        item.currentIndexPath = [NSIndexPath indexPathForItem:i inSection:0];
+//        
+//        if (cache != nil) {
+//            
+//            [cache setObject:item forKey:item.assetLocalIdentifier];
+//        }
+//        
+//        [dataArray insertObject:item atIndex:0];
+//    }
     
     return dataArray;
 }

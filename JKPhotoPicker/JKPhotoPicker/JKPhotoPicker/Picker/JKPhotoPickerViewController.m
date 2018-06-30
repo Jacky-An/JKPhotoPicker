@@ -53,6 +53,12 @@
 
 /** 选中的照片标识和item的映射缓存 */
 @property (nonatomic, strong) NSMutableDictionary *selectedPhotosIdentifierCache;
+
+/** 是否present了图片浏览器 */
+@property (nonatomic, assign) BOOL isPhotoBrowserPresented;
+
+/** 退出图片浏览器惠普是否刷新相册 */
+@property (nonatomic, assign) BOOL isReloadAfterDismiss;
 @end
 
 @implementation JKPhotoPickerViewController
@@ -136,10 +142,11 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
         JKPhotoAlbumListView *albumListView = [[JKPhotoAlbumListView alloc] init];
         albumListView.hidden = YES;
         
+        [self.titleButton setTitle:[albumListView.cameraRollItem.albumTitle stringByAppendingString:@"  "] forState:(UIControlStateNormal)];
+        
         dispatch_async(dispatch_get_global_queue(0, 0), ^{
             
             [self loadPhotoWithPhotoItem:albumListView.cameraRollItem];
-            [self.titleButton setTitle:[albumListView.cameraRollItem.albumTitle stringByAppendingString:@"  "] forState:(UIControlStateNormal)];
         });
         
         __weak typeof(self) weakSelf = self;
@@ -165,6 +172,32 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
     return _albumListView;
 }
 
+#pragma mark - 监听通知
+
+- (void)applicationDidBecomeActive{
+    
+    if (self.isPhotoBrowserPresented) {
+        
+        self.isReloadAfterDismiss = YES;
+        
+        return;
+    }
+    
+    [self.albumListView reloadAlbum];
+}
+
+- (void)userDidTakeScreenshot{
+    
+    if (self.isPhotoBrowserPresented) {
+        
+        self.isReloadAfterDismiss = YES;
+        
+        return;
+    }
+    
+    [self.albumListView performSelector:@selector(reloadAlbum) withObject:nil afterDelay:0.8];
+}
+
 #pragma mark - 初始化
 - (void)viewDidLoad {
     [super viewDidLoad];
@@ -181,6 +214,10 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
     [self setupCollectionView];
     
     [self albumListView];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationDidBecomeActive) name:UIApplicationDidBecomeActiveNotification object:nil];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(userDidTakeScreenshot) name:UIApplicationUserDidTakeScreenshotNotification object:nil];
 }
 
 - (void)setupNav{
@@ -298,7 +335,12 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
     
     [self.allPhotosIdentifierCache removeAllObjects];
     
-    NSMutableArray *photoItems = [JKPhotoManager getPhotoAssetsWithFetchResult:photoItem.albumFetchResult cache:self.allPhotosIdentifierCache];
+    NSMutableArray *photoItems = [JKPhotoManager getPhotoAssetsWithFetchResult:photoItem.albumFetchResult optionDict:@{@"allCache" : self.allPhotosIdentifierCache, @"seletedCache" : self.selectedPhotosIdentifierCache} complete:^(NSDictionary *resultDict) {
+        
+        self.allPhotosIdentifierCache = resultDict[@"allCache"];
+        self.selectedPhotos = [resultDict[@"seletedItems"] mutableCopy];
+        self.selectedPhotosIdentifierCache = resultDict[@"seletedCache"];
+    }];
     
     if ([photoItems.firstObject isShowCameraIcon] == NO) {
         JKPhotoItem *item1 = [[JKPhotoItem alloc] init];
@@ -314,6 +356,10 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
         self.albumListView.reloadCompleteBlock = nil;
         
         [self.collectionView reloadData];
+        [self.bottomCollectionView reloadData];
+        
+        [self changeSelectedCount];
+        
         [self.collectionView setContentOffset:CGPointMake(0, -self.collectionView.contentInset.top) animated:YES];
     });
 }
@@ -495,12 +541,16 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
                 
                 itm = it;
                 
-                //            [self.selectedPhotos removeObject:it];
-                
                 break;
             }
         }
+        
+    }else{
+        
+        [self.selectedPhotosIdentifierCache removeObjectForKey:itm.assetLocalIdentifier];
     }
+    
+    itm.isSelected = NO;
     
     indexPath = [NSIndexPath indexPathForItem:[self.selectedPhotos indexOfObject:itm] inSection:0];
     
@@ -525,25 +575,32 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
                 bottomCell.contentView.alpha = 1;
                 bottomCell.contentView.transform = CGAffineTransformIdentity;
                 
-                [self deleteSelectedPhotoWithCell:bottomCell];
+                if ([self.selectedPhotos containsObject:itm]) {
+                    
+                    [self.selectedPhotos removeObject:itm];
+                    
+                    [self.bottomCollectionView deleteItemsAtIndexPaths:@[indexPath]];
+                }
+                
+                [self changeSelectedCount];
+                NSLog(@"取消选中,当前选中了%ld个", (unsigned long)self.selectedPhotos.count);
             }];
         }];
-        
-//        [self.bottomCollectionView deleteItemsAtIndexPaths:@[indexPath]];
         
         return;
     }
     
-    [self.selectedPhotos removeObject:itm];
+    if ([self.selectedPhotos containsObject:itm]) {
+        
+        [self.selectedPhotos removeObject:itm];
+    }
     
     [self.collectionView reloadData];
     
     [self.bottomCollectionView reloadData];
     
-    //                [weakSelf.bottomCollectionView reloadData];
-    
-//    [self changeSelectedCount];
-//    NSLog(@"取消选中,当前选中了%ld个", (unsigned long)self.selectedPhotos.count);
+    [self changeSelectedCount];
+    NSLog(@"取消选中,当前选中了%ld个", (unsigned long)self.selectedPhotos.count);
 }
 
 #pragma mark - 底部删除选中的照片
@@ -576,11 +633,12 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
         }];
     }
     
-    //            [weakSelf.bottomCollectionView reloadData];
-    
+    // 在全部照片中取消选中
     JKPhotoItem *itm = [self.allPhotosIdentifierCache objectForKey:currentCell.photoItem.assetLocalIdentifier];
     
-    if (itm != nil) {
+    itm.isSelected = NO;
+    
+    if (itm != nil && [self.allPhotos containsObject:itm]) {
         
         [self.collectionView reloadItemsAtIndexPaths:@[[NSIndexPath indexPathForItem:[self.allPhotos indexOfObject:itm] inSection:0]]];
         
@@ -627,10 +685,10 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
     JKPhotoCollectionViewCell *cell = (JKPhotoCollectionViewCell *)[collectionView cellForItemAtIndexPath:indexPath];
     
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
-    dict[@"allPhotos"] = (collectionView == self.collectionView) ? self.allPhotos : nil;
+    dict[@"allPhotos"] = self.allPhotos;
     dict[@"selectedItems"] = self.selectedPhotos;
     
-    dict[@"allPhotosCache"] = (collectionView == self.collectionView) ? self.allPhotosIdentifierCache : nil;
+    dict[@"allPhotosCache"] = self.allPhotosIdentifierCache;
     dict[@"selectedItemsCache"] = self.selectedPhotosIdentifierCache;
     
     dict[@"maxSelectCount"] = @(self.maxSelectCount);
@@ -638,6 +696,7 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
     dict[@"collectionView"] = collectionView;
     dict[@"indexPath"] = (collectionView == self.collectionView) ? [NSIndexPath indexPathForItem:indexPath.item - 1 inSection:indexPath.section] : indexPath;
     dict[@"isSelectedCell"] = @([cell isMemberOfClass:[JKPhotoSelectedCollectionViewCell class]]);
+    dict[@"isShowSelectedPhotos"] = @(collectionView == self.bottomCollectionView);
     
     [JKPhotoBrowserViewController showWithViewController:self dataDict:dict completion:^(NSArray<JKPhotoItem *> *seletedPhotos, NSArray<NSIndexPath *> *indexPaths, NSMutableDictionary *selectedPhotosIdentifierCache) {
         
@@ -662,6 +721,14 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
             
         } completion:^(BOOL finished) {
             
+            self.isPhotoBrowserPresented = NO;
+            
+            if (self.isReloadAfterDismiss) {
+                
+                self.isReloadAfterDismiss = NO;
+                
+                [self.albumListView reloadAlbum];
+            }
         }];
         
         [self.bottomCollectionView performBatchUpdates:^{
@@ -725,6 +792,8 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
             });
         }); */
     }];
+    
+    self.isPhotoBrowserPresented = YES;
 }
 
 #pragma mark - <UIImagePickerControllerDelegate>

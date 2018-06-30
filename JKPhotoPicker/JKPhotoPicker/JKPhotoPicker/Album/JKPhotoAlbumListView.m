@@ -154,21 +154,19 @@ static CGFloat const rowHeight = 70;
     
     [navBgButton addTarget:self action:@selector(executeAnimation) forControlEvents:(UIControlEventTouchUpInside)];
     
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(userDidTakeScreenshot) name:UIApplicationUserDidTakeScreenshotNotification object:nil];
+//    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(userDidTakeScreenshot) name:UIApplicationUserDidTakeScreenshotNotification object:nil];
     
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationDidBecomeActive) name:UIApplicationDidBecomeActiveNotification object:nil];
+//    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationDidBecomeActive) name:UIApplicationDidBecomeActiveNotification object:nil];
 }
 
-- (void)userDidTakeScreenshot{
-//    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-//        [self reloadAlbum];
-//    });
-    [self performSelector:@selector(reloadAlbum) withObject:nil afterDelay:0.8];
-}
+//- (void)userDidTakeScreenshot{
+//    
+//    [self performSelector:@selector(reloadAlbum) withObject:nil afterDelay:0.8];
+//}
 
-- (void)applicationDidBecomeActive{
-    [self reloadAlbum];
-}
+//- (void)applicationDidBecomeActive{
+//    [self reloadAlbum];
+//}
 
 - (void)reloadAlbum{
     
@@ -246,6 +244,7 @@ static CGFloat const rowHeight = 70;
 }
 
 - (void)loadAlbumData{
+    
     NSMutableArray *arr = [JKPhotoManager getAlbumList];
     
     [self.albums removeAllObjects];

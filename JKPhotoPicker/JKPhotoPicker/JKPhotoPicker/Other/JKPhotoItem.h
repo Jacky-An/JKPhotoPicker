@@ -25,7 +25,7 @@
 /* 是否选中 */
 @property (nonatomic, assign) BOOL isSelected;
 
-/** 索引 */
+/** 在所有照片中的索引 因为有个拍照，所以 +1  */
 @property (nonatomic, strong) NSIndexPath *currentIndexPath;
 
 /* 是否显示相机图标 */

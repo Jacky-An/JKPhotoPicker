@@ -179,13 +179,35 @@ static NSString * const reuseID = @"JKPhotoSelectCompleteCollectionViewCell"; //
         __weak typeof(self) weakSelf = self;
         
         [cell setDeleteButtonClickBlock:^(JKPhotoCollectionViewCell *currentCell) {
-            currentCell.photoItem.isSelected = NO;
-            [weakSelf.selectedPhotos removeObject:currentCell.photoItem];
-            [weakSelf.collectionView reloadData];
             
-            !weakSelf.selectCompleteViewDidDeletePhotoBlock ? : weakSelf.selectCompleteViewDidDeletePhotoBlock(weakSelf.selectedPhotos);
+            [weakSelf deleteSelectedPhotoWithCell:currentCell];
         }];
     }
+}
+
+- (void)deleteSelectedPhotoWithCell:(JKPhotoCollectionViewCell *)currentCell{
+    
+    currentCell.photoItem.isSelected = NO;
+    [self.selectedPhotos removeObject:currentCell.photoItem];
+    
+    NSIndexPath *indexPath = [self.collectionView indexPathForCell:currentCell];
+    
+    if (indexPath != nil) {
+        
+        [self.collectionView deleteItemsAtIndexPaths:@[indexPath]];
+        
+    }else{
+        
+        [self.collectionView performBatchUpdates:^{
+            
+            [self.collectionView reloadSections:[NSIndexSet indexSetWithIndex:0]];
+            
+        } completion:^(BOOL finished) {
+            
+        }];
+    }
+    
+    !self.selectCompleteViewDidDeletePhotoBlock ? : self.selectCompleteViewDidDeletePhotoBlock(self.selectedPhotos);
 }
 
 #pragma mark - collectionView代理
@@ -203,6 +225,7 @@ static NSString * const reuseID = @"JKPhotoSelectCompleteCollectionViewCell"; //
     dict[@"collectionView"] = collectionView;
     dict[@"indexPath"] = indexPath;
     dict[@"isSelectedCell"] = @(YES);
+    dict[@"isShowSelectedPhotos"] = @(YES);
     
     [JKPhotoBrowserViewController showWithViewController:self.superViewController dataDict:dict completion:^(NSArray <JKPhotoItem *> *seletedPhotos, NSArray <NSIndexPath *> *indexPaths, NSMutableDictionary *selectedPhotosIdentifierCache) {
         
@@ -212,7 +235,14 @@ static NSString * const reuseID = @"JKPhotoSelectCompleteCollectionViewCell"; //
         
         [self.selectedPhotos removeAllObjects];
         [self.selectedPhotos addObjectsFromArray:seletedPhotos];
-        [self.collectionView reloadData];
+        
+        [self.collectionView performBatchUpdates:^{
+            
+            [self.collectionView reloadSections:[NSIndexSet indexSetWithIndex:0]];
+            
+        } completion:^(BOOL finished) {
+            
+        }];
         
         !self.selectCompleteViewDidDeletePhotoBlock ? : self.selectCompleteViewDidDeletePhotoBlock(self.selectedPhotos);
     }];
