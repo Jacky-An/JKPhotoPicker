@@ -59,6 +59,9 @@
 
 /** 退出图片浏览器惠普是否刷新相册 */
 @property (nonatomic, assign) BOOL isReloadAfterDismiss;
+
+/** 当前是否是所有照片相册 */
+@property (nonatomic, assign) BOOL isAllPhotosAlbum;
 @end
 
 @implementation JKPhotoPickerViewController
@@ -157,6 +160,7 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
                 
                 [weakSelf.titleButton setTitle:[photoItem.albumTitle stringByAppendingString:@"  "] forState:(UIControlStateNormal)];
                 weakSelf.titleButton.selected = NO;
+                weakSelf.isAllPhotosAlbum = [photoItem.albumLocalIdentifier isEqualToString:weakSelf.albumListView.cameraRollItem.albumLocalIdentifier];
             });
             
             dispatch_async(dispatch_get_global_queue(0, 0), ^{
@@ -204,6 +208,8 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
     
     self.automaticallyAdjustsScrollViewInsets = NO;
     self.view.backgroundColor = [UIColor whiteColor];
+    
+    _isAllPhotosAlbum = YES;
     
     if (self.maxSelectCount <= 0) {
         self.maxSelectCount = 3;
@@ -342,7 +348,7 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
         self.selectedPhotosIdentifierCache = resultDict[@"seletedCache"];
     }];
     
-    if ([photoItems.firstObject isShowCameraIcon] == NO) {
+    if ([photoItems.firstObject isShowCameraIcon] == NO && self.isAllPhotosAlbum) {
         JKPhotoItem *item1 = [[JKPhotoItem alloc] init];
         item1.isShowCameraIcon = YES;
         [photoItems insertObject:item1 atIndex:0];
@@ -690,11 +696,12 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
     
     dict[@"allPhotosCache"] = self.allPhotosIdentifierCache;
     dict[@"selectedItemsCache"] = self.selectedPhotosIdentifierCache;
+    dict[@"isAllPhotosAlbum"] = @(self.isAllPhotosAlbum);
     
     dict[@"maxSelectCount"] = @(self.maxSelectCount);
     dict[@"imageView"] = cell.photoImageView;
     dict[@"collectionView"] = collectionView;
-    dict[@"indexPath"] = (collectionView == self.collectionView) ? [NSIndexPath indexPathForItem:indexPath.item - 1 inSection:indexPath.section] : indexPath;
+    dict[@"indexPath"] = (collectionView == self.collectionView && self.isAllPhotosAlbum) ? [NSIndexPath indexPathForItem:indexPath.item - 1 inSection:indexPath.section] : indexPath;
     dict[@"isSelectedCell"] = @([cell isMemberOfClass:[JKPhotoSelectedCollectionViewCell class]]);
     dict[@"isShowSelectedPhotos"] = @(collectionView == self.bottomCollectionView);
     

@@ -65,6 +65,9 @@
 
 /** 是否显示的已选中的照片 */
 @property (nonatomic, assign) BOOL isShowSelectedPhotos;
+
+/** 当前是否是所有照片相册 */
+@property (nonatomic, assign) BOOL isAllPhotosAlbum;
 @end
 
 @implementation JKPhotoBrowserViewController
@@ -90,6 +93,7 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
     vc.indexPath            = dataDict[@"indexPath"];
     vc.maxSelectCount       = [dataDict[@"maxSelectCount"] integerValue];
     vc.completionBlock      = completion;
+    vc.isAllPhotosAlbum     = [dataDict[@"isAllPhotosAlbum"] boolValue];
     vc.fromCollectionView   = dataDict[@"collectionView"];
     vc.isShowSelectedPhotos = [dataDict[@"isShowSelectedPhotos"] boolValue];
     
@@ -114,11 +118,15 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
         
     }else{
         
-        if (vc.allPhotoItemsCount > 1) {
+        if (vc.allPhotoItemsCount > 1 && vc.isAllPhotosAlbum) {
             
             NSMutableArray *mArr = [vc.allPhotoItems mutableCopy];
             [mArr removeObjectAtIndex:0];
             vc.dataSourceArr = [mArr copy];
+            
+        }else{
+            
+            vc.dataSourceArr = vc.allPhotoItems;
         }
     }
     
@@ -400,7 +408,7 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
     self.presentationManager.touchImage = currentCell.photoImageView.image;
     self.presentationManager.dismissFrame = dismissFrame;
     
-    self.indexPath = (self.isShowSelectedPhotos) ? currentCell.indexPath : [NSIndexPath indexPathForItem:currentCell.indexPath.item + 1 inSection:currentCell.indexPath.section];
+    self.indexPath = (self.isShowSelectedPhotos || (!self.isAllPhotosAlbum)) ? currentCell.indexPath : [NSIndexPath indexPathForItem:currentCell.indexPath.item + 1 inSection:currentCell.indexPath.section];
     
     JKPhotoCollectionViewCell *fromCell = (JKPhotoCollectionViewCell *)[self.fromCollectionView cellForItemAtIndexPath:self.indexPath];
     self.presentationManager.fromImageView = fromCell.photoImageView;
