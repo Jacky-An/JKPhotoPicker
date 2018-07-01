@@ -320,11 +320,15 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
     
     currentCell.photoItem.isSelected = YES;
     
-    if (![self.dismissReloadIndexPaths containsObject:currentCell.photoItem.currentIndexPath]) {
+    JKPhotoItem *itm = [self.allPhotosIdentifierCache objectForKey:currentCell.photoItem.assetLocalIdentifier];
+    
+    itm.isSelected = YES;
+    
+    if (![self.dismissReloadIndexPaths containsObject:itm.currentIndexPath]) {
         
-        if (currentCell.photoItem.currentIndexPath != nil) {
+        if (itm != nil) {
             
-            [self.dismissReloadIndexPaths addObject:currentCell.photoItem];
+            [self.dismissReloadIndexPaths addObject:itm.currentIndexPath];
         }
         
 //        JKPhotoItem *itm = [self.allPhotosIdentifierCache objectForKey:currentCell.photoItem.assetLocalIdentifier];
@@ -360,11 +364,15 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
     
     currentCell.photoItem.isSelected = NO;
     
-    if (![self.dismissReloadIndexPaths containsObject:currentCell.photoItem.currentIndexPath]) {
+    JKPhotoItem *itm = [self.allPhotosIdentifierCache objectForKey:currentCell.photoItem.assetLocalIdentifier];
+    
+    itm.isSelected = NO;
+    
+    if (![self.dismissReloadIndexPaths containsObject:itm.currentIndexPath]) {
         
-        if (currentCell.photoItem.currentIndexPath != nil) {
+        if (itm.currentIndexPath != nil) {
             
-            [self.dismissReloadIndexPaths addObject:currentCell.photoItem.currentIndexPath];
+            [self.dismissReloadIndexPaths addObject:itm.currentIndexPath];
         }
     }
     

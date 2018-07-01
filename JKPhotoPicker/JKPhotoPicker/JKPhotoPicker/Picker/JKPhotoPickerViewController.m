@@ -339,7 +339,7 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
     
     [self.allPhotosIdentifierCache removeAllObjects];
     
-    BOOL isLoadAllPhotos = [photoItem.assetLocalIdentifier isEqualToString:_albumListView.cameraRollItem.albumLocalIdentifier];
+    BOOL isLoadAllPhotos = [photoItem.albumLocalIdentifier isEqualToString:_albumListView.cameraRollItem.albumLocalIdentifier];
     
     NSMutableArray *photoItems = [JKPhotoManager getPhotoAssetsWithFetchResult:photoItem.albumFetchResult optionDict:(isLoadAllPhotos ? @{@"seletedCache" : self.selectedPhotosIdentifierCache} : nil) complete:^(NSDictionary *resultDict) {
         
