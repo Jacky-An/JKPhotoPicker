@@ -37,6 +37,9 @@
 /** 列表中点击的图片view */
 @property (nonatomic, weak) UIImageView *fromImageView;
 
+/** 做动画的图片view是否可以移除 */
+@property (nonatomic, assign) BOOL canRemoveAnimationImageView;
+
 /** 遮盖原来图片的白色View */
 @property (nonatomic, weak) UIView *whiteView;
 

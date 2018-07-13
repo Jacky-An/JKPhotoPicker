@@ -149,7 +149,7 @@ static CGFloat const rowHeight = 70;
     UIButton *navBgButton = [UIButton buttonWithType:(UIButtonTypeCustom)];
     navBgButton.hidden = YES;
     navBgButton.frame = CGRectMake(0, 0, [UIScreen mainScreen].bounds.size.width, JKPhotoPickerNavBarHeight);
-    [[UIApplication sharedApplication].keyWindow addSubview:navBgButton];
+    [[UIApplication sharedApplication].delegate.window addSubview:navBgButton];
     self.navBgButton = navBgButton;
     
     [navBgButton addTarget:self action:@selector(executeAnimation) forControlEvents:(UIControlEventTouchUpInside)];

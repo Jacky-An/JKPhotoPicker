@@ -13,6 +13,12 @@
 @interface JKPhotoBrowserPresentationManager ()
 /** 是否已经被present */
 @property (nonatomic, assign) BOOL isPresent;
+
+/** 图片展示动画是否完成 */
+@property (nonatomic, assign) BOOL isAnimationImageFinished;
+
+/** 做动画的图片view */
+@property (nonatomic, weak) UIView *animationImageView;
 @end
 
 @implementation JKPhotoBrowserPresentationManager
@@ -109,18 +115,27 @@
     // 默认动画是从中间慢慢放大的，这是因为图层默认的锚点是(0.5，0.5)
 //    toView.layer.anchorPoint = CGPointMake(0.5, 0);
     
-    UIImageView *imageView = [[UIImageView alloc] init];
-    imageView.contentMode = UIViewContentModeScaleAspectFit;
+    UIView *imageView = [[UIView alloc] init];
+    imageView.layer.contentsGravity = kCAGravityResizeAspect;
+    
+//    UIImageView *imageView = [[UIImageView alloc] init];
+//    imageView.contentMode = UIViewContentModeScaleAspectFit;
     imageView.clipsToBounds = YES;
-    imageView.image = self.touchImage;
+//    imageView.image = self.touchImage;
+    
+    imageView.layer.contents = (__bridge id)self.touchImage.CGImage;
+    
     imageView.frame = self.presentFrame;
     [[transitionContext containerView] addSubview:imageView];
+    
+    self.animationImageView = imageView;
+    
     toView.userInteractionEnabled = NO;
 //    self.fromImageView.hidden = YES;
     
     [UIView animateWithDuration:[self transitionDuration:transitionContext] animations:^{
 //        toView.transform = CGAffineTransformIdentity;
-        imageView.frame = [self calculateImageViewSizeWithImage:imageView.image];//[UIScreen mainScreen].bounds;
+        imageView.frame = [self calculateImageViewSizeWithImage:self.touchImage];//[UIScreen mainScreen].bounds;
         
     } completion:^(BOOL finished) {
         
@@ -128,8 +143,15 @@
         [[transitionContext containerView] setBackgroundColor:[UIColor clearColor]];
         [transitionContext completeTransition:YES];
         toView.hidden = NO;
-        [imageView removeFromSuperview];
         [blackBgView removeFromSuperview];
+        
+        if (self.canRemoveAnimationImageView) {
+            
+            [self.animationImageView removeFromSuperview];
+            self.animationImageView = nil;
+        }
+        
+        self.isAnimationImageFinished = YES;
         
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.3 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
             toView.userInteractionEnabled = YES;
@@ -140,20 +162,33 @@
     }];
 }
 
+- (void)setCanRemoveAnimationImageView:(BOOL)canRemoveAnimationImageView{
+    _canRemoveAnimationImageView = canRemoveAnimationImageView;
+    
+    if (_canRemoveAnimationImageView && self.isAnimationImageFinished) {
+        
+        [self.animationImageView removeFromSuperview];
+        self.animationImageView = nil;
+    }
+}
+
 - (CGRect)calculateImageViewSizeWithImage:(UIImage *)image{
+    
     //图片要显示的尺寸
     CGFloat pictureX = 0;
     CGFloat pictureY = 0;
     CGFloat pictureW = JKScreenW;
     CGFloat pictureH = JKScreenW * image.size.height / image.size.width;
     
-    if (pictureH > JKScreenH) {//图片高过屏幕
+    if (pictureH > (JKScreenH - (JKPhotoPickerIsIphoneX ? (44 + 34) : 0))) {//图片高过屏幕
         //        self.imageView.frame = CGRectMake(0, 0, pictureW, pictureH);
         //设置scrollView的contentSize
         //        self.scrollView.contentSize = CGSizeMake(pictureW, pictureH);
         //        NSLog(@"更新了contentSize");
+        pictureY = JKPhotoPickerIsIphoneX ? 44 : 0;
         
     }else{//图片不高于屏幕
+        
         pictureY = (JKScreenH - pictureH) * 0.5;
         //        self.imageView.frame = CGRectMake(0, 0, pictureW, pictureH);//CGSizeMake(pictureW, pictureH);
         //图片显示在中间
@@ -171,10 +206,17 @@
     // 默认动画是从中间慢慢放大的，这是因为图层默认的锚点是(0.5，0.5)
 //    fromView.layer.anchorPoint = CGPointMake(0.5, 0);
 //    self.fromImageView.hidden = YES;
-    UIImageView *imageView = [[UIImageView alloc] init];
-    imageView.contentMode = UIViewContentModeScaleAspectFill;
+    
+    
+    UIView *imageView = [[UIView alloc] init];
+    imageView.layer.contentsGravity = kCAGravityResizeAspectFill;
+//    UIImageView *imageView = [[UIImageView alloc] init];
+//    imageView.contentMode = UIViewContentModeScaleAspectFill;
     imageView.clipsToBounds = YES;
-    imageView.image = self.touchImage;
+//    imageView.image = self.touchImage;
+    
+    imageView.layer.contents = (__bridge id)self.touchImage.CGImage;
+    
     imageView.frame = self.dismissFrame;//[self calculateImageCoverViewFrameWithImageView:self.touchImageView];
     [[transitionContext containerView] addSubview:imageView];
     
@@ -207,7 +249,7 @@
 
 - (CGRect)calculateImageCoverViewFrameWithImageView:(UIImageView *)imageView{
     
-    CGRect rect = [imageView.superview convertRect:imageView.frame toView:[UIApplication sharedApplication].keyWindow];
+    CGRect rect = [imageView.superview convertRect:imageView.frame toView:[UIApplication sharedApplication].delegate.window];
     
     return rect;
     
@@ -241,7 +283,7 @@
     
     CGRect rect = CGRectMake(0, JKPhotoPickerNavBarHeight, JKScreenW, JKScreenH - JKPhotoPickerNavBarHeight - (70 + (JKPhotoPickerIsIphoneX ? JKPhotoPickerBottomSafeAreaHeight : 0)));
     
-    CGRect bottomOrCompleteRect = [[UIApplication sharedApplication].keyWindow convertRect:self.fromCollectionView.frame fromView:self.fromCollectionView.superview];
+    CGRect bottomOrCompleteRect = [[UIApplication sharedApplication].delegate.window convertRect:self.fromCollectionView.frame fromView:self.fromCollectionView.superview];
     
     if (self.isSelectedCell) {
         

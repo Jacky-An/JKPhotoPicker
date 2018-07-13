@@ -8,9 +8,13 @@
 
 #import <UIKit/UIKit.h>
 
-@class JKPhotoItem;
+@class JKPhotoItem, PHCachingImageManager;
 
 @interface JKPhotoBrowserCollectionViewCell : UICollectionViewCell
+
+/** 缓存管理对象 */
+@property (nonatomic, weak) PHCachingImageManager *cachingImageManager;
+
 /** 照片模型 */
 @property (nonatomic, strong) JKPhotoItem *photoItem;
 
@@ -28,4 +32,7 @@
 
 /** 监听单击缩小照片的block */
 @property (nonatomic, copy) void(^dismissBlock)(JKPhotoBrowserCollectionViewCell *currentCell, CGRect dismissFrame);
+
+/** 监听图片加载完成的block */
+@property (nonatomic, copy) void(^imageLoadFinishBlock)(JKPhotoBrowserCollectionViewCell *currentCell);
 @end

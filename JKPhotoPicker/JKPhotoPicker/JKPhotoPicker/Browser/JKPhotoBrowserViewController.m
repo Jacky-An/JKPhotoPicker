@@ -38,6 +38,9 @@
 /** 所有的图片的数量 allPhotoItems.count 包括拍照那个item */
 @property (nonatomic, assign) NSUInteger allPhotoItemsCount;
 
+/** 数据源数量 */
+@property (nonatomic, assign) NSUInteger dataSourceArrCount;
+
 /** 弹出时已选中图片数量 */
 @property (nonatomic, assign) NSUInteger initialSelectCount;
 
@@ -61,6 +64,9 @@
 
 /** 当前是否是所有照片相册 */
 @property (nonatomic, assign) BOOL isAllPhotosAlbum;
+
+/** 缓存管理对象 */
+@property (nonatomic, strong) PHCachingImageManager *cachingImageManager;
 @end
 
 @implementation JKPhotoBrowserViewController
@@ -72,7 +78,7 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
     JKPhotoBrowserViewController *vc = [[self alloc] init];
     
     UIImageView *imageView = dataDict[@"imageView"];
-    CGRect presentFrame = [imageView.superview convertRect:imageView.frame toView:[UIApplication sharedApplication].keyWindow];
+    CGRect presentFrame = [imageView.superview convertRect:imageView.frame toView:[UIApplication sharedApplication].delegate.window];
     
     vc.transitioningDelegate  = vc.presentationManager;
     vc.modalPresentationStyle = UIModalPresentationCustom;
@@ -124,6 +130,8 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
         }
     }
     
+    vc.dataSourceArrCount = vc.dataSourceArr.count;
+    
     // 映射标识和item
 //    [vc setupIdentifierCache];
     
@@ -162,6 +170,14 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
 //}
 
 #pragma mark - 懒加载
+
+- (PHCachingImageManager *)cachingImageManager{
+    if (!_cachingImageManager) {
+        _cachingImageManager = [[PHCachingImageManager alloc] init];
+    }
+    return _cachingImageManager;
+}
+
 - (NSMutableArray *)selectedPhotos{
     if (!_selectedPhotos) {
         _selectedPhotos = [NSMutableArray array];
@@ -190,31 +206,55 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
     return _presentationManager;
 }
 
+#pragma mark - 生命周期函数
+
+- (void)viewWillAppear:(BOOL)animated{
+    [super viewWillAppear:animated];
+    
+    UIView *statusBar = [[UIApplication sharedApplication] valueForKeyPath:@"statusBar"];
+    
+    [UIView animateWithDuration:0.25 animations:^{
+        
+        statusBar.alpha = 0;
+    }];
+}
+
 - (void)viewWillDisappear:(BOOL)animated{
     [super viewWillDisappear:animated];
     
-//    [[UIApplication sharedApplication] setStatusBarHidden:NO withAnimation:UIStatusBarAnimationFade];
+    UIView *statusBar = [[UIApplication sharedApplication] valueForKeyPath:@"statusBar"];
+    
+    [UIView animateWithDuration:0.5 animations:^{
+        
+        statusBar.alpha = 1;
+    }];
 }
+
+#pragma mark - 初始化
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    
+//    [self.cachingImageManager startCachingImagesForAssets:[self.dataSourceArr valueForKeyPath:@"photoAsset"] targetSize:PHImageManagerMaximumSize contentMode:(PHImageContentModeAspectFit) options:nil];
+    
     self.view.backgroundColor = [UIColor clearColor];
     
 //    [[UIApplication sharedApplication] setStatusBarHidden:YES withAnimation:UIStatusBarAnimationFade];
     
     [self setupCollectionView];
-    [self.collectionView scrollToItemAtIndexPath:self.indexPath atScrollPosition:(UICollectionViewScrollPositionNone) animated:YES];
+    
+    [self.collectionView scrollToItemAtIndexPath:self.indexPath atScrollPosition:(UICollectionViewScrollPositionNone) animated:NO];
 }
 
 - (void)setupCollectionView{
     
     UICollectionViewFlowLayout *flowLayout = [[UICollectionViewFlowLayout alloc] init];
-    flowLayout.itemSize = CGSizeMake(JKScreenW, JKScreenH);
+    flowLayout.itemSize = CGSizeMake(JKScreenW + 20, JKScreenH);
     flowLayout.minimumLineSpacing = 0;
     flowLayout.minimumInteritemSpacing = 0;
     flowLayout.scrollDirection = UICollectionViewScrollDirectionHorizontal;
     
-    UICollectionView *collectionView = [[UICollectionView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height) collectionViewLayout:flowLayout];
+    UICollectionView *collectionView = [[UICollectionView alloc] initWithFrame:CGRectMake(-10, 0, self.view.frame.size.width + 20, self.view.frame.size.height) collectionViewLayout:flowLayout];
     collectionView.backgroundColor = [UIColor blackColor];
     collectionView.showsHorizontalScrollIndicator = NO;
     collectionView.pagingEnabled = YES;
@@ -244,9 +284,21 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
     
     JKPhotoBrowserCollectionViewCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:reuseID forIndexPath:indexPath];
     
+    cell.cachingImageManager = self.cachingImageManager;
+    
     cell.indexPath = indexPath;
     
     JKPhotoItem *item = self.dataSourceArr[indexPath.item];
+    
+    /*
+    if (indexPath.item > 0 && indexPath.item < self.dataSourceArrCount - 1) {
+        
+        JKPhotoItem *itemPre = self.dataSourceArr[indexPath.item - 1];
+        
+        JKPhotoItem *itemNext = self.dataSourceArr[indexPath.item + 1];
+        
+        [self.cachingImageManager startCachingImagesForAssets:@[itemPre.photoAsset, itemNext.photoAsset] targetSize:PHImageManagerMaximumSize contentMode:PHImageContentModeAspectFit options:nil];
+    } */
     
 //    item.isSelected = NO;
     
@@ -256,6 +308,16 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
 //
 //        item.isSelected = YES;
 //    }
+    
+    if (indexPath.item == self.indexPath.item) {
+        
+        __weak typeof(self) weakSelf = self;
+        
+        [cell setImageLoadFinishBlock:^(JKPhotoBrowserCollectionViewCell *currentCell) {
+            
+            weakSelf.presentationManager.canRemoveAnimationImageView = YES;
+        }];
+    }
     
     cell.photoItem = item;
     
@@ -428,15 +490,15 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
     JKPhotoCollectionViewCell *fromCell = (JKPhotoCollectionViewCell *)[self.fromCollectionView cellForItemAtIndexPath:self.indexPath];
     self.presentationManager.fromImageView = fromCell.photoImageView;
     
-    CGRect presentFrame = (fromCell.frame.size.width != fromCell.photoImageView.frame.size.width) ? [[UIApplication sharedApplication].keyWindow convertRect:fromCell.photoImageView.frame fromView:fromCell.photoImageView.superview] : [[UIApplication sharedApplication].keyWindow convertRect:fromCell.frame fromView:fromCell.superview];
+    CGRect presentFrame = (fromCell.frame.size.width != fromCell.photoImageView.frame.size.width) ? [[UIApplication sharedApplication].delegate.window convertRect:fromCell.photoImageView.frame fromView:fromCell.photoImageView.superview] : [[UIApplication sharedApplication].delegate.window convertRect:fromCell.frame fromView:fromCell.superview];
     NSLog(@"presentFrame--->%@", NSStringFromCGRect(presentFrame));
-    //    CGRect presentFrame = [fromCell.superview convertRect:fromCell.frame toView:[UIApplication sharedApplication].keyWindow];
+    //    CGRect presentFrame = [fromCell.superview convertRect:fromCell.frame toView:[UIApplication sharedApplication].delegate.window];
     
-    //    CGRect fromCollectionViewFrame = [self.fromCollectionView.superview convertRect:self.fromCollectionView.frame toView:[UIApplication sharedApplication].keyWindow];
+    //    CGRect fromCollectionViewFrame = [self.fromCollectionView.superview convertRect:self.fromCollectionView.frame toView:[UIApplication sharedApplication].delegate.window];
     
     CGRect rect = CGRectMake(0, JKPhotoPickerNavBarHeight, JKScreenW, JKScreenH - JKPhotoPickerNavBarHeight - (70 + (JKPhotoPickerIsIphoneX ? JKPhotoPickerBottomSafeAreaHeight : 0)));
     
-    CGRect bottomOrCompleteRect = [[UIApplication sharedApplication].keyWindow convertRect:self.fromCollectionView.frame fromView:self.fromCollectionView.superview];
+    CGRect bottomOrCompleteRect = [[UIApplication sharedApplication].delegate.window convertRect:self.fromCollectionView.frame fromView:self.fromCollectionView.superview];
     
     self.presentationManager.isZoomUpAnimation = NO;
     
@@ -495,7 +557,7 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
 
     JKPhotoCollectionViewCell *fromCell = (JKPhotoCollectionViewCell *)[self.fromCollectionView cellForItemAtIndexPath:self.indexPath];
 
-    CGRect presentFrame = (fromCell.frame.size.width != fromCell.photoImageView.frame.size.width) ? [[UIApplication sharedApplication].keyWindow convertRect:fromCell.photoImageView.frame fromView:fromCell.photoImageView.superview] : [[UIApplication sharedApplication].keyWindow convertRect:fromCell.frame fromView:fromCell.superview];
+    CGRect presentFrame = (fromCell.frame.size.width != fromCell.photoImageView.frame.size.width) ? [[UIApplication sharedApplication].delegate.window convertRect:fromCell.photoImageView.frame fromView:fromCell.photoImageView.superview] : [[UIApplication sharedApplication].delegate.window convertRect:fromCell.frame fromView:fromCell.superview];
     
     self.presentationManager.presentFrame = presentFrame;
 }
@@ -506,7 +568,11 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
 }
 
 - (void)dealloc{
+    
     [[PHImageManager defaultManager] cancelImageRequest:PHInvalidImageRequestID];
+    
+//    [self.cachingImageManager stopCachingImagesForAllAssets];
+    
     NSLog(@"%d, %s",__LINE__, __func__);
 }
 @end

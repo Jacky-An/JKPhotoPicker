@@ -10,15 +10,17 @@
 #import "JKPhotoItem.h"
 #import <Photos/Photos.h>
 
-#define JKScreenW [UIScreen mainScreen].bounds.size.width
-#define JKScreenH [UIScreen mainScreen].bounds.size.height
-#define JKScreenBounds [UIScreen mainScreen].bounds
-
 @interface JKPhotoBrowserCollectionViewCell () <UIScrollViewDelegate, UIGestureRecognizerDelegate>
 {
     CGFloat _screenAspectRatio;
     BOOL isGonnaDismiss;
     CGFloat originalHeight;
+    
+    BOOL isDragging;
+    CGFloat lastOffsetY;
+    CGFloat currentOffsetY;
+    JKPhotoPickerScrollDirection beginScrollDirection;
+    JKPhotoPickerScrollDirection endScrollDirection;
 }
 /** 照片选中按钮 */
 @property (nonatomic, weak) UIButton *selectButton;
@@ -43,6 +45,9 @@
 
 /** 背景色alpha */
 @property (nonatomic, assign) CGFloat bgAlpha;
+
+/** indicator */
+@property (nonatomic, weak) UIActivityIndicatorView *indicatorView;
 @end
 
 CGFloat const dismissDistance = 80;
@@ -65,6 +70,13 @@ CGFloat const dismissDistance = 80;
     [self setupPhotoImageView];
     
     [self setupSelectedIcon];
+    
+    UIActivityIndicatorView *indicatorView = [[UIActivityIndicatorView alloc] init];
+    indicatorView.activityIndicatorViewStyle = UIActivityIndicatorViewStyleWhiteLarge;
+    [self.contentView addSubview:indicatorView];
+    self.indicatorView = indicatorView;
+    
+    indicatorView.center = CGPointMake(JKScreenW * 0.5 + 10, JKScreenH * 0.5);
 }
 
 - (void)setupPhotoImageView{
@@ -72,7 +84,7 @@ CGFloat const dismissDistance = 80;
     UIScrollView *scrollView = [[UIScrollView alloc] init];
     scrollView.showsVerticalScrollIndicator = NO;
     scrollView.showsHorizontalScrollIndicator = NO;
-    scrollView.frame = JKScreenBounds;
+    scrollView.frame = CGRectMake(10, 0, JKScreenW, JKScreenH);
     scrollView.delegate = self;
     scrollView.minimumZoomScale = 1;
     scrollView.maximumZoomScale = 3;
@@ -213,38 +225,53 @@ CGFloat const dismissDistance = 80;
     
     self.selectIconImageView.highlighted = _photoItem.isSelected;
     
-    [[PHImageManager defaultManager] requestImageForAsset:_photoItem.photoAsset targetSize:PHImageManagerMaximumSize contentMode:PHImageContentModeAspectFit options:nil resultHandler:^(UIImage * _Nullable result, NSDictionary * _Nullable info) {
+    dispatch_async(dispatch_get_global_queue(0, 0), ^{
         
-        self.photoImageView.image = result;
-        [self calculateImageViewSizeWithImage:result];
-    }];
+        PHImageRequestOptions *options = [[PHImageRequestOptions alloc] init];
+        options.networkAccessAllowed = YES;
+        
+        [[PHImageManager defaultManager] requestImageForAsset:_photoItem.photoAsset targetSize:PHImageManagerMaximumSize contentMode:PHImageContentModeAspectFit options:options resultHandler:^(UIImage * _Nullable result, NSDictionary * _Nullable info) {
+            
+            dispatch_async(dispatch_get_main_queue(), ^{
+               
+                !self.imageLoadFinishBlock ? : self.imageLoadFinishBlock(self);
+                
+                if ([info[PHImageResultIsInCloudKey] boolValue]) {
+                    
+                    [self.indicatorView startAnimating];
+                    self.selectButton.userInteractionEnabled = NO;
+                }
+                
+                if (result == nil) { return; }
+                self.selectButton.userInteractionEnabled = YES;
+                
+                [self.indicatorView stopAnimating];
+                
+                // block内是主线程
+                self.photoImageView.image = result;
+                [self calculateImageViewSizeWithImage:result];
+            });
+        }];
+    });
     
     // 这样会很卡，而且内存警告直接崩，还不清晰
     //    self.photoImageView.image = _photoItem.thumImage;
 }
-
-
 
 - (void)calculateImageViewSizeWithImage:(UIImage *)image{
     //图片要显示的尺寸
     CGFloat pictureW = JKScreenW;
     CGFloat pictureH = JKScreenW * image.size.height / image.size.width;
     
-    if (pictureH > JKScreenH) {//图片高过屏幕
-        self.photoImageView.frame = CGRectMake(0, 0, pictureW, pictureH);
-        //设置scrollView的contentSize
-        //        self.scrollView.contentSize = CGSizeMake(pictureW, pictureH);
-        //        NSLog(@"更新了contentSize");
-        
-    }else{//图片不高于屏幕
-        
-        self.photoImageView.frame = CGRectMake(0, 0, pictureW, pictureH);//CGSizeMake(pictureW, pictureH);
-        //图片显示在中间
-        //        self.imageView.center= CGPointMake(JKScreenW * 0.5, JKScreenH * 0.5);
-    }
+    self.photoImageView.frame = CGRectMake(0, 0, pictureW, pictureH);
+    
     self.scrollView.contentSize = CGSizeMake(pictureW, pictureH);
-    [self setInset];
+    
+    [self calculateInset];
+    
     originalHeight = pictureH;
+                      
+    [self.scrollView setContentOffset:CGPointMake(0, -self.scrollView.contentInset.top) animated:NO];
 }
 
 - (void)calculateImageCoverViewFrame{
@@ -276,6 +303,10 @@ CGFloat const dismissDistance = 80;
     // 放大图片实质就是transform形变
     self.photoImageView.transform = CGAffineTransformIdentity;
     self.photoImageView.frame = JKScreenBounds;
+    self.photoImageView.image = nil;
+    
+    [self.indicatorView stopAnimating];
+    self.selectButton.userInteractionEnabled = YES;
 }
 
 #pragma mark - 点击事件
@@ -308,13 +339,20 @@ CGFloat const dismissDistance = 80;
 
 - (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView{
     self.isDoubleTap = NO;
+    
+    isDragging = YES;
+    
+    beginScrollDirection = JKPhotoPickerScrollDirectionNone;
+    endScrollDirection = JKPhotoPickerScrollDirectionNone;
+    
+    lastOffsetY = scrollView.contentOffset.y;
 }
 
 - (void)scrollViewWillEndDragging:(UIScrollView *)scrollView withVelocity:(CGPoint)velocity targetContentOffset:(inout CGPoint *)targetContentOffset{
     
     if (self.isZooming) { return; }
     
-    if (scrollView.contentOffset.y + scrollView.contentInset.top < -dismissDistance) {
+    if (scrollView.contentOffset.y + scrollView.contentInset.top < -dismissDistance && (beginScrollDirection == endScrollDirection)) {
         
         isGonnaDismiss = YES;
         
@@ -338,9 +376,14 @@ CGFloat const dismissDistance = 80;
 
 - (void)selfDismiss{
     
-    CGRect rect = [self.photoImageView.superview convertRect:self.photoImageView.frame toView:[UIApplication sharedApplication].keyWindow];
+    CGRect rect = [self.photoImageView.superview convertRect:self.photoImageView.frame toView:[UIApplication sharedApplication].delegate.window];
+    
+    rect.origin.x += 10;
     
     self.photoImageView.frame = rect;
+    
+    rect.origin.x -= 10;
+    
     [self.contentView addSubview:self.photoImageView];
     [self.scrollView removeFromSuperview];
     self.scrollView = nil;
@@ -359,10 +402,49 @@ CGFloat const dismissDistance = 80;
 
 - (void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate{
     //    scrollView.userInteractionEnabled = YES;
+    
+    isDragging = NO;
+    
+    beginScrollDirection = JKPhotoPickerScrollDirectionNone;
+    endScrollDirection = JKPhotoPickerScrollDirectionNone;
 }
 
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView{
+    
     NSLog(@"contentOffset --> %@", NSStringFromCGPoint(scrollView.contentOffset));
+    
+    if (isDragging) {
+        
+        currentOffsetY = scrollView.contentOffset.y;
+        
+        if (currentOffsetY > lastOffsetY) {
+            
+            if (beginScrollDirection == JKPhotoPickerScrollDirectionNone) {
+                
+                beginScrollDirection = JKPhotoPickerScrollDirectionUp;
+            }
+            
+            endScrollDirection = JKPhotoPickerScrollDirectionUp;
+            
+//            JKLog("上滑-------")
+        }
+        
+        if (currentOffsetY < lastOffsetY) {
+            
+//            JKLog("下滑-------")
+            
+            if (beginScrollDirection == JKPhotoPickerScrollDirectionNone) {
+                
+                beginScrollDirection = JKPhotoPickerScrollDirectionDown;
+            }
+            
+            endScrollDirection = JKPhotoPickerScrollDirectionDown;
+        }
+        
+        lastOffsetY = currentOffsetY;
+    }
+    
+    
     if (scrollView.contentOffset.y + scrollView.contentInset.top >= 0) {
         return;
     }
@@ -407,7 +489,7 @@ CGFloat const dismissDistance = 80;
 - (void)scrollViewDidEndZooming:(UIScrollView *)scrollView withView:(UIView *)view atScale:(CGFloat)scale{
     self.currentZoomScale = scale;
     self.isZooming = NO;
-    [self setInset];
+    [self calculateInset];
     NSLog(@"当前zoomScale ---> %.2f", scale);
 }
 
@@ -416,10 +498,11 @@ CGFloat const dismissDistance = 80;
 }
 
 - (void)scrollViewDidZoom:(UIScrollView *)scrollView{
-    [self setInset];
+    [self calculateInset];
 }
 
-- (void)setInset{
+- (void)calculateInset{
+    
     // 计算内边距，注意只能使用frame
     CGFloat offsetX = (JKScreenW - self.photoImageView.frame.size.width) * 0.5;
     CGFloat offsetY = (JKScreenH - self.photoImageView.frame.size.height) * 0.5;
@@ -428,7 +511,14 @@ CGFloat const dismissDistance = 80;
     offsetX = (offsetX < 0) ? 0 : offsetX;
     offsetY = (offsetY < 0) ? 0 : offsetY;
     
-    self.scrollView.contentInset = UIEdgeInsetsMake(offsetY, offsetX, offsetY, offsetX);//UIEdgeInsets(top: offsetY, left: offsetX, bottom: offsetY, right: offsetX)
+    BOOL flag = (JKPhotoPickerIsIphoneX && self.photoImageView.frame.size.height > (JKScreenH - 44 - 34));
+    
+    if (flag) {
+        
+        offsetY += 44;
+    }
+    
+    self.scrollView.contentInset = UIEdgeInsetsMake(offsetY, offsetX, offsetY, offsetX);
 }
 
 #pragma mark - UIGestureRecognizerDelegate

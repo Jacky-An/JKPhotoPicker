@@ -99,7 +99,7 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
             return;
         }
         
-        [[UIApplication sharedApplication].keyWindow.rootViewController presentViewController:nav animated:YES completion:^{
+        [[UIApplication sharedApplication].delegate.window.rootViewController presentViewController:nav animated:YES completion:^{
             if (isPenCameraFirst) {
                 [vc updateIconWithSourType:(UIImagePickerControllerSourceTypeCamera)];
             }
@@ -197,7 +197,14 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
         return;
     }
     
-    [self.albumListView performSelector:@selector(reloadAlbum) withObject:nil afterDelay:0.8];
+    if (@available(iOS 11.0, *)) {
+        
+        [self.albumListView performSelector:@selector(reloadAlbum) withObject:nil afterDelay:3];
+        
+    } else {
+        
+        [self.albumListView performSelector:@selector(reloadAlbum) withObject:nil afterDelay:1];
+    }
 }
 
 #pragma mark - 初始化
