@@ -19,6 +19,12 @@
     BOOL isDragging;
     CGFloat lastOffsetY;
     CGFloat currentOffsetY;
+    
+    CGPoint beginDraggingOffset;
+    
+    BOOL isFirstScroll;
+    BOOL shouldZoomdown;
+    
     JKPhotoPickerScrollDirection beginScrollDirection;
     JKPhotoPickerScrollDirection endScrollDirection;
 }
@@ -342,9 +348,13 @@ CGFloat const dismissDistance = 80;
     
     isDragging = YES;
     
+    isFirstScroll = NO;
+    shouldZoomdown = YES;
+    
     beginScrollDirection = JKPhotoPickerScrollDirectionNone;
     endScrollDirection = JKPhotoPickerScrollDirectionNone;
     
+    beginDraggingOffset = scrollView.contentOffset;
     lastOffsetY = scrollView.contentOffset.y;
 }
 
@@ -412,6 +422,25 @@ CGFloat const dismissDistance = 80;
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView{
     
     NSLog(@"contentOffset --> %@", NSStringFromCGPoint(scrollView.contentOffset));
+    
+//    if (!isFirstScroll) {
+//        
+//        isFirstScroll = YES;
+//        
+//        if (scrollView.contentOffset.x != beginDraggingOffset.x) {
+//            
+//            shouldZoomdown = NO;
+//            
+//            return;
+//        }
+//    }
+//    
+//    if (!shouldZoomdown) {
+//        
+//        scrollView.contentOffset = beginDraggingOffset;
+//        
+//        return;
+//    }
     
     if (isDragging) {
         
@@ -511,11 +540,11 @@ CGFloat const dismissDistance = 80;
     offsetX = (offsetX < 0) ? 0 : offsetX;
     offsetY = (offsetY < 0) ? 0 : offsetY;
     
-    BOOL flag = (JKPhotoPickerIsIphoneX && self.photoImageView.frame.size.height > (JKScreenH - 44 - 34));
+    BOOL flag = (JKPhotoPickerIsIphoneX && self.photoImageView.frame.size.height >= (JKScreenH - 44 - 44));
     
     if (flag) {
         
-        offsetY += 44;
+        offsetY = 44;
     }
     
     self.scrollView.contentInset = UIEdgeInsetsMake(offsetY, offsetX, offsetY, offsetX);

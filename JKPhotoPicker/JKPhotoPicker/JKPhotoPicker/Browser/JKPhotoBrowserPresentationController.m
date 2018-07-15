@@ -36,7 +36,7 @@
      2.如果自定义转场，modal出来的控制器不会移除原有的控制器
      
      3.如果不自定义转场，modal的控制器的尺寸和屏幕一样
-     4.如果不自定义转场，modal的控制器的尺寸我们可以自己在containerViewWillLayoutSubviews方法汇总控制
+     4.如果自定义转场，modal的控制器的尺寸我们可以自己在containerViewWillLayoutSubviews方法汇总控制
      
      5.containerView 非常重要，容器视图，所有modal出来的视图都是添加到containerView上的
      6.presentedView() 非常重要，通过该方法能够拿到弹出的视图

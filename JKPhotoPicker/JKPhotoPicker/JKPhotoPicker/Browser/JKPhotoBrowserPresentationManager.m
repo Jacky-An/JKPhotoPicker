@@ -180,7 +180,7 @@
     CGFloat pictureW = JKScreenW;
     CGFloat pictureH = JKScreenW * image.size.height / image.size.width;
     
-    if (pictureH > (JKScreenH - (JKPhotoPickerIsIphoneX ? (44 + 34) : 0))) {//图片高过屏幕
+    if (pictureH >= (JKScreenH - (JKPhotoPickerIsIphoneX ? (44 + 44) : 0))) {//图片高过屏幕
         //        self.imageView.frame = CGRectMake(0, 0, pictureW, pictureH);
         //设置scrollView的contentSize
         //        self.scrollView.contentSize = CGSizeMake(pictureW, pictureH);
