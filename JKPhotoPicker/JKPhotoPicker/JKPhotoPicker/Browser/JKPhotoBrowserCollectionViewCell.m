@@ -180,8 +180,10 @@ CGFloat const dismissDistance = 80;
         return;
     }
     
+//    CGPoint scrollPoint = [self.scrollView convertPoint:touchPoint fromView:self.contentView];
+    
     // 双击放大
-    [self.scrollView zoomToRect:CGRectMake(touchPoint.x - 5, touchPoint.y - 5, 10, 10) animated:YES];
+    [self.scrollView zoomToRect:CGRectMake(point.x - 5, point.y - 5, 10, 10) animated:YES];
 }
 
 - (void)setupSelectedIcon{
