@@ -11,9 +11,9 @@
 
 
 
-#define JKScreenW [UIScreen mainScreen].bounds.size.width
-#define JKScreenH [UIScreen mainScreen].bounds.size.height
-#define JKScreenBounds [UIScreen mainScreen].bounds
+#define JKPhotoPickerScreenW [UIScreen mainScreen].bounds.size.width
+#define JKPhotoPickerScreenH [UIScreen mainScreen].bounds.size.height
+#define JKPhotoPickerScreenBounds [UIScreen mainScreen].bounds
 
 
 #pragma mark - 适配iOS11
@@ -24,6 +24,14 @@
 
 #define JKPhotoPickerIsIphoneX ([UIScreen instancesRespondToSelector:@selector(currentMode)] ? CGSizeEqualToSize(CGSizeMake(1125, 2436), [[UIScreen mainScreen] currentMode].size) : NO)
 
+
+typedef NS_ENUM(NSUInteger, JKPhotoPickerMediaDataType) {
+    JKPhotoPickerMediaDataTypeUnknown = 0,
+    JKPhotoPickerMediaDataTypeNormalImage,
+    JKPhotoPickerMediaDataTypeGif,
+    JKPhotoPickerMediaDataTypeVideo,
+    JKPhotoPickerMediaDataTypePhotoLive,
+};
 
 typedef NS_ENUM(NSUInteger, JKPhotoPickerScrollDirection) {
     JKPhotoPickerScrollDirectionNone,

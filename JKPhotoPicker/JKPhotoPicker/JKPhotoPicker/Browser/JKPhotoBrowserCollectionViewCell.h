@@ -8,7 +8,7 @@
 
 #import <UIKit/UIKit.h>
 
-@class JKPhotoItem, PHCachingImageManager;
+@class JKPhotoItem, PHCachingImageManager, AVPlayerItem;
 
 @interface JKPhotoBrowserCollectionViewCell : UICollectionViewCell
 
@@ -35,4 +35,7 @@
 
 /** 监听图片加载完成的block */
 @property (nonatomic, copy) void(^imageLoadFinishBlock)(JKPhotoBrowserCollectionViewCell *currentCell);
+
+/** 监听点击播放视频的block */
+@property (nonatomic, copy) void (^playVideoBlock)(AVPlayerItem *item);
 @end

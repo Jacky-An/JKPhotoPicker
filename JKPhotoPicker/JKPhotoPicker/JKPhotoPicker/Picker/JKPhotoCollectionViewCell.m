@@ -22,6 +22,9 @@
 
 /** 选中和未选中的标识 */
 @property (nonatomic, weak) UIImageView *selectIconImageView;
+
+/** 不可选择的遮盖 */
+@property (nonatomic, weak) UIView *selectCoverView;
 @end
 
 @implementation JKPhotoCollectionViewCell
@@ -59,6 +62,8 @@
     [self setupPhotoImageView];
     
     [self setupSelectedIcon];
+    
+    [self.contentView bringSubviewToFront:self.selectCoverView];
 }
 
 - (void)setupPhotoImageView{
@@ -77,9 +82,25 @@
     
     NSArray *photoImageViewCons2 = [NSLayoutConstraint constraintsWithVisualFormat:@"V:|-0-[photoImageView]-0-|" options:0 metrics:nil views:@{@"photoImageView" : photoImageView}];
     [self.contentView addConstraints:photoImageViewCons2];
+    
+    // 不允许选择时的遮盖view
+    UIView *selectCoverView = [[UIImageView alloc] init];
+    selectCoverView.userInteractionEnabled = YES;
+    selectCoverView.backgroundColor = [[UIColor whiteColor] colorWithAlphaComponent:0.7];
+    [self.contentView insertSubview:selectCoverView aboveSubview:photoImageView];
+    self.selectCoverView = selectCoverView;
+    
+    // 约束
+    selectCoverView.translatesAutoresizingMaskIntoConstraints = NO;
+    NSArray *selectCoverViewCons1 = [NSLayoutConstraint constraintsWithVisualFormat:@"H:|-0-[selectCoverView]-0-|" options:0 metrics:nil views:@{@"selectCoverView" : selectCoverView}];
+    [self.contentView addConstraints:selectCoverViewCons1];
+    
+    NSArray *selectCoverViewCons2 = [NSLayoutConstraint constraintsWithVisualFormat:@"V:|-0-[selectCoverView]-0-|" options:0 metrics:nil views:@{@"selectCoverView" : selectCoverView}];
+    [self.contentView addConstraints:selectCoverViewCons2];
 }
 
 - (void)setupSelectedIcon{
+    
     // 照片选中按钮
     UIButton *selectButton = [UIButton buttonWithType:(UIButtonTypeCustom)];
     [selectButton addTarget:self action:@selector(selectImageClick) forControlEvents:(UIControlEventTouchUpInside)];
@@ -128,12 +149,18 @@
         self.selectButton.hidden = YES;
         self.selectIconImageView.hidden = YES;
         self.cameraIconButton.hidden = NO;
+        self.selectCoverView.hidden = YES;
         return;
     }
+    
     _cameraIconButton.hidden = YES;
     self.photoImageView.hidden = NO;
     self.selectButton.hidden = NO;
     self.selectIconImageView.hidden = NO;
+    self.selectCoverView.hidden = _photoItem.shouldSelected;
+    
+    self.selectIconImageView.hidden = !self.selectCoverView.hidden;
+    self.selectButton.hidden = !self.selectCoverView.hidden;
     
     [[PHImageManager defaultManager] requestImageForAsset:_photoItem.photoAsset targetSize:CGSizeMake(200, 200) contentMode:PHImageContentModeAspectFit options:nil resultHandler:^(UIImage * _Nullable result, NSDictionary * _Nullable info) {
         self.photoImageView.image = result;

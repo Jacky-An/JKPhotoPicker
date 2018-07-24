@@ -15,6 +15,12 @@
 
 /****************************照片相关****************************/
 
+/* 是否可以选中 */
+@property (nonatomic, assign, readonly) BOOL shouldSelected;
+
+/* 媒体类型 */
+@property (nonatomic, assign, readonly) JKPhotoPickerMediaDataType dataType;
+
 /* 是否选中 */
 @property (nonatomic, assign) BOOL isSelected;
 
@@ -60,4 +66,11 @@
 
 /** 相册图片数量 */
 @property (nonatomic, assign) NSInteger albumImagesCount;
+
+
+
+/****************************视频相关****************************/
+
+/** 视频缓存的路径 */
+@property (nonatomic, copy, readonly) NSString *videoPath;
 @end

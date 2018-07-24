@@ -15,17 +15,23 @@
 /** 选中的图片模型数组 JKPhotoItem */
 @property (nonatomic, strong) NSArray <JKPhotoItem *> *photoItems;
 
-/** 选中的图片数组 */
-@property (nonatomic, strong, readonly) NSArray <UIImage *> *selectedImages;
-
 /** 流水布局 */
 @property (nonatomic, strong, readonly) UICollectionViewFlowLayout *flowLayout;
 
 /** 监听删除选中的图片的block */
 @property (nonatomic, copy) void (^selectCompleteViewDidDeletePhotoBlock)(NSArray <JKPhotoItem *> *photoItems);
 
-/** 根据photoItems获取选中的原图 */
-+ (NSArray <UIImage *> *)getSelectedImagesWithPhotoItems:(NSArray <JKPhotoItem *> *)photoItems;
+/** 获取单张原图 */
++ (void)getOriginalImageWithItem:(JKPhotoItem *)item complete:(void(^)(UIImage *originalImage, NSDictionary * info))complete;
+
+/** 获取多张原图 */
++ (void)getOriginalImagesWithItems:(NSArray <JKPhotoItem *> *)items complete:(void(^)(NSArray <UIImage *> *originalImages))complete;
+
+/** 获取单个视频data */
+//+ (void)getVideoDataWithItem:(JKPhotoItem *)item complete:(void(^)(UIImage *originalImage, NSDictionary * info))complete;
+//
+///** 获取多个视频data */
+//+ (void)getVideoDataWithItems:(NSArray <JKPhotoItem *> *)items complete:(void(^)(NSArray <UIImage *> *originalImages))complete;
 
 /**
  * 类方法

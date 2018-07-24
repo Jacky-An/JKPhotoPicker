@@ -137,7 +137,7 @@
         
         // 只添加图片类型资源，去除视频类型资源
         // 当mediatype == 2时，资源则视为视频资源
-        if (asset.mediaType == PHAssetMediaTypeImage) {
+        if (1 || asset.mediaType == PHAssetMediaTypeImage) {
             
             i++;
             

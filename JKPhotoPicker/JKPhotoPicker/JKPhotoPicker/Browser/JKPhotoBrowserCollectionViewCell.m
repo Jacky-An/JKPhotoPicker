@@ -54,6 +54,9 @@
 
 /** indicator */
 @property (nonatomic, weak) UIActivityIndicatorView *indicatorView;
+
+/** playVideoButton */
+@property (nonatomic, weak) UIButton *playVideoButton;
 @end
 
 CGFloat const dismissDistance = 80;
@@ -71,7 +74,7 @@ CGFloat const dismissDistance = 80;
     self.currentZoomScale = 1;
     
     // 当前屏幕宽高比
-    _screenAspectRatio = JKScreenW / JKScreenH;
+    _screenAspectRatio = JKPhotoPickerScreenW / JKPhotoPickerScreenH;
     
     [self setupPhotoImageView];
     
@@ -82,7 +85,7 @@ CGFloat const dismissDistance = 80;
     [self.contentView addSubview:indicatorView];
     self.indicatorView = indicatorView;
     
-    indicatorView.center = CGPointMake(JKScreenW * 0.5 + 10, JKScreenH * 0.5);
+    indicatorView.center = CGPointMake(JKPhotoPickerScreenW * 0.5 + 10, JKPhotoPickerScreenH * 0.5);
 }
 
 - (void)setupPhotoImageView{
@@ -90,7 +93,7 @@ CGFloat const dismissDistance = 80;
     UIScrollView *scrollView = [[UIScrollView alloc] init];
     scrollView.showsVerticalScrollIndicator = NO;
     scrollView.showsHorizontalScrollIndicator = NO;
-    scrollView.frame = CGRectMake(10, 0, JKScreenW, JKScreenH);
+    scrollView.frame = CGRectMake(10, 0, JKPhotoPickerScreenW, JKPhotoPickerScreenH);
     scrollView.delegate = self;
     scrollView.minimumZoomScale = 1;
     scrollView.maximumZoomScale = 3;
@@ -135,7 +138,7 @@ CGFloat const dismissDistance = 80;
     photoImageView.clipsToBounds = YES;
     [self.scrollView insertSubview:photoImageView atIndex:0];
     self.photoImageView = photoImageView;
-//    photoImageView.frame = JKScreenBounds;
+//    photoImageView.frame = JKPhotoPickerScreenBounds;
     // 照片约束
     //    photoImageView.translatesAutoresizingMaskIntoConstraints = NO;
     //    NSArray *photoImageViewCons1 = [NSLayoutConstraint constraintsWithVisualFormat:@"H:|-0-[photoImageView]-0-|" options:0 metrics:nil views:@{@"photoImageView" : photoImageView}];
@@ -155,6 +158,42 @@ CGFloat const dismissDistance = 80;
     
     // 只有当doubleTapGesture识别失败的时候(即识别出这不是双击操作)，singleTapGesture才能开始识别
     [singleTap requireGestureRecognizerToFail:doubleTap];
+    
+    // 播放按钮
+    UIButton *playVideoButton = [UIButton buttonWithType:(UIButtonTypeSystem)];
+    [self.contentView insertSubview:playVideoButton aboveSubview:photoImageView];
+    self.playVideoButton = playVideoButton;
+    self.playVideoButton.hidden = YES;
+    
+    [playVideoButton addTarget:self action:@selector(playVideoButtonClick:) forControlEvents:(UIControlEventTouchUpInside)];
+    
+    [playVideoButton setBackgroundImage:[UIImage imageWithContentsOfFile:[[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"JKPhotoPickerResource.bundle/images/video-play@3x"]] forState:(UIControlStateNormal)];
+    
+    // 播放按钮约束
+    playVideoButton.translatesAutoresizingMaskIntoConstraints = NO;
+    
+    NSLayoutConstraint *cons1 = [NSLayoutConstraint constraintWithItem:playVideoButton attribute:(NSLayoutAttributeCenterX) relatedBy:(NSLayoutRelationEqual) toItem:self.contentView attribute:(NSLayoutAttributeCenterX) multiplier:1 constant:0];
+    
+    NSLayoutConstraint *cons2 = [NSLayoutConstraint constraintWithItem:playVideoButton attribute:(NSLayoutAttributeCenterY) relatedBy:(NSLayoutRelationEqual) toItem:self.contentView attribute:(NSLayoutAttributeCenterY) multiplier:1 constant:0];
+    
+    NSLayoutConstraint *cons3 = [NSLayoutConstraint constraintWithItem:playVideoButton attribute:(NSLayoutAttributeWidth) relatedBy:(NSLayoutRelationEqual) toItem:nil attribute:(NSLayoutAttributeNotAnAttribute) multiplier:1 constant:71];
+    
+    NSLayoutConstraint *cons4 = [NSLayoutConstraint constraintWithItem:playVideoButton attribute:(NSLayoutAttributeHeight) relatedBy:(NSLayoutRelationEqual) toItem:nil attribute:(NSLayoutAttributeNotAnAttribute) multiplier:1 constant:71];
+    
+    [self.contentView addConstraints:@[cons1, cons2, cons3, cons4]];
+}
+
+#pragma mark - 点击播放视频
+
+- (void)playVideoButtonClick:(UIButton *)button{
+    
+    [[PHImageManager defaultManager] requestPlayerItemForVideo:self.photoItem.photoAsset options:nil resultHandler:^(AVPlayerItem * _Nullable playerItem, NSDictionary * _Nullable info) {
+        
+        dispatch_async(dispatch_get_main_queue(), ^{
+           
+            !self.playVideoBlock ? : self.playVideoBlock(playerItem);
+        });
+    }];
 }
 
 #pragma mark - 单击和双击手势
@@ -230,6 +269,10 @@ CGFloat const dismissDistance = 80;
     _photoItem = photoItem;
     
     [self resetView];
+    self.playVideoButton.hidden = _photoItem.dataType != JKPhotoPickerMediaDataTypeVideo;
+    
+    self.selectIconImageView.hidden = !_photoItem.shouldSelected;
+    self.selectButton.hidden = !_photoItem.shouldSelected;
     
     self.selectIconImageView.highlighted = _photoItem.isSelected;
     
@@ -268,8 +311,8 @@ CGFloat const dismissDistance = 80;
 
 - (void)calculateImageViewSizeWithImage:(UIImage *)image{
     //图片要显示的尺寸
-    CGFloat pictureW = JKScreenW;
-    CGFloat pictureH = JKScreenW * image.size.height / image.size.width;
+    CGFloat pictureW = JKPhotoPickerScreenW;
+    CGFloat pictureH = JKPhotoPickerScreenW * image.size.height / image.size.width;
     
     self.photoImageView.frame = CGRectMake(0, 0, pictureW, pictureH);
     
@@ -289,15 +332,15 @@ CGFloat const dismissDistance = 80;
     CGFloat imageAspectRatio = imageW / imageH;
     
     if (imageW / imageH >= _screenAspectRatio) { // 宽高比大于屏幕宽高比，基于宽度缩放
-        self.photoImageView.frame = CGRectMake(0, 0, JKScreenW, JKScreenW / imageAspectRatio);
+        self.photoImageView.frame = CGRectMake(0, 0, JKPhotoPickerScreenW, JKPhotoPickerScreenW / imageAspectRatio);
     }else{
         
         // 宽高比小于屏幕宽高比，基于高度缩放
-        self.photoImageView.frame = CGRectMake(0, 0, JKScreenH * imageAspectRatio, JKScreenH);
+        self.photoImageView.frame = CGRectMake(0, 0, JKPhotoPickerScreenH * imageAspectRatio, JKPhotoPickerScreenH);
     }
     
-    CGFloat offsetX = (JKScreenW - self.photoImageView.frame.size.width) * 0.5;
-    CGFloat offsetY = (JKScreenH - self.photoImageView.frame.size.height) * 0.5;
+    CGFloat offsetX = (JKPhotoPickerScreenW - self.photoImageView.frame.size.width) * 0.5;
+    CGFloat offsetY = (JKPhotoPickerScreenH - self.photoImageView.frame.size.height) * 0.5;
     self.scrollView.contentInset = UIEdgeInsetsMake(offsetY, offsetX, offsetY, offsetX);
 }
 
@@ -310,7 +353,7 @@ CGFloat const dismissDistance = 80;
     
     // 放大图片实质就是transform形变
     self.photoImageView.transform = CGAffineTransformIdentity;
-    self.photoImageView.frame = JKScreenBounds;
+    self.photoImageView.frame = JKPhotoPickerScreenBounds;
     self.photoImageView.image = nil;
     
     [self.indicatorView stopAnimating];
@@ -358,6 +401,15 @@ CGFloat const dismissDistance = 80;
     
     beginDraggingOffset = scrollView.contentOffset;
     lastOffsetY = scrollView.contentOffset.y;
+    
+    if (self.playVideoButton.isHidden) {
+        return;
+    }
+    
+    [UIView animateWithDuration:0.25 animations:^{
+       
+        self.playVideoButton.alpha = 0;
+    }];
 }
 
 - (void)scrollViewWillEndDragging:(UIScrollView *)scrollView withVelocity:(CGPoint)velocity targetContentOffset:(inout CGPoint *)targetContentOffset{
@@ -383,6 +435,15 @@ CGFloat const dismissDistance = 80;
             scrollView.pinchGestureRecognizer.enabled = YES;
             self.collectionView.scrollEnabled = YES;
         }];
+        
+        if (self.playVideoButton.isHidden) {
+            return;
+        }
+        
+        [UIView animateWithDuration:0.25 animations:^{
+            
+            self.playVideoButton.alpha = 1;
+        }];
     }
 }
 
@@ -406,6 +467,8 @@ CGFloat const dismissDistance = 80;
     [UIView animateWithDuration:0.3 animations:^{
         
         self.selectIconImageView.hidden = YES;
+        self.selectButton.hidden = YES;
+        self.playVideoButton.hidden = YES;
         self.collectionView.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:0];
     }];
     
@@ -488,7 +551,7 @@ CGFloat const dismissDistance = 80;
     
     self.collectionView.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:self.bgAlpha];
     
-    if (!scrollView.isDragging) { return; }
+    if (!isDragging) { return; }
     
     scrollView.pinchGestureRecognizer.enabled = NO;
     self.collectionView.scrollEnabled = NO;
@@ -502,7 +565,7 @@ CGFloat const dismissDistance = 80;
     self.transformScale = self.transformScale < 0.2 ? 0.2 : self.transformScale;
     CGAffineTransform transform = CGAffineTransformMakeScale(self.transformScale, self.transformScale);
     
-    self.photoImageView.transform = CGAffineTransformTranslate(transform, self.currentZoomScale > 1 ? 0 : point.x, self.currentZoomScale > 1 ? 0 : (originalHeight > JKScreenH + 100 ? 0 : point.y * 0.5));
+    self.photoImageView.transform = CGAffineTransformTranslate(transform, self.currentZoomScale > 1 ? 0 : point.x, self.currentZoomScale > 1 ? 0 : (originalHeight > JKPhotoPickerScreenH + 100 ? 0 : point.y * 0.5));
 }
 
 - (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView{
@@ -535,14 +598,14 @@ CGFloat const dismissDistance = 80;
 - (void)calculateInset{
     
     // 计算内边距，注意只能使用frame
-    CGFloat offsetX = (JKScreenW - self.photoImageView.frame.size.width) * 0.5;
-    CGFloat offsetY = (JKScreenH - self.photoImageView.frame.size.height) * 0.5;
+    CGFloat offsetX = (JKPhotoPickerScreenW - self.photoImageView.frame.size.width) * 0.5;
+    CGFloat offsetY = (JKPhotoPickerScreenH - self.photoImageView.frame.size.height) * 0.5;
     
     // 当小于0的时候，放大的图片将无法滚动，因为内边距为负数时限制了它可以滚动的范围
     offsetX = (offsetX < 0) ? 0 : offsetX;
     offsetY = (offsetY < 0) ? 0 : offsetY;
     
-    BOOL flag = (JKPhotoPickerIsIphoneX && self.photoImageView.frame.size.height >= (JKScreenH - 44 - 44));
+    BOOL flag = (JKPhotoPickerIsIphoneX && self.photoImageView.frame.size.height >= (JKPhotoPickerScreenH - 44 - 44));
     
     if (flag) {
         

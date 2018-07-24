@@ -23,26 +23,27 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     
-    self.selectCompleteView = [JKPhotoSelectCompleteView completeViewWithSuperView:self.view viewController:self frame:CGRectMake(0, (([UIScreen instancesRespondToSelector:@selector(currentMode)] ? CGSizeEqualToSize(CGSizeMake(1125, 2436), [[UIScreen mainScreen] currentMode].size) : NO) ? 88 : 64), self.view.frame.size.width, 130) itemSize:CGSizeMake((self.view.frame.size.width - 3) / 4, (self.view.frame.size.width - 3) / 4 + 10) scrollDirection:UICollectionViewScrollDirectionHorizontal];
+    self.selectCompleteView = [JKPhotoSelectCompleteView completeViewWithSuperView:self.view viewController:self frame:CGRectMake(0, (JKPhotoPickerIsIphoneX ? 88 : 64), self.view.frame.size.width, 130) itemSize:CGSizeMake((self.view.frame.size.width - 3) / 4, (self.view.frame.size.width - 3) / 4 + 10) scrollDirection:UICollectionViewScrollDirectionHorizontal];
+    
     self.selectCompleteView.backgroundColor = [UIColor cyanColor];
 }
 
 - (IBAction)photoAction:(UIButton *)sender {
-    //    [JKPhotoPickerViewController showWithMaxSelectCount:7 seletedPhotos:self.selectCompleteView.photoItems completeHandler:^(NSArray *photoItems) {
-    //        [self.imageView removeFromSuperview];
-    //        self.imageView = nil;
-    //        self.selectCompleteView.photoItems = photoItems;
-    //    }];
-    //    return;
+    
     UIAlertController *alertVc = [UIAlertController alertControllerWithTitle:nil message:nil preferredStyle:(UIAlertControllerStyleActionSheet)];
     
     [alertVc addAction:[UIAlertAction actionWithTitle:@"拍照" style:(UIAlertActionStyleDefault) handler:^(UIAlertAction * _Nonnull action) {
         
-        [self updateIconWithSourType:(UIImagePickerControllerSourceTypeCamera)];
+//        [self updateIconWithSourType:(UIImagePickerControllerSourceTypeCamera)];
+        [JKPhotoPickerViewController showWithPresentVc:self maxSelectCount:7 seletedPhotos:self.selectCompleteView.photoItems isOpenCameraFirst:YES completeHandler:^(NSArray<JKPhotoItem *> *photoItems) {
+            [self.imageView removeFromSuperview];
+            self.imageView = nil;
+            self.selectCompleteView.photoItems = photoItems;
+        }];
     }]];
     
     [alertVc addAction:[UIAlertAction actionWithTitle:@"从相册选择" style:(UIAlertActionStyleDefault) handler:^(UIAlertAction * _Nonnull action) {
-        [JKPhotoPickerViewController showWithPresentVc:self maxSelectCount:7 seletedPhotos:self.selectCompleteView.photoItems isPenCameraFirst:NO completeHandler:^(NSArray<JKPhotoItem *> *photoItems) {
+        [JKPhotoPickerViewController showWithPresentVc:self maxSelectCount:7 seletedPhotos:self.selectCompleteView.photoItems isOpenCameraFirst:NO completeHandler:^(NSArray<JKPhotoItem *> *photoItems) {
             [self.imageView removeFromSuperview];
             self.imageView = nil;
             self.selectCompleteView.photoItems = photoItems;
@@ -82,50 +83,52 @@
     [self dismissViewControllerAnimated:YES completion:nil];
 }
 
-- (IBAction)uploadImages:(UIButton *)sender {
-    
-    if (self.selectCompleteView.photoItems.count <= 0) {
-        return;
-    }
+- (IBAction)uploadClick:(UIButton *)sender {
     
     sender.selected = !sender.selected;
     
-//    [[UIApplication sharedApplication] setStatusBarHidden:sender.selected withAnimation:UIStatusBarAnimationSlide];
-    
     if (!sender.selected) {
+        
         [self.uploadScrollView.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
+        
         return;
     }
     
+    if (self.selectCompleteView.photoItems.count <= 0) { return; }
+    
     [self.indicatorView startAnimating];
     
-    dispatch_async(dispatch_get_global_queue(0, 0), ^{
-        NSInteger count = self.selectCompleteView.selectedImages.count;
+#pragma mark - 获取原图
+    
+    [JKPhotoSelectCompleteView getOriginalImagesWithItems:self.selectCompleteView.photoItems complete:^(NSArray<UIImage *> *originalImages) {
+       
+        [self uploadImages:originalImages];
+    }];
+}
+
+- (void)uploadImages:(NSArray<UIImage *> *)images{
+    
+    NSInteger count = images.count;
+    
+    self.uploadScrollView.contentSize = CGSizeMake(10 + (self.view.frame.size.width / 4 + 10) * count, 0);
+    self.uploadScrollView.showsHorizontalScrollIndicator = NO;
+    
+    for (NSInteger i = 0; i < count; i++) {
         
-        dispatch_async(dispatch_get_main_queue(), ^{
-            self.uploadScrollView.contentSize = CGSizeMake(10 + (self.view.frame.size.width / 4 + 10) * count, 0);
-            self.uploadScrollView.showsHorizontalScrollIndicator = NO;
-        });
+        UIImageView *imageView = [[UIImageView alloc] init];
+        imageView.contentMode = UIViewContentModeScaleAspectFill;
+        imageView.clipsToBounds = YES;
         
-        for (NSInteger i = 0; i < count; i++) {
+        imageView.frame = CGRectMake(5 + (self.view.frame.size.width / 4 + 10) * i, (self.uploadScrollView.frame.size.height - (self.view.frame.size.width * 0.25)) * 0.5, (self.view.frame.size.width - 3) / 4, (self.view.frame.size.width * 0.25));
+        
+        imageView.image = images[i];
+        [self.uploadScrollView addSubview:imageView];
+        
+        if (i == count - 1) {
             
-            UIImageView *imageView = [[UIImageView alloc] init];
-            
-            
-            imageView.frame = CGRectMake(5 + (self.view.frame.size.width / 4 + 10) * i, 5, (self.view.frame.size.width - 3) / 4, (self.view.frame.size.width) / 4);
-            
-            dispatch_async(dispatch_get_main_queue(), ^{
-                imageView.image = self.selectCompleteView.selectedImages[i];
-                [self.uploadScrollView addSubview:imageView];
-            });
-            
-            if (i == count - 1) {
-                dispatch_async(dispatch_get_main_queue(), ^{
-                    [self.indicatorView stopAnimating];
-                });
-            }
+            [self.indicatorView stopAnimating];
         }
-    });
+    }
 }
 
 - (void)didReceiveMemoryWarning {

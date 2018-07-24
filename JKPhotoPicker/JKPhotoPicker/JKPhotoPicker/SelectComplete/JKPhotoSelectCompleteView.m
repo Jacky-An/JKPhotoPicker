@@ -20,7 +20,7 @@
 @property (nonatomic, weak) UICollectionView *collectionView;
 
 /** 选中的图片数组 */
-@property (nonatomic, strong) NSMutableArray *selectedPhotos;
+@property (nonatomic, strong) NSMutableArray *selectedPhotoItems;
 
 /** 父控件所在的控制器 */
 @property (nonatomic, weak) UIViewController *superViewController;
@@ -53,11 +53,11 @@ static NSString * const reuseID = @"JKPhotoSelectCompleteCollectionViewCell"; //
 }
 
 #pragma mark - 懒加载
-- (NSMutableArray *)selectedPhotos{
-    if (!_selectedPhotos) {
-        _selectedPhotos = [NSMutableArray array];
+- (NSMutableArray *)selectedPhotoItems{
+    if (!_selectedPhotoItems) {
+        _selectedPhotoItems = [NSMutableArray array];
     }
-    return _selectedPhotos;
+    return _selectedPhotoItems;
 }
 
 - (PHCachingImageManager *)cachingImageManager{
@@ -67,27 +67,106 @@ static NSString * const reuseID = @"JKPhotoSelectCompleteCollectionViewCell"; //
     return _cachingImageManager;
 }
 
-- (NSArray *)selectedImages{
-    if (_selectedImages.count != self.selectedPhotos.count) {
-        NSMutableArray *tmpArr = [NSMutableArray array];
+//- (NSArray *)selectedImages{
+//    if (_selectedImages.count != self.selectedPhotoItems.count) {
+//        NSMutableArray *tmpArr = [NSMutableArray array];
+//        
+//        for (JKPhotoItem *itm in self.selectedPhotoItems) {
+//            [tmpArr addObject:itm.originalImage];
+//        }
+//        
+//        _selectedImages = tmpArr;
+//    }
+//    return _selectedImages;
+//}
+
+#pragma mark - 获取原图
+
+NSMutableArray *imageArr_;
+
++ (void)getOriginalImagesWithItems:(NSArray <JKPhotoItem *> *)items complete:(void(^)(NSArray <UIImage *> *originalImages))complete{
+    
+    if (!imageArr_) {
         
-        for (JKPhotoItem *itm in self.selectedPhotos) {
-            [tmpArr addObject:itm.originalImage];
+        imageArr_ = [NSMutableArray array];
+    }
+    
+    if (items.count == 0) {
+        
+        NSArray *arr = [imageArr_ copy];
+        [imageArr_ removeAllObjects];
+        imageArr_ = nil;
+        
+        !complete ? : complete(arr);
+        
+        return;
+    }
+    
+    NSMutableArray *tmpArr = [NSMutableArray arrayWithArray:items];
+    
+    [self getOriginalImageWithItem:tmpArr.firstObject complete:^(UIImage *originalImage, NSDictionary *info) {
+        
+        [tmpArr removeObjectAtIndex:0];
+        
+        if (originalImage != nil) {
+            
+            [imageArr_ addObject:originalImage];
         }
         
-        _selectedImages = tmpArr;
-    }
-    return _selectedImages;
+        [self getOriginalImagesWithItems:tmpArr complete:complete];
+    }];
 }
 
-+ (NSArray <UIImage *> *)getSelectedImagesWithPhotoItems:(NSArray <JKPhotoItem *> *)photoItems{
-    NSMutableArray *tmpArr = [NSMutableArray array];
++ (void)getOriginalImageWithItem:(JKPhotoItem *)item complete:(void(^)(UIImage *originalImage, NSDictionary * info))complete{
     
-    for (JKPhotoItem *itm in photoItems) {
-        [tmpArr addObject:itm.originalImage];
+    PHImageRequestOptions *options = [[PHImageRequestOptions alloc]init];
+    options.synchronous = YES;
+    options.networkAccessAllowed = YES;
+    
+    [[PHImageManager defaultManager] requestImageForAsset:item.photoAsset targetSize:PHImageManagerMaximumSize contentMode:PHImageContentModeAspectFit options:options resultHandler:^(UIImage * _Nullable result, NSDictionary * _Nullable info) {
+        
+        dispatch_async(dispatch_get_main_queue(), ^{
+           
+            !complete ? : complete(result, info);
+        });
+    }];
+}
+
+#pragma mark - 获取原视频文件
+
+- (void)getVideoDataPathWithItem:(JKPhotoItem *)item complete:(void(^)(NSString *videoPath))complete{
+    
+    NSString *path = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES).firstObject stringByAppendingPathComponent:@"JKPhotoPickerVideoCache"];
+    
+    if (![[NSFileManager defaultManager] fileExistsAtPath:path]) {
+        
+        NSError *error = nil;
+        
+        BOOL success = [[NSFileManager defaultManager] createDirectoryAtPath:path withIntermediateDirectories:YES attributes:nil error:&error];
+        
+        if (!success) {
+            
+            NSLog(@"创建文件路径失败");
+        }
     }
     
-    return tmpArr;
+    path = [path stringByAppendingPathComponent:item.photoAsset.localIdentifier];
+    
+    PHAssetResourceRequestOptions *options = [[PHAssetResourceRequestOptions alloc] init];
+    
+    PHAssetResource *resource = [PHAssetResource assetResourcesForAsset:item.photoAsset].firstObject;
+    
+    [[PHAssetResourceManager defaultManager] writeDataForAssetResource:resource toFile:[NSURL fileURLWithPath:path] options:options completionHandler:^(NSError * _Nullable error) {
+        
+        if (error) {
+            
+            !complete ? : complete(nil);
+            
+            return;
+        }
+        
+        !complete ? : complete(path);
+    }];
 }
 
 #pragma mark - 初始化
@@ -138,32 +217,29 @@ static NSString * const reuseID = @"JKPhotoSelectCompleteCollectionViewCell"; //
 }
 
 - (void)setPhotoItems:(NSArray *)photoItems{
-    _photoItems = nil;
-    _photoItems = [photoItems copy];
-    photoItems = nil;
     
-    [self.selectedPhotos removeAllObjects];
-    [self.selectedPhotos addObjectsFromArray:_photoItems];
-    _photoItems = nil;
-    _photoItems = self.selectedPhotos;
+    [self.selectedPhotoItems removeAllObjects];
+    [self.selectedPhotoItems addObjectsFromArray:photoItems];
+    
+    _photoItems = self.selectedPhotoItems;
     
     // 缓存原图
-    if (self.selectedPhotos.count <= 0) return;
+    if (self.selectedPhotoItems.count <= 0) return;
     
-    [self.cachingImageManager startCachingImagesForAssets:[self.selectedPhotos valueForKeyPath:@"photoAsset"] targetSize:PHImageManagerMaximumSize contentMode:PHImageContentModeAspectFit options:nil];
+    [self.cachingImageManager startCachingImagesForAssets:[self.selectedPhotoItems valueForKeyPath:@"photoAsset"] targetSize:PHImageManagerMaximumSize contentMode:PHImageContentModeAspectFit options:nil];
     
     [self.collectionView reloadData];
 }
 
 #pragma mark - collectionView数据源
 - (NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section{
-    return self.selectedPhotos.count;
+    return self.selectedPhotoItems.count;
 }
 
 - (UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath{
     JKPhotoSelectCompleteCollectionViewCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:reuseID forIndexPath:indexPath];
     
-    JKPhotoItem *item = self.selectedPhotos[indexPath.row];
+    JKPhotoItem *item = self.selectedPhotoItems[indexPath.row];
     
     cell.photoItem = item;
     
@@ -188,7 +264,7 @@ static NSString * const reuseID = @"JKPhotoSelectCompleteCollectionViewCell"; //
 - (void)deleteSelectedPhotoWithCell:(JKPhotoCollectionViewCell *)currentCell{
     
     currentCell.photoItem.isSelected = NO;
-    [self.selectedPhotos removeObject:currentCell.photoItem];
+    [self.selectedPhotoItems removeObject:currentCell.photoItem];
     
     NSIndexPath *indexPath = [self.collectionView indexPathForCell:currentCell];
     
@@ -207,7 +283,7 @@ static NSString * const reuseID = @"JKPhotoSelectCompleteCollectionViewCell"; //
         }];
     }
     
-    !self.selectCompleteViewDidDeletePhotoBlock ? : self.selectCompleteViewDidDeletePhotoBlock(self.selectedPhotos);
+    !self.selectCompleteViewDidDeletePhotoBlock ? : self.selectCompleteViewDidDeletePhotoBlock(self.selectedPhotoItems);
 }
 
 #pragma mark - collectionView代理
@@ -219,7 +295,7 @@ static NSString * const reuseID = @"JKPhotoSelectCompleteCollectionViewCell"; //
     
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     dict[@"allPhotos"] = nil;
-    dict[@"selectedItems"] = self.selectedPhotos;
+    dict[@"selectedItems"] = self.selectedPhotoItems;
     dict[@"maxSelectCount"] = @(NSIntegerMax);
     dict[@"imageView"] = cell.photoImageView;
     dict[@"collectionView"] = collectionView;
@@ -229,12 +305,12 @@ static NSString * const reuseID = @"JKPhotoSelectCompleteCollectionViewCell"; //
     
     [JKPhotoBrowserViewController showWithViewController:self.superViewController dataDict:dict completion:^(NSArray <JKPhotoItem *> *seletedPhotos, NSArray <NSIndexPath *> *indexPaths, NSMutableDictionary *selectedPhotosIdentifierCache) {
         
-        if (self.selectedPhotos.count == seletedPhotos.count) {
+        if (self.selectedPhotoItems.count == seletedPhotos.count) {
             return;
         }
         
-        [self.selectedPhotos removeAllObjects];
-        [self.selectedPhotos addObjectsFromArray:seletedPhotos];
+        [self.selectedPhotoItems removeAllObjects];
+        [self.selectedPhotoItems addObjectsFromArray:seletedPhotos];
         
         [self.collectionView performBatchUpdates:^{
             
@@ -244,7 +320,7 @@ static NSString * const reuseID = @"JKPhotoSelectCompleteCollectionViewCell"; //
             
         }];
         
-        !self.selectCompleteViewDidDeletePhotoBlock ? : self.selectCompleteViewDidDeletePhotoBlock(self.selectedPhotos);
+        !self.selectCompleteViewDidDeletePhotoBlock ? : self.selectCompleteViewDidDeletePhotoBlock(self.selectedPhotoItems);
     }];
 }
 

@@ -19,12 +19,67 @@
     
     /** 相册缩略图 */
     UIImage *_albumThumImage;
+    
+//    BOOL _shouldSelected;
+    
+    NSString *_videoPath;
 }
 @end
 
 @implementation JKPhotoItem
+
+- (instancetype)init{
+    
+    if (self = [super init]) {
+        
+        _shouldSelected = YES;
+    }
+    
+    return self;
+}
+
+//- (BOOL)shouldSelected{
+//
+//    _shouldSelected = self.photoAsset.mediaType == PHAssetMediaTypeImage;
+//
+//    return _shouldSelected;
+//}
+
 - (void)setPhotoAsset:(PHAsset *)photoAsset{
     _photoAsset = photoAsset;
+    
+    switch (_photoAsset.mediaType) {
+            
+        case PHAssetMediaTypeUnknown:
+            
+            break;
+            
+        case PHAssetMediaTypeImage:
+            
+            _dataType = JKPhotoPickerMediaDataTypeNormalImage;
+            
+            if (_photoAsset.mediaSubtypes == PHAssetMediaSubtypePhotoLive) {
+                
+                _dataType = JKPhotoPickerMediaDataTypePhotoLive;
+            }
+            
+            break;
+            
+        case PHAssetMediaTypeVideo:
+            
+            _dataType = JKPhotoPickerMediaDataTypeVideo;
+            
+            break;
+            
+        case PHAssetMediaTypeAudio:
+            
+            break;
+            
+        default:
+            break;
+    }
+    
+    _shouldSelected = _dataType == JKPhotoPickerMediaDataTypeNormalImage;
     
     _assetLocalIdentifier = _photoAsset.localIdentifier;
 }
@@ -45,6 +100,10 @@
         
         PHImageRequestOptions *options = [[PHImageRequestOptions alloc]init];
         options.synchronous = YES;
+        
+//        [[PHImageManager defaultManager] requestImageDataForAsset:_photoAsset options:options resultHandler:^(NSData * _Nullable imageData, NSString * _Nullable dataUTI, UIImageOrientation orientation, NSDictionary * _Nullable info) {
+//
+//        }];
         
         [[PHImageManager defaultManager] requestImageForAsset:_photoAsset targetSize:PHImageManagerMaximumSize contentMode:PHImageContentModeAspectFit options:options resultHandler:^(UIImage * _Nullable result, NSDictionary * _Nullable info) {
             
@@ -85,6 +144,13 @@
     }
     
     return _albumThumImage;
+}
+
+- (NSString *)videoPath{
+    if (!_videoPath) {
+        _videoPath = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES).firstObject stringByAppendingPathComponent:@"JKPhotoPickerVideoCache"];
+    }
+    return _videoPath;
 }
 
 // 防止崩溃
