@@ -9,6 +9,7 @@
 #import "JKPhotoBrowserCollectionViewCell.h"
 #import "JKPhotoItem.h"
 #import <Photos/Photos.h>
+#import <PhotosUI/PhotosUI.h>
 
 @interface JKPhotoBrowserCollectionViewCell () <UIScrollViewDelegate, UIGestureRecognizerDelegate>
 {
@@ -134,6 +135,7 @@ CGFloat const dismissDistance = 80;
     
     // 照片
     UIImageView *photoImageView = [[UIImageView alloc] init];
+    photoImageView.userInteractionEnabled = YES;
     photoImageView.contentMode = UIViewContentModeScaleAspectFit;
     photoImageView.clipsToBounds = YES;
     [self.scrollView insertSubview:photoImageView atIndex:0];
@@ -181,6 +183,22 @@ CGFloat const dismissDistance = 80;
     NSLayoutConstraint *cons4 = [NSLayoutConstraint constraintWithItem:playVideoButton attribute:(NSLayoutAttributeHeight) relatedBy:(NSLayoutRelationEqual) toItem:nil attribute:(NSLayoutAttributeNotAnAttribute) multiplier:1 constant:71];
     
     [self.contentView addConstraints:@[cons1, cons2, cons3, cons4]];
+    
+    
+    // 照片
+    PHLivePhotoView *livePhotoView = [[PHLivePhotoView alloc] init];
+    
+    //    photoImageView.backgroundColor = JKRandomColor;
+    [self.photoImageView insertSubview:livePhotoView atIndex:0];
+    self.livePhotoView = livePhotoView;
+    
+    // 照片约束
+    livePhotoView.translatesAutoresizingMaskIntoConstraints = NO;
+    NSArray *livePhotoViewCons1 = [NSLayoutConstraint constraintsWithVisualFormat:@"H:|-0-[livePhotoView]-0-|" options:0 metrics:nil views:@{@"livePhotoView" : livePhotoView}];
+    [self.contentView addConstraints:livePhotoViewCons1];
+    
+    NSArray *livePhotoViewCons2 = [NSLayoutConstraint constraintsWithVisualFormat:@"V:|-0-[livePhotoView]-0-|" options:0 metrics:nil views:@{@"livePhotoView" : livePhotoView}];
+    [self.contentView addConstraints:livePhotoViewCons2];
 }
 
 #pragma mark - 点击播放视频
@@ -276,6 +294,8 @@ CGFloat const dismissDistance = 80;
     
     self.selectIconImageView.highlighted = _photoItem.isSelected;
     
+    self.livePhotoView.hidden = _photoItem.dataType != JKPhotoPickerMediaDataTypePhotoLive;
+    
     dispatch_async(dispatch_get_global_queue(0, 0), ^{
         
         PHImageRequestOptions *options = [[PHImageRequestOptions alloc] init];
@@ -303,6 +323,34 @@ CGFloat const dismissDistance = 80;
                 [self calculateImageViewSizeWithImage:result];
             });
         }];
+        
+        if (photoItem.dataType == JKPhotoPickerMediaDataTypePhotoLive) {
+            
+            PHLivePhotoRequestOptions *options = [[PHLivePhotoRequestOptions alloc]init];
+            options.networkAccessAllowed = YES;
+            
+            [[PHImageManager defaultManager] requestLivePhotoForAsset:_photoItem.photoAsset targetSize:PHImageManagerMaximumSize contentMode:PHImageContentModeAspectFit options:options resultHandler:^(PHLivePhoto * _Nullable livePhoto, NSDictionary * _Nullable info) {
+                
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    
+                    !self.imageLoadFinishBlock ? : self.imageLoadFinishBlock(self);
+                    
+                    if ([info[PHImageResultIsInCloudKey] boolValue]) {
+                        
+                        [self.indicatorView startAnimating];
+                        self.selectButton.userInteractionEnabled = NO;
+                    }
+                    
+                    if (livePhoto == nil) { return; }
+                    self.selectButton.userInteractionEnabled = YES;
+                    
+                    [self.indicatorView stopAnimating];
+                    
+                    // block内是主线程
+                    self.livePhotoView.livePhoto = livePhoto;
+                });
+            }];
+        }
     });
     
     // 这样会很卡，而且内存警告直接崩，还不清晰

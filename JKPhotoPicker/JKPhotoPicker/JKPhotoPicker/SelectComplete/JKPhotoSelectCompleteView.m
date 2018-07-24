@@ -10,7 +10,6 @@
 #import "JKPhotoSelectCompleteCollectionViewCell.h"
 #import "JKPhotoItem.h"
 #import "JKPhotoBrowserViewController.h"
-#import <Photos/Photos.h>
 
 @interface JKPhotoSelectCompleteView () <UICollectionViewDataSource, UICollectionViewDelegate>
 {
@@ -82,20 +81,20 @@ static NSString * const reuseID = @"JKPhotoSelectCompleteCollectionViewCell"; //
 
 #pragma mark - 获取原图
 
-NSMutableArray *imageArr_;
+NSMutableArray *dataArr_;
 
 + (void)getOriginalImagesWithItems:(NSArray <JKPhotoItem *> *)items complete:(void(^)(NSArray <UIImage *> *originalImages))complete{
     
-    if (!imageArr_) {
+    if (!dataArr_) {
         
-        imageArr_ = [NSMutableArray array];
+        dataArr_ = [NSMutableArray array];
     }
     
     if (items.count == 0) {
         
-        NSArray *arr = [imageArr_ copy];
-        [imageArr_ removeAllObjects];
-        imageArr_ = nil;
+        NSArray *arr = [dataArr_ copy];
+        [dataArr_ removeAllObjects];
+        dataArr_ = nil;
         
         !complete ? : complete(arr);
         
@@ -110,7 +109,7 @@ NSMutableArray *imageArr_;
         
         if (originalImage != nil) {
             
-            [imageArr_ addObject:originalImage];
+            [dataArr_ addObject:originalImage];
         }
         
         [self getOriginalImagesWithItems:tmpArr complete:complete];
@@ -132,9 +131,67 @@ NSMutableArray *imageArr_;
     }];
 }
 
+#pragma mark - 获取livePhoto
+
+/** 获取单个livePhoto */
++ (void)getLivePhotoPathWithItem:(JKPhotoItem *)item complete:(void(^)(PHLivePhoto *livePhoto))complete{
+    
+    PHLivePhotoRequestOptions *options = [[PHLivePhotoRequestOptions alloc]init];
+    options.networkAccessAllowed = YES;
+    
+    [[PHImageManager defaultManager] requestLivePhotoForAsset:item.photoAsset targetSize:PHImageManagerMaximumSize contentMode:PHImageContentModeAspectFit options:options resultHandler:^(PHLivePhoto * _Nullable livePhoto, NSDictionary * _Nullable info) {
+        
+        dispatch_async(dispatch_get_main_queue(), ^{
+            
+            if (livePhoto) {
+                
+                !complete ? : complete(livePhoto);
+                
+                return;
+            }
+            
+            !complete ? : complete(nil);
+        });
+    }];
+}
+
+/** 获取多个livePhoto */
++ (void)getLivePhotoPathWithItems:(NSArray <JKPhotoItem *> *)items complete:(void(^)(NSArray <PHLivePhoto *> *livePhotos))complete{
+    
+    if (!dataArr_) {
+        
+        dataArr_ = [NSMutableArray array];
+    }
+    
+    if (items.count == 0) {
+        
+        NSArray *arr = [dataArr_ copy];
+        [dataArr_ removeAllObjects];
+        dataArr_ = nil;
+        
+        !complete ? : complete(arr);
+        
+        return;
+    }
+    
+    NSMutableArray *tmpArr = [NSMutableArray arrayWithArray:items];
+    
+    [self getLivePhotoPathWithItem:tmpArr.firstObject complete:^(PHLivePhoto *livePhoto) {
+        
+        [tmpArr removeObjectAtIndex:0];
+        
+        if (livePhoto != nil) {
+            
+            [dataArr_ addObject:livePhoto];
+        }
+        
+        [self getLivePhotoPathWithItems:tmpArr complete:complete];
+    }];
+}
+
 #pragma mark - 获取原视频文件
 
-- (void)getVideoDataPathWithItem:(JKPhotoItem *)item complete:(void(^)(NSString *videoPath))complete{
++ (void)getVideoDataPathWithItem:(JKPhotoItem *)item complete:(void(^)(NSString *videoPath))complete{
     
     NSString *path = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES).firstObject stringByAppendingPathComponent:@"JKPhotoPickerVideoCache"];
     
@@ -147,6 +204,8 @@ NSMutableArray *imageArr_;
         if (!success) {
             
             NSLog(@"创建文件路径失败");
+            
+            return;
         }
     }
     
@@ -158,15 +217,60 @@ NSMutableArray *imageArr_;
     
     [[PHAssetResourceManager defaultManager] writeDataForAssetResource:resource toFile:[NSURL fileURLWithPath:path] options:options completionHandler:^(NSError * _Nullable error) {
         
-        if (error) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+           
+            if (error) {
+                
+                !complete ? : complete(nil);
+                
+                return;
+            }
             
-            !complete ? : complete(nil);
+            !complete ? : complete(path);
+        });
+    }];
+}
+
++ (void)getVideoDataPathWithItems:(NSArray <JKPhotoItem *> *)items complete:(void(^)(NSArray <NSString *> *videoPaths))complete{
+    
+    if (!dataArr_) {
+        
+        dataArr_ = [NSMutableArray array];
+    }
+    
+    if (items.count == 0) {
+        
+        NSArray *arr = [dataArr_ copy];
+        [dataArr_ removeAllObjects];
+        dataArr_ = nil;
+        
+        !complete ? : complete(arr);
+        
+        return;
+    }
+    
+    NSMutableArray *tmpArr = [NSMutableArray arrayWithArray:items];
+    
+    [self getVideoDataPathWithItem:tmpArr.firstObject complete:^(NSString *videoPath) {
+        
+        [tmpArr removeObjectAtIndex:0];
+        
+        if (videoPath) {
             
-            return;
+            [dataArr_ addObject:videoPath];
         }
         
-        !complete ? : complete(path);
+        [self getVideoDataPathWithItems:tmpArr complete:complete];
     }];
+}
+
+#pragma mark - 清理缓存的视频
+
++ (BOOL)clearVideoCache{
+    
+    BOOL success = [[NSFileManager defaultManager] removeItemAtPath:[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES).firstObject stringByAppendingPathComponent:@"JKPhotoPickerVideoCache"] error:nil];
+    
+    return success;
 }
 
 #pragma mark - 初始化

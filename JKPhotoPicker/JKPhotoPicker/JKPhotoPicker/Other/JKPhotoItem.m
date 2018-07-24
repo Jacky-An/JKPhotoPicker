@@ -56,7 +56,7 @@
             
         case PHAssetMediaTypeImage:
             
-            _dataType = JKPhotoPickerMediaDataTypeNormalImage;
+            _dataType = JKPhotoPickerMediaDataTypeStaticImage;
             
             if (_photoAsset.mediaSubtypes == PHAssetMediaSubtypePhotoLive) {
                 
@@ -79,7 +79,7 @@
             break;
     }
     
-    _shouldSelected = _dataType == JKPhotoPickerMediaDataTypeNormalImage;
+    _shouldSelected = (_dataType == [JKPhotoItem selectDataType]);
     
     _assetLocalIdentifier = _photoAsset.localIdentifier;
 }
@@ -148,11 +148,24 @@
 
 - (NSString *)videoPath{
     if (!_videoPath) {
-        _videoPath = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES).firstObject stringByAppendingPathComponent:@"JKPhotoPickerVideoCache"];
+        _videoPath = [[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES).firstObject stringByAppendingPathComponent:@"JKPhotoPickerVideoCache"] stringByAppendingPathComponent:self.photoAsset.localIdentifier];
     }
     return _videoPath;
 }
 
 // 防止崩溃
 - (void)setValue:(id)value forUndefinedKey:(NSString *)key{}
+
+
+JKPhotoPickerMediaDataType type_;
+
++ (void)setSelectDataType:(JKPhotoPickerMediaDataType)selectDataType{
+    
+    type_ = selectDataType;
+}
+
++ (JKPhotoPickerMediaDataType)selectDataType{
+    
+    return type_;
+}
 @end

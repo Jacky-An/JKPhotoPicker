@@ -16,6 +16,9 @@
 #import <Photos/Photos.h>
 #import <AVFoundation/AVFoundation.h>
 
+#import <MobileCoreServices/MobileCoreServices.h>
+#import <AssetsLibrary/AssetsLibrary.h>
+
 #define JKPhotoPickerScreenW [UIScreen mainScreen].bounds.size.width
 #define JKPhotoPickerScreenH [UIScreen mainScreen].bounds.size.height
 #define JKPhotoPickerScreenBounds [UIScreen mainScreen].bounds
@@ -70,7 +73,13 @@ static NSString * const reuseID = @"JKPhotoCollectionViewCell"; // 重用ID
 static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; // 选中的照片重用ID
 
 #pragma mark - 类方法
-+ (void)showWithPresentVc:(UIViewController *)presentVc maxSelectCount:(NSUInteger)maxSelectCount seletedPhotos:(NSArray <JKPhotoItem *> *)seletedPhotos isOpenCameraFirst:(BOOL)isOpenCameraFirst completeHandler:(void(^)(NSArray <JKPhotoItem *> *photoItems))completeHandler{
++ (void)showWithPresentVc:(UIViewController *)presentVc maxSelectCount:(NSUInteger)maxSelectCount seletedItems:(NSArray <JKPhotoItem *> *)seletedItems dataType:(JKPhotoPickerMediaDataType)dataType isOpenCameraFirst:(BOOL)isOpenCameraFirst completeHandler:(void(^)(NSArray <JKPhotoItem *> *photoItems))completeHandler{
+    
+    if (dataType == JKPhotoPickerMediaDataTypeUnknown) {
+        return;
+    }
+    
+    [JKPhotoItem setSelectDataType:dataType];
     
     [JKPhotoManager checkPhotoAccessFinished:^(BOOL isAccessed) {
         if (!isAccessed) {
@@ -81,7 +90,7 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
         vc.maxSelectCount = maxSelectCount;
         vc.completeHandler = completeHandler;
         [vc.selectedPhotoItems removeAllObjects];
-        [vc.selectedPhotoItems addObjectsFromArray:seletedPhotos];
+        [vc.selectedPhotoItems addObjectsFromArray:seletedItems];
         
         for (JKPhotoItem *itm in vc.selectedPhotoItems) {
             
@@ -464,6 +473,21 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
 
 - (void)updateIconWithSourType:(UIImagePickerControllerSourceType)sourceType{
     
+    JKPhotoPickerMediaDataType type = [JKPhotoItem selectDataType];
+    
+    if (type == JKPhotoPickerMediaDataTypePhotoLive) {
+        
+        UIAlertController *alertVc = [UIAlertController alertControllerWithTitle:@"提示" message:@"暂不支持livePhoto拍摄" preferredStyle:(UIAlertControllerStyleAlert)];
+        
+        [alertVc addAction:[UIAlertAction actionWithTitle:@"知道了" style:(UIAlertActionStyleDefault) handler:^(UIAlertAction * _Nonnull action) {
+            
+        }]];
+        
+        [self presentViewController:alertVc animated:YES completion:nil];
+        
+        return;
+    }
+    
     AVAuthorizationStatus videoAuthStatus = [AVCaptureDevice authorizationStatusForMediaType:AVMediaTypeVideo];
     
     if (videoAuthStatus == AVAuthorizationStatusNotDetermined) {// 未询问用户是否授权
@@ -475,6 +499,7 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
     }
     
     if (videoAuthStatus == AVAuthorizationStatusDenied) {
+        
         UIAlertController *alertVc = [UIAlertController alertControllerWithTitle:@"提示" message:@"当前程序未获得相机权限，是否打开？由于iOS系统原因，设置相机权限会导致app崩溃，请知晓。" preferredStyle:(UIAlertControllerStyleAlert)];
         
         [alertVc addAction:[UIAlertAction actionWithTitle:@"不用了" style:(UIAlertActionStyleDefault) handler:nil]];
@@ -488,23 +513,84 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
         return;
     }
     
-    //    [AVCaptureDevice requestAccessForMediaType:AVMediaTypeVideo completionHandler:^(BOOL granted) {
-    //
-    //        if (granted){// 用户同意授权
-    //
-    //        }else {// 用户拒绝授权
-    //
-    //        }
-    //
-    //    }];
-    
-    if (![UIImagePickerController isSourceTypeAvailable:sourceType]) {
+    if ([JKPhotoItem selectDataType] == JKPhotoPickerMediaDataTypeVideo || ([JKPhotoItem selectDataType] == JKPhotoPickerMediaDataTypePhotoLive)) {
+        
+        AVAuthorizationStatus audioAuthStatus = [AVCaptureDevice authorizationStatusForMediaType:AVMediaTypeAudio];
+        
+        if (audioAuthStatus == AVAuthorizationStatusNotDetermined) {// 未询问用户是否授权
+            
+        }else if(audioAuthStatus == AVAuthorizationStatusRestricted || audioAuthStatus == AVAuthorizationStatusDenied) {// 未授权
+            
+            UIAlertController *alertVc = [UIAlertController alertControllerWithTitle:@"提示" message:@"当前程序未获得麦克风权限，会导致拍摄没有声音。是否打开？由于iOS系统原因，设置麦克风权限会导致app崩溃，请知晓。" preferredStyle:(UIAlertControllerStyleAlert)];
+            
+            [alertVc addAction:[UIAlertAction actionWithTitle:@"无声拍摄" style:(UIAlertActionStyleDefault) handler:^(UIAlertAction * _Nonnull action) {
+                
+                [self showImagePickerControllerWithSourceType:sourceType];
+            }]];
+            
+            [alertVc addAction:[UIAlertAction actionWithTitle:@"去打开" style:(UIAlertActionStyleDefault) handler:^(UIAlertAction * _Nonnull action) {
+                
+                // 打开本程序对应的权限设置
+                [[UIApplication sharedApplication]openURL:[NSURL URLWithString:UIApplicationOpenSettingsURLString]];
+            }]];
+            
+            [self presentViewController:alertVc animated:YES completion:nil];
+            
+        }else{// 已授权
+            
+        }
         
         return;
     }
     
+    [self showImagePickerControllerWithSourceType:sourceType];
+}
+
+- (void)showImagePickerControllerWithSourceType:(UIImagePickerControllerSourceType)sourceType{
+    
+    JKPhotoPickerMediaDataType type = [JKPhotoItem selectDataType];
+    
     UIImagePickerController *imagePicker = [[UIImagePickerController alloc] init];
     imagePicker.sourceType = sourceType;
+    
+    switch (type) {
+        case JKPhotoPickerMediaDataTypeUnknown:
+            
+            break;
+        case JKPhotoPickerMediaDataTypeStaticImage:
+            
+            imagePicker.mediaTypes = [[NSArray alloc] initWithObjects:(NSString*)kUTTypeImage, nil];
+            break;
+        case JKPhotoPickerMediaDataTypeIncludeGif:
+            
+            imagePicker.mediaTypes = [[NSArray alloc] initWithObjects:(NSString*)kUTTypeImage, nil];
+            
+            break;
+        case JKPhotoPickerMediaDataTypeVideo:
+            
+            imagePicker.mediaTypes = [[NSArray alloc] initWithObjects:(NSString*)kUTTypeMovie, nil];
+            
+            // 设置摄像图像品质
+            imagePicker.videoQuality = UIImagePickerControllerQualityTypeHigh;
+            
+            // 设置最长摄像时间
+            imagePicker.videoMaximumDuration = INFINITY;
+            
+            // 允许用户进行编辑
+            imagePicker.allowsEditing = YES;
+            
+            break;
+        case JKPhotoPickerMediaDataTypePhotoLive:
+            
+            imagePicker.mediaTypes = [[NSArray alloc] initWithObjects:(NSString*)kUTTypeLivePhoto, (NSString*)kUTTypeImage, nil];
+            
+            break;
+            
+        default:
+            break;
+    }
+    
+    //    imagePicker.mediaTypes = [[NSArray alloc] initWithObjects:(NSString*)kUTTypeImage, nil];
     
     imagePicker.delegate = self;
     [self presentViewController:imagePicker animated:YES completion:nil];
@@ -817,11 +903,69 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
 
 #pragma mark - <UIImagePickerControllerDelegate>
 - (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary<NSString *,id> *)info{
-    UIImage *image = info[UIImagePickerControllerOriginalImage];
     
-    UIImageWriteToSavedPhotosAlbum(image, self, @selector(image:didFinishSavingWithError:contextInfo:), nil);
+    // 获取媒体类型
+    NSString *mediaType = [info objectForKey:UIImagePickerControllerMediaType];
     
-    [self dismissViewControllerAnimated:YES completion:nil];
+    // 判断是静态图像还是视频
+    if ([mediaType isEqualToString:(NSString *)kUTTypeImage]) { // 图片
+        
+        // 获取用户编辑之后的图像
+        UIImage *orinalImage = [info objectForKey:UIImagePickerControllerOriginalImage];
+        
+        // 将该图像保存到媒体库中
+        UIImageWriteToSavedPhotosAlbum(orinalImage, self,@selector(image:didFinishSavingWithError:contextInfo:), NULL);
+        
+    }else if ([mediaType isEqualToString:(NSString *)kUTTypeLivePhoto]) { // livePhoto
+        
+        // 获取视频文件的url
+        NSURL *imageURL = [info objectForKey:UIImagePickerControllerReferenceURL];
+        NSURL *videoURL = [info objectForKey:UIImagePickerControllerMediaURL];
+        
+        [[PHPhotoLibrary sharedPhotoLibrary] performChanges:^{
+            
+            PHAssetCreationRequest *req = [PHAssetCreationRequest creationRequestForAsset];
+            
+            [req addResourceWithType:PHAssetResourceTypePhoto fileURL:imageURL options:nil];
+            [req addResourceWithType:PHAssetResourceTypePairedVideo fileURL:videoURL options:nil];
+            
+        } completionHandler:^(BOOL success, NSError * _Nullable error) {
+            
+            if (success) {
+                
+                NSLog(@"已保存至相册");
+                
+                [self reloadAfterTakePhoto];
+                
+            }else{
+                
+                NSLog(@"保存失败");
+            }
+        }];
+        
+    }else if ([mediaType isEqualToString:(NSString *)kUTTypeMovie]) { // 视频
+        
+        // 获取视频文件的url
+        NSURL *mediaURL = [info objectForKey:UIImagePickerControllerMediaURL];
+        
+        // 创建ALAssetsLibrary对象并将视频保存到媒体库
+        ALAssetsLibrary *assetsLibrary = [[ALAssetsLibrary alloc] init];
+        
+        [assetsLibrary writeVideoAtPathToSavedPhotosAlbum:mediaURL completionBlock:^(NSURL *assetURL, NSError *error) {
+            if (!error) {
+                
+                NSLog(@"captured video saved with no error.");
+                
+                [self reloadAfterTakePhoto];
+                
+            }else{
+                
+                NSLog(@"error occured while saving the video:%@", error);
+            }
+        }];
+    }
+    
+    [picker dismissViewControllerAnimated:YES completion:nil];
 }
 
 // Adds a photo to the saved photos album.  The optional completionSelector should have the form:
@@ -829,6 +973,11 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
     if (error) {
         return;
     }
+    
+    [self reloadAfterTakePhoto];
+}
+
+- (void)reloadAfterTakePhoto{
     
     __weak typeof(self) weakSelf = self;
     
@@ -844,7 +993,7 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
         [weakSelf.selectedPhotoItems addObject:itm];
         [weakSelf.selectedPhotosIdentifierCache setObject:itm forKey:itm.assetLocalIdentifier];
         
-//        [weakSelf.collectionView reloadItemsAtIndexPaths:@[[NSIndexPath indexPathForItem:1 inSection:0]]];
+        //        [weakSelf.collectionView reloadItemsAtIndexPaths:@[[NSIndexPath indexPathForItem:1 inSection:0]]];
         [weakSelf.bottomCollectionView reloadData];
         [weakSelf changeSelectedCount];
     }];

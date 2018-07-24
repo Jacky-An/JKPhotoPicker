@@ -73,4 +73,13 @@
 
 /** 视频缓存的路径 */
 @property (nonatomic, copy, readonly) NSString *videoPath;
+
+
+
+
+
+
++ (void)setSelectDataType:(JKPhotoPickerMediaDataType)selectDataType;
+
++ (JKPhotoPickerMediaDataType)selectDataType;
 @end

@@ -7,6 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
+#import <Photos/Photos.h>
 
 @class JKPhotoItem;
 
@@ -27,11 +28,20 @@
 /** 获取多张原图 */
 + (void)getOriginalImagesWithItems:(NSArray <JKPhotoItem *> *)items complete:(void(^)(NSArray <UIImage *> *originalImages))complete;
 
-/** 获取单个视频data */
-//+ (void)getVideoDataWithItem:(JKPhotoItem *)item complete:(void(^)(UIImage *originalImage, NSDictionary * info))complete;
-//
-///** 获取多个视频data */
-//+ (void)getVideoDataWithItems:(NSArray <JKPhotoItem *> *)items complete:(void(^)(NSArray <UIImage *> *originalImages))complete;
+/** 获取单个livePhoto */
++ (void)getLivePhotoPathWithItem:(JKPhotoItem *)item complete:(void(^)(PHLivePhoto *livePhoto))complete;
+
+/** 获取多个livePhoto */
++ (void)getLivePhotoPathWithItems:(NSArray <JKPhotoItem *> *)items complete:(void(^)(NSArray <PHLivePhoto *> *livePhotos))complete;
+
+/** 获取单个视频data缓存路径 */
++ (void)getVideoDataPathWithItem:(JKPhotoItem *)item complete:(void(^)(NSString *videoPath))complete;
+
+/** 获取多个视频data缓存路径 */
++ (void)getVideoDataPathWithItems:(NSArray <JKPhotoItem *> *)items complete:(void(^)(NSArray <NSString *> *videoPaths))complete;
+
+/** 清理缓存的视频 */
++ (BOOL)clearVideoCache;
 
 /**
  * 类方法
