@@ -17,7 +17,7 @@
  * presentVc         : 由哪个控制器present出来，传nil则由根控制器弹出
  * maxSelectCount    : 最多选择图片数量 默认7
  * seletedItems      : 已选择的item，数组中放的是JKPhotoItem对象
- * dataType          : 要选择的数据类型，暂时仅支持staticImage和video
+ * dataType          : 要选择的数据类型
  * completeHandler   : 选择完成的回调
  * isOpenCameraFirst : 是否直接打开摄像头
  */
