@@ -475,6 +475,19 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
     
     JKPhotoPickerMediaDataType type = [JKPhotoItem selectDataType];
     
+    if (type == JKPhotoPickerMediaDataTypeGif) {  // 仅选中gif时，不允许拍照
+        
+        UIAlertController *alertVc = [UIAlertController alertControllerWithTitle:@"提示" message:@"暂不支持gif拍摄" preferredStyle:(UIAlertControllerStyleAlert)];
+        
+        [alertVc addAction:[UIAlertAction actionWithTitle:@"知道了" style:(UIAlertActionStyleDefault) handler:^(UIAlertAction * _Nonnull action) {
+            
+        }]];
+        
+        [self presentViewController:alertVc animated:YES completion:nil];
+        
+        return;
+    }
+    
     if (type == JKPhotoPickerMediaDataTypePhotoLive) {
         
         UIAlertController *alertVc = [UIAlertController alertControllerWithTitle:@"提示" message:@"暂不支持livePhoto拍摄" preferredStyle:(UIAlertControllerStyleAlert)];
@@ -561,7 +574,7 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
             
             imagePicker.mediaTypes = [[NSArray alloc] initWithObjects:(NSString*)kUTTypeImage, nil];
             break;
-        case JKPhotoPickerMediaDataTypeIncludeGif:
+        case JKPhotoPickerMediaDataTypeImageIncludeGif:
             
             imagePicker.mediaTypes = [[NSArray alloc] initWithObjects:(NSString*)kUTTypeImage, nil];
             
@@ -784,7 +797,6 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
 #pragma mark - collectionView代理
 - (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath{
     [collectionView deselectItemAtIndexPath:indexPath animated:NO];
-    NSLog(@"hehheehhehe");
     
     JKPhotoCollectionViewCell *cell = (JKPhotoCollectionViewCell *)[collectionView cellForItemAtIndexPath:indexPath];
     

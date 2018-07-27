@@ -18,6 +18,9 @@
 /* 是否可以选中 */
 @property (nonatomic, assign, readonly) BOOL shouldSelected;
 
+/* 是否可以播放gif */
+@property (nonatomic, assign, readonly) BOOL shouldPlayGif;
+
 /* 媒体类型 */
 @property (nonatomic, assign, readonly) JKPhotoPickerMediaDataType dataType;
 

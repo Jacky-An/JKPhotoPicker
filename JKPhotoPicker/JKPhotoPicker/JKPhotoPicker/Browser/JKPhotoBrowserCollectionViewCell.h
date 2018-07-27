@@ -27,6 +27,9 @@
 /** livePhotoView */
 @property (nonatomic, weak) PHLivePhotoView *livePhotoView;
 
+/** 播放gif的webView */
+@property (nonatomic, weak) UIWebView *gifWebView;
+
 /** collectionView */
 @property (nonatomic, weak) UICollectionView *collectionView;
 

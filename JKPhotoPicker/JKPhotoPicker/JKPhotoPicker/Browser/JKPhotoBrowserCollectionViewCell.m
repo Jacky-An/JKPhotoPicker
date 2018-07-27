@@ -195,10 +195,33 @@ CGFloat const dismissDistance = 80;
     // 照片约束
     livePhotoView.translatesAutoresizingMaskIntoConstraints = NO;
     NSArray *livePhotoViewCons1 = [NSLayoutConstraint constraintsWithVisualFormat:@"H:|-0-[livePhotoView]-0-|" options:0 metrics:nil views:@{@"livePhotoView" : livePhotoView}];
-    [self.contentView addConstraints:livePhotoViewCons1];
+    [self.photoImageView addConstraints:livePhotoViewCons1];
     
     NSArray *livePhotoViewCons2 = [NSLayoutConstraint constraintsWithVisualFormat:@"V:|-0-[livePhotoView]-0-|" options:0 metrics:nil views:@{@"livePhotoView" : livePhotoView}];
-    [self.contentView addConstraints:livePhotoViewCons2];
+    [self.photoImageView addConstraints:livePhotoViewCons2];
+    
+    // 播放gif的webView
+    UIWebView *gifWebView = [[UIWebView alloc] init];
+    gifWebView.userInteractionEnabled = NO;
+    gifWebView.scalesPageToFit = YES;
+    gifWebView.backgroundColor = nil;//[UIColor whiteColor];
+    gifWebView.opaque = NO;
+    gifWebView.hidden = YES;
+    [self.photoImageView addSubview:gifWebView];
+    self.gifWebView = gifWebView;
+    
+    // webView约束
+    gifWebView.translatesAutoresizingMaskIntoConstraints = NO;
+    NSArray *gifWebViewCons1 = [NSLayoutConstraint constraintsWithVisualFormat:@"H:|-0-[gifWebView]-0-|" options:0 metrics:nil views:@{@"gifWebView" : gifWebView}];
+    [self.photoImageView addConstraints:gifWebViewCons1];
+    
+    NSArray *gifWebViewCons2 = [NSLayoutConstraint constraintsWithVisualFormat:@"V:|-0-[gifWebView]-0-|" options:0 metrics:nil views:@{@"gifWebView" : gifWebView}];
+    [self.photoImageView addConstraints:gifWebViewCons2];
+}
+
+- (void)loadGifData:(NSData *)gifData{
+    
+    [self.gifWebView loadData:gifData MIMEType:@"image/gif" textEncodingName:@"UTF-8" baseURL:[NSURL new]];
 }
 
 #pragma mark - 点击播放视频
@@ -287,6 +310,10 @@ CGFloat const dismissDistance = 80;
     _photoItem = photoItem;
     
     [self resetView];
+    
+    [self.gifWebView stopLoading];
+    self.gifWebView.hidden = !_photoItem.shouldPlayGif;
+    
     self.playVideoButton.hidden = _photoItem.dataType != JKPhotoPickerMediaDataTypeVideo;
     
     self.selectIconImageView.hidden = !_photoItem.shouldSelected;
@@ -348,6 +375,23 @@ CGFloat const dismissDistance = 80;
                     
                     // block内是主线程
                     self.livePhotoView.livePhoto = livePhoto;
+                });
+            }];
+        }
+        
+        if (photoItem.shouldPlayGif) {
+            
+            PHImageRequestOptions *options = [[PHImageRequestOptions alloc] init];
+            options.networkAccessAllowed = YES;
+            
+            [[PHImageManager defaultManager] requestImageDataForAsset:_photoItem.photoAsset options:options resultHandler:^(NSData * _Nullable imageData, NSString * _Nullable dataUTI, UIImageOrientation orientation, NSDictionary * _Nullable info) {
+                
+                dispatch_async(dispatch_get_main_queue(), ^{
+                   
+                    if (imageData != nil) {
+                        
+                        [self loadGifData:imageData];
+                    }
                 });
             }];
         }

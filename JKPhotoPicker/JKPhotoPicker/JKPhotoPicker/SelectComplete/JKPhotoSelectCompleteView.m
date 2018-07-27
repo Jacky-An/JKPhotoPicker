@@ -131,6 +131,58 @@ NSMutableArray *dataArr_;
     }];
 }
 
+#pragma mark - 获取原图data
+
+/** 获取单张原图data */
++ (void)getOriginalImageDataWithItem:(JKPhotoItem *)item complete:(void(^)(NSData *imageData, NSDictionary * info))complete{
+    
+    PHImageRequestOptions *options = [[PHImageRequestOptions alloc]init];
+    options.synchronous = YES;
+    options.networkAccessAllowed = YES;
+    
+    [[PHImageManager defaultManager] requestImageDataForAsset:item.photoAsset options:options resultHandler:^(NSData * _Nullable imageData, NSString * _Nullable dataUTI, UIImageOrientation orientation, NSDictionary * _Nullable info) {
+        
+        dispatch_async(dispatch_get_main_queue(), ^{
+            
+            !complete ? : complete(imageData, info);
+        });
+    }];
+}
+
+/** 获取多张原图data */
++ (void)getOriginalImageDatasWithItems:(NSArray <JKPhotoItem *> *)items complete:(void(^)(NSArray <NSData *> *imageDatas))complete{
+    
+    if (!dataArr_) {
+        
+        dataArr_ = [NSMutableArray array];
+    }
+    
+    if (items.count == 0) {
+        
+        NSArray *arr = [dataArr_ copy];
+        [dataArr_ removeAllObjects];
+        dataArr_ = nil;
+        
+        !complete ? : complete(arr);
+        
+        return;
+    }
+    
+    NSMutableArray *tmpArr = [NSMutableArray arrayWithArray:items];
+    
+    [self getOriginalImageDataWithItem:tmpArr.firstObject complete:^(NSData *imageData, NSDictionary *info) {
+        
+        [tmpArr removeObjectAtIndex:0];
+        
+        if (imageData != nil) {
+            
+            [dataArr_ addObject:imageData];
+        }
+        
+        [self getOriginalImageDatasWithItems:tmpArr complete:complete];
+    }];
+}
+
 #pragma mark - 获取livePhoto
 
 /** 获取单个livePhoto */
@@ -393,7 +445,6 @@ NSMutableArray *dataArr_;
 #pragma mark - collectionView代理
 - (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath{
     [collectionView deselectItemAtIndexPath:indexPath animated:NO];
-    NSLog(@"hehheehhehe");
     
     JKPhotoSelectCompleteCollectionViewCell *cell = (JKPhotoSelectCompleteCollectionViewCell *)[collectionView cellForItemAtIndexPath:indexPath];
     

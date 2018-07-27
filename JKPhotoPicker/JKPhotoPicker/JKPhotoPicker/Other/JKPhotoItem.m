@@ -8,6 +8,7 @@
 
 #import "JKPhotoItem.h"
 #import "JKPhotoManager.h"
+#import <MobileCoreServices/MobileCoreServices.h>
 
 @interface JKPhotoItem ()
 {
@@ -57,10 +58,12 @@
         case PHAssetMediaTypeImage:
             
             _dataType = JKPhotoPickerMediaDataTypeStaticImage;
+            _shouldSelected = [JKPhotoItem selectDataType] == _dataType || ([JKPhotoItem selectDataType] == JKPhotoPickerMediaDataTypeImageIncludeGif);
             
             if (_photoAsset.mediaSubtypes == PHAssetMediaSubtypePhotoLive) {
                 
                 _dataType = JKPhotoPickerMediaDataTypePhotoLive;
+                _shouldSelected = [JKPhotoItem selectDataType] == _dataType;
             }
             
             break;
@@ -68,6 +71,7 @@
         case PHAssetMediaTypeVideo:
             
             _dataType = JKPhotoPickerMediaDataTypeVideo;
+            _shouldSelected = [JKPhotoItem selectDataType] == _dataType;
             
             break;
             
@@ -79,7 +83,28 @@
             break;
     }
     
-    _shouldSelected = (_dataType == [JKPhotoItem selectDataType]);
+    NSString *fileName = [_photoAsset valueForKey:@"filename"];
+    
+    if ([fileName.lowercaseString containsString:@"gif"]) {
+        
+        _dataType = JKPhotoPickerMediaDataTypeGif;
+        
+        _shouldPlayGif = ([JKPhotoItem selectDataType] == JKPhotoPickerMediaDataTypeGif || [JKPhotoItem selectDataType] == JKPhotoPickerMediaDataTypeImageIncludeGif);
+        
+        if ([JKPhotoItem selectDataType] == JKPhotoPickerMediaDataTypeGif) {
+            
+            _shouldSelected = YES;
+        }
+        NSLog(@"%@", fileName);
+    }
+    
+    
+//    PHAssetResource *resource = [PHAssetResource assetResourcesForAsset:_photoAsset].firstObject;
+//
+//    if ([resource.uniformTypeIdentifier isEqualToString:(NSString *)kUTTypeGIF]) {
+//
+//
+//    }
     
     _assetLocalIdentifier = _photoAsset.localIdentifier;
 }
