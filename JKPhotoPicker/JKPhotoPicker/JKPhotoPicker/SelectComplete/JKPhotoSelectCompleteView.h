@@ -46,7 +46,10 @@
 /** 获取多个视频data缓存路径 */
 + (void)getVideoDataPathWithItems:(NSArray <JKPhotoItem *> *)items complete:(void(^)(NSArray <NSString *> *videoPaths))complete;
 
-/** 清理缓存的视频 */
+/** 选择视频的缓存文件夹路径 */
++ (NSString *)videoCacheDirectoryPath;
+
+/** 清理缓存的视频，直接清除缓存文件夹 */
 + (BOOL)clearVideoCache;
 
 /**

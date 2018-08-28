@@ -243,9 +243,21 @@ NSMutableArray *dataArr_;
 
 #pragma mark - 获取原视频文件
 
+static NSString *videoCacheDirectoryPath_;
+
++ (NSString *)videoCacheDirectoryPath{
+    
+    if (!videoCacheDirectoryPath_) {
+        
+        videoCacheDirectoryPath_ = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES).firstObject stringByAppendingPathComponent:@"JKPhotoPickerVideoCache"];
+    }
+    
+    return videoCacheDirectoryPath_;
+}
+
 + (void)getVideoDataPathWithItem:(JKPhotoItem *)item complete:(void(^)(NSString *videoPath))complete{
     
-    NSString *path = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES).firstObject stringByAppendingPathComponent:@"JKPhotoPickerVideoCache"];
+    NSString *path = [self videoCacheDirectoryPath];
     
     if (![[NSFileManager defaultManager] fileExistsAtPath:path]) {
         
@@ -261,7 +273,23 @@ NSMutableArray *dataArr_;
         }
     }
     
-    path = [path stringByAppendingPathComponent:item.photoAsset.localIdentifier];
+    NSString *identifier = item.photoAsset.localIdentifier;
+    
+    if ([identifier containsString:@"/"]) {
+        
+        identifier = [identifier stringByReplacingOccurrencesOfString:@"/" withString:@"_"];
+    }
+    
+    identifier = [identifier stringByAppendingString:@".mp4"];
+    
+    path = [path stringByAppendingPathComponent:identifier];
+    
+    if ([[NSFileManager defaultManager] fileExistsAtPath:path]) {
+        
+        !complete ? : complete(path);
+        
+        return;
+    }
     
     PHAssetResourceRequestOptions *options = [[PHAssetResourceRequestOptions alloc] init];
     
