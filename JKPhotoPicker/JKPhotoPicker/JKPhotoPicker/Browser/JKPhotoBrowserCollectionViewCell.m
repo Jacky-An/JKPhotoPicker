@@ -10,6 +10,7 @@
 #import "JKPhotoItem.h"
 #import <Photos/Photos.h>
 #import <PhotosUI/PhotosUI.h>
+#import <WebKit/WebKit.h>
 
 @interface JKPhotoBrowserCollectionViewCell () <UIScrollViewDelegate, UIGestureRecognizerDelegate>
 {
@@ -201,9 +202,9 @@ CGFloat const dismissDistance = 80;
     [self.photoImageView addConstraints:livePhotoViewCons2];
     
     // 播放gif的webView
-    UIWebView *gifWebView = [[UIWebView alloc] init];
+    WKWebView *gifWebView = [[WKWebView alloc] init];
     gifWebView.userInteractionEnabled = NO;
-    gifWebView.scalesPageToFit = YES;
+//    gifWebView.scalesPageToFit = YES;
     gifWebView.backgroundColor = nil;//[UIColor whiteColor];
     gifWebView.opaque = NO;
     gifWebView.hidden = YES;
@@ -211,17 +212,21 @@ CGFloat const dismissDistance = 80;
     self.gifWebView = gifWebView;
     
     // webView约束
-    gifWebView.translatesAutoresizingMaskIntoConstraints = NO;
-    NSArray *gifWebViewCons1 = [NSLayoutConstraint constraintsWithVisualFormat:@"H:|-0-[gifWebView]-0-|" options:0 metrics:nil views:@{@"gifWebView" : gifWebView}];
-    [self.photoImageView addConstraints:gifWebViewCons1];
-    
-    NSArray *gifWebViewCons2 = [NSLayoutConstraint constraintsWithVisualFormat:@"V:|-0-[gifWebView]-0-|" options:0 metrics:nil views:@{@"gifWebView" : gifWebView}];
-    [self.photoImageView addConstraints:gifWebViewCons2];
+//    gifWebView.translatesAutoresizingMaskIntoConstraints = NO;
+//    NSArray *gifWebViewCons1 = [NSLayoutConstraint constraintsWithVisualFormat:@"H:|-0-[gifWebView]-0-|" options:0 metrics:nil views:@{@"gifWebView" : gifWebView}];
+//    [self.photoImageView addConstraints:gifWebViewCons1];
+//
+//    NSArray *gifWebViewCons2 = [NSLayoutConstraint constraintsWithVisualFormat:@"V:|-0-[gifWebView]-0-|" options:0 metrics:nil views:@{@"gifWebView" : gifWebView}];
+//    [self.photoImageView addConstraints:gifWebViewCons2];
 }
 
 - (void)loadGifData:(NSData *)gifData{
     
-    [self.gifWebView loadData:gifData MIMEType:@"image/gif" textEncodingName:@"UTF-8" baseURL:[NSURL new]];
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.3 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        
+        [self.gifWebView loadData:gifData MIMEType:@"image/gif" characterEncodingName:@"UTF-8" baseURL:[NSURL new]];
+    });
+//    [self.gifWebView loadData:gifData MIMEType:@"image/gif" textEncodingName:@"UTF-8" baseURL:[NSURL new]];
 }
 
 #pragma mark - 点击播放视频
@@ -402,11 +407,24 @@ CGFloat const dismissDistance = 80;
 }
 
 - (void)calculateImageViewSizeWithImage:(UIImage *)image{
+    
     //图片要显示的尺寸
     CGFloat pictureW = JKPhotoPickerScreenW;
     CGFloat pictureH = JKPhotoPickerScreenW * image.size.height / image.size.width;
     
     self.photoImageView.frame = CGRectMake(0, 0, pictureW, pictureH);
+    
+    if (self.photoItem.shouldPlayGif) {
+        
+        self.gifWebView.transform = CGAffineTransformIdentity;
+        self.gifWebView.frame = self.photoImageView.bounds;
+        
+        if (image.size.width < JKPhotoPickerScreenW) {
+            
+            self.gifWebView.frame = CGRectMake((pictureW - image.size.width) * 0.5, (pictureH - image.size.height) * 0.5, image.size.width, image.size.height);
+            self.gifWebView.transform = CGAffineTransformMakeScale(pictureW / image.size.width, pictureH / image.size.height);
+        }
+    }
     
     self.scrollView.contentSize = CGSizeMake(pictureW, pictureH);
     
@@ -450,6 +468,9 @@ CGFloat const dismissDistance = 80;
     
     [self.indicatorView stopAnimating];
     self.selectButton.userInteractionEnabled = YES;
+    
+    
+    [self.gifWebView loadHTMLString:@"" baseURL:nil];
 }
 
 #pragma mark - 点击事件

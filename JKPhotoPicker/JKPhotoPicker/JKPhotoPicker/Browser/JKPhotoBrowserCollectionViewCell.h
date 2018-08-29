@@ -8,7 +8,7 @@
 
 #import <UIKit/UIKit.h>
 
-@class JKPhotoItem, PHCachingImageManager, AVPlayerItem, PHLivePhotoView;
+@class JKPhotoItem, PHCachingImageManager, AVPlayerItem, PHLivePhotoView, WKWebView;
 
 @interface JKPhotoBrowserCollectionViewCell : UICollectionViewCell
 
@@ -28,7 +28,7 @@
 @property (nonatomic, weak) PHLivePhotoView *livePhotoView;
 
 /** 播放gif的webView */
-@property (nonatomic, weak) UIWebView *gifWebView;
+@property (nonatomic, weak) WKWebView *gifWebView;
 
 /** collectionView */
 @property (nonatomic, weak) UICollectionView *collectionView;

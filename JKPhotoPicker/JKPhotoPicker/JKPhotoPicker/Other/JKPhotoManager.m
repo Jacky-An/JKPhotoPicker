@@ -137,27 +137,27 @@
         
         // 只添加图片类型资源，去除视频类型资源
         // 当mediatype == 2时，资源则视为视频资源
-        if (1 || asset.mediaType == PHAssetMediaTypeImage) {
+//        if (1 || asset.mediaType == PHAssetMediaTypeImage) {
+        
+        i++;
+        
+        JKPhotoItem *item = [[JKPhotoItem alloc] init];
+        item.photoAsset = asset;
+        item.currentIndexPath = [NSIndexPath indexPathForItem:i inSection:0];
+        
+        if (allCache != nil) {
             
-            i++;
-            
-            JKPhotoItem *item = [[JKPhotoItem alloc] init];
-            item.photoAsset = asset;
-            item.currentIndexPath = [NSIndexPath indexPathForItem:i inSection:0];
-            
-            if (allCache != nil) {
-                
-                [allCache setObject:item forKey:item.assetLocalIdentifier];
-            }
-            
-            if ([seletedCache objectForKey:item.assetLocalIdentifier] != nil) {
-                
-                [seletedNewItems addObject:item];
-                [seletedNewCache setObject:item forKey:item.assetLocalIdentifier];
-            }
-            
-            [dataArray addObject:item];
+            [allCache setObject:item forKey:item.assetLocalIdentifier];
         }
+        
+        if ([seletedCache objectForKey:item.assetLocalIdentifier] != nil) {
+            
+            [seletedNewItems addObject:item];
+            [seletedNewCache setObject:item forKey:item.assetLocalIdentifier];
+        }
+        
+        [dataArray addObject:item];
+//        }
     }];
     
     NSMutableDictionary *dictM = [NSMutableDictionary dictionary];
