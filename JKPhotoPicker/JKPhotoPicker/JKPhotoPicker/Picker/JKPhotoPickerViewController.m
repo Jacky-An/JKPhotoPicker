@@ -81,38 +81,63 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
     
     [JKPhotoItem setSelectDataType:dataType];
     
-    [JKPhotoManager checkPhotoAccessFinished:^(BOOL isAccessed) {
-        if (!isAccessed) {
-            return;
-        }
+    if (isOpenCameraFirst) {
         
-        JKPhotoPickerViewController *vc = [[self alloc] init];
-        vc.maxSelectCount = maxSelectCount;
-        vc.completeHandler = completeHandler;
-        [vc.selectedPhotoItems removeAllObjects];
-        [vc.selectedPhotoItems addObjectsFromArray:seletedItems];
-        
-        for (JKPhotoItem *itm in vc.selectedPhotoItems) {
+        [JKPhotoManager checkCameraAccessFinished:^(BOOL isAccessed) {
             
-            [vc.selectedPhotosIdentifierCache setObject:itm forKey:itm.assetLocalIdentifier];
-        }
+            if (!isAccessed) { return; }
+            
+            if (dataType == JKPhotoPickerMediaDataTypeVideo) {
+                
+                [JKPhotoManager checkMicrophoneAccessFinished:^(BOOL isAccessed) {
+                    
+                    [self showWithVc:presentVc maxSelectCount:maxSelectCount seletedItems:seletedItems dataType:dataType isOpenCameraFirst:isOpenCameraFirst completeHandler:completeHandler];
+                }];
+                return;
+            }
+            
+            [self showWithVc:presentVc maxSelectCount:maxSelectCount seletedItems:seletedItems dataType:dataType isOpenCameraFirst:isOpenCameraFirst completeHandler:completeHandler];
+        }];
         
-        UINavigationController *nav = [[UINavigationController alloc] initWithRootViewController:vc];
+        return;
+    }
+    
+    [JKPhotoManager checkPhotoAccessFinished:^(BOOL isAccessed) {
         
-        if (presentVc && [presentVc isKindOfClass:[UIViewController class]]) {
-            [presentVc presentViewController:nav animated:YES completion:^{
-                if (isOpenCameraFirst) {
-                    [vc updateIconWithSourType:(UIImagePickerControllerSourceTypeCamera)];
-                }
-            }];
-            return;
-        }
+        if (!isAccessed) { return; }
         
-        [[UIApplication sharedApplication].delegate.window.rootViewController presentViewController:nav animated:YES completion:^{
+        [self showWithVc:presentVc maxSelectCount:maxSelectCount seletedItems:seletedItems dataType:dataType isOpenCameraFirst:isOpenCameraFirst completeHandler:completeHandler];
+    }];
+}
+
++ (void)showWithVc:(UIViewController *)presentVc maxSelectCount:(NSUInteger)maxSelectCount seletedItems:(NSArray <JKPhotoItem *> *)seletedItems dataType:(JKPhotoPickerMediaDataType)dataType isOpenCameraFirst:(BOOL)isOpenCameraFirst completeHandler:(void(^)(NSArray <JKPhotoItem *> *photoItems))completeHandler{
+    
+    JKPhotoPickerViewController *vc = [[self alloc] init];
+    vc.maxSelectCount = maxSelectCount;
+    vc.completeHandler = completeHandler;
+    [vc.selectedPhotoItems removeAllObjects];
+    [vc.selectedPhotoItems addObjectsFromArray:seletedItems];
+    
+    for (JKPhotoItem *itm in vc.selectedPhotoItems) {
+        
+        [vc.selectedPhotosIdentifierCache setObject:itm forKey:itm.assetLocalIdentifier];
+    }
+    
+    UINavigationController *nav = [[UINavigationController alloc] initWithRootViewController:vc];
+    
+    if (presentVc && [presentVc isKindOfClass:[UIViewController class]]) {
+        [presentVc presentViewController:nav animated:YES completion:^{
             if (isOpenCameraFirst) {
                 [vc updateIconWithSourType:(UIImagePickerControllerSourceTypeCamera)];
             }
         }];
+        return;
+    }
+    
+    [[UIApplication sharedApplication].delegate.window.rootViewController presentViewController:nav animated:YES completion:^{
+        if (isOpenCameraFirst) {
+            [vc updateIconWithSourType:(UIImagePickerControllerSourceTypeCamera)];
+        }
     }];
 }
 

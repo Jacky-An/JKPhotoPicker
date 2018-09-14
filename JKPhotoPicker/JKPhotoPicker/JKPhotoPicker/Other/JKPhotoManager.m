@@ -12,8 +12,17 @@
 @implementation JKPhotoManager
 
 + (void)checkPhotoAccessFinished:(void (^)(BOOL isAccessed))finished{
-    if ([PHPhotoLibrary authorizationStatus] == PHAuthorizationStatusNotDetermined) { // 照片权限未决定状态
-        finished(NO);
+    
+    if (![UIImagePickerController isSourceTypeAvailable:(UIImagePickerControllerSourceTypePhotoLibrary)]) {
+        
+        !finished ? : finished(NO);
+        
+        [self showRestrictAlertWithText:@"相册不支持"];
+        
+        return;
+    }
+    
+    if ([PHPhotoLibrary authorizationStatus] == PHAuthorizationStatusNotDetermined) {
         
         [PHPhotoLibrary requestAuthorization:^(PHAuthorizationStatus status) {
             
@@ -21,12 +30,12 @@
             
             if (status == PHAuthorizationStatusAuthorized) {
                 dispatch_async(dispatch_get_main_queue(), ^{
-                    finished(YES);
+                    !finished ? : finished(YES);
                 });
                 return;
             }
             dispatch_async(dispatch_get_main_queue(), ^{
-                finished(NO);
+                !finished ? : finished(NO);
             });
         }];
         
@@ -35,26 +44,134 @@
     
     if ([PHPhotoLibrary authorizationStatus] == PHAuthorizationStatusAuthorized) { // 有照片权限
         
-        finished(YES);
+        !finished ? : finished(YES);
         
         return;
     }
     
     if ([PHPhotoLibrary authorizationStatus] == PHAuthorizationStatusDenied) { // 没有照片权限
-        UIAlertController *alertVc = [UIAlertController alertControllerWithTitle:@"提示" message:@"当前程序未获得照片权限，是否打开？由于iOS系统原因，设置照片权限会导致app崩溃，请知晓。" preferredStyle:(UIAlertControllerStyleAlert)];
         
-        [alertVc addAction:[UIAlertAction actionWithTitle:@"不用了" style:(UIAlertActionStyleDefault) handler:nil]];
-        [alertVc addAction:[UIAlertAction actionWithTitle:@"去打开" style:(UIAlertActionStyleDefault) handler:^(UIAlertAction * _Nonnull action) {
-            // 打开本程序对应的权限设置
-            [[UIApplication sharedApplication]openURL:[NSURL URLWithString:UIApplicationOpenSettingsURLString]];
-        }]];
-        
-        [[UIApplication sharedApplication].delegate.window.rootViewController presentViewController:alertVc animated:YES completion:nil];
+        [self jumpToSettingWithTip:@"当前程序未获得照片权限，是否打开？"];
         
         return;
     }
     
-    UIAlertController *alertVc = [UIAlertController alertControllerWithTitle:@"提示" message:@"照片权限受限" preferredStyle:(UIAlertControllerStyleAlert)];
+    [self showRestrictAlertWithText:@"相册不支持"];
+}
+
+/** 检查相机访问权限 */
++ (void)checkCameraAccessFinished:(void(^)(BOOL isAccessed))finished{
+    
+    if (![UIImagePickerController isSourceTypeAvailable:(UIImagePickerControllerSourceTypeCamera)]) {
+        
+        !finished ? : finished(NO);
+        
+        [self showRestrictAlertWithText:@"相机不可用"];
+        
+        return;
+    }
+    
+    AVAuthorizationStatus AVstatus = [AVCaptureDevice authorizationStatusForMediaType:AVMediaTypeVideo];//相机权限
+    switch (AVstatus) {
+        case AVAuthorizationStatusAuthorized:
+            //            NSLog(@"Authorized");
+            
+            !finished ? : finished(YES);
+            break;
+        case AVAuthorizationStatusDenied:
+            //            NSLog(@"Denied");
+            !finished ? : finished(NO);
+            
+            [self jumpToSettingWithTip:@"当前程序未获得相机权限，是否打开？"];
+            break;
+        case AVAuthorizationStatusNotDetermined:
+            //            NSLog(@"not Determined");
+        {
+            [AVCaptureDevice requestAccessForMediaType:AVMediaTypeVideo completionHandler:^(BOOL granted) {//相机权限
+                if (granted) {
+                    //                    NSLog(@"Authorized");
+                    dispatch_async(dispatch_get_main_queue(), ^{
+                        !finished ? : finished(YES);
+                    });
+                }else{
+                    //                    NSLog(@"Denied or Restricted");
+                    dispatch_async(dispatch_get_main_queue(), ^{
+                        !finished ? : finished(NO);
+                    });
+                }
+            }];
+        }
+            break;
+        case AVAuthorizationStatusRestricted:
+            
+            !finished ? : finished(NO);
+            
+            [self showRestrictAlertWithText:@"相机不支持"];
+            break;
+        default:
+            break;
+    }
+}
+
+/** 检查麦克风访问权限 */
++ (void)checkMicrophoneAccessFinished:(void(^)(BOOL isAccessed))finished{
+    
+    AVAuthorizationStatus AVstatus = [AVCaptureDevice authorizationStatusForMediaType:AVMediaTypeAudio];//麦克风权限
+    switch (AVstatus) {
+        case AVAuthorizationStatusAuthorized:
+            //            NSLog(@"Authorized");
+            
+            !finished ? : finished(YES);
+            break;
+        case AVAuthorizationStatusDenied:
+            !finished ? : finished(NO);
+            [self jumpToSettingWithTip:@"当前程序未获得麦克风权限，是否打开？"];
+            //            NSLog(@"Denied");
+            break;
+        case AVAuthorizationStatusNotDetermined:
+            //            NSLog(@"not Determined");
+        {
+            [AVCaptureDevice requestAccessForMediaType:AVMediaTypeAudio completionHandler:^(BOOL granted) {//相机权限
+                if (granted) {
+                    //                    NSLog(@"Authorized");
+                    dispatch_async(dispatch_get_main_queue(), ^{
+                        !finished ? : finished(YES);
+                    });
+                }else{
+                    //                    NSLog(@"Denied or Restricted");
+                    dispatch_async(dispatch_get_main_queue(), ^{
+                        !finished ? : finished(NO);
+                    });
+                }
+            }];
+        }
+            break;
+        case AVAuthorizationStatusRestricted:
+            !finished ? : finished(NO);
+            
+            [self showRestrictAlertWithText:@"麦克风不支持"];
+            break;
+        default:
+            break;
+    }
+}
+
++ (void)jumpToSettingWithTip:(NSString *)tip{
+    
+    UIAlertController *alertVc = [UIAlertController alertControllerWithTitle:@"提示" message:tip preferredStyle:(UIAlertControllerStyleAlert)];
+    
+    [alertVc addAction:[UIAlertAction actionWithTitle:@"不用了" style:(UIAlertActionStyleDefault) handler:nil]];
+    [alertVc addAction:[UIAlertAction actionWithTitle:@"去打开" style:(UIAlertActionStyleDefault) handler:^(UIAlertAction * _Nonnull action) {
+        // 打开本程序对应的权限设置
+        [[UIApplication sharedApplication]openURL:[NSURL URLWithString:UIApplicationOpenSettingsURLString]];
+    }]];
+    
+    [[UIApplication sharedApplication].delegate.window.rootViewController presentViewController:alertVc animated:YES completion:nil];
+}
+
++ (void)showRestrictAlertWithText:(NSString *)text{
+    
+    UIAlertController *alertVc = [UIAlertController alertControllerWithTitle:@"提示" message:text preferredStyle:(UIAlertControllerStyleAlert)];
     
     [alertVc addAction:[UIAlertAction actionWithTitle:@"确定" style:(UIAlertActionStyleDefault) handler:nil]];
     
@@ -137,7 +254,7 @@
         
         // 只添加图片类型资源，去除视频类型资源
         // 当mediatype == 2时，资源则视为视频资源
-//        if (1 || asset.mediaType == PHAssetMediaTypeImage) {
+        //        if (1 || asset.mediaType == PHAssetMediaTypeImage) {
         
         i++;
         
@@ -157,7 +274,7 @@
         }
         
         [dataArray addObject:item];
-//        }
+        //        }
     }];
     
     NSMutableDictionary *dictM = [NSMutableDictionary dictionary];
@@ -169,24 +286,24 @@
     
     !complete ? : complete(dictM);
     
-//    for (PHAsset *asset in fetchResult) {
-//        // 只添加图片类型资源，去除视频类型资源
-//        // 当mediatype == 2时，资源则视为视频资源
-//        if (asset.mediaType != PHAssetMediaTypeImage) continue;
-//        
-//        i++;
-//        
-//        JKPhotoItem *item = [[JKPhotoItem alloc] init];
-//        item.photoAsset = asset;
-//        item.currentIndexPath = [NSIndexPath indexPathForItem:i inSection:0];
-//        
-//        if (cache != nil) {
-//            
-//            [cache setObject:item forKey:item.assetLocalIdentifier];
-//        }
-//        
-//        [dataArray insertObject:item atIndex:0];
-//    }
+    //    for (PHAsset *asset in fetchResult) {
+    //        // 只添加图片类型资源，去除视频类型资源
+    //        // 当mediatype == 2时，资源则视为视频资源
+    //        if (asset.mediaType != PHAssetMediaTypeImage) continue;
+    //
+    //        i++;
+    //
+    //        JKPhotoItem *item = [[JKPhotoItem alloc] init];
+    //        item.photoAsset = asset;
+    //        item.currentIndexPath = [NSIndexPath indexPathForItem:i inSection:0];
+    //
+    //        if (cache != nil) {
+    //
+    //            [cache setObject:item forKey:item.assetLocalIdentifier];
+    //        }
+    //
+    //        [dataArray insertObject:item atIndex:0];
+    //    }
     
     return dataArray;
 }
@@ -234,12 +351,12 @@
     
     PHAsset *phAsset = (PHAsset *)asset;
     
-//    CGFloat photoWidth = [UIScreen mainScreen].bounds.size.width;
-//    CGFloat aspectRatio = phAsset.pixelWidth * 1.0 / (phAsset.pixelHeight * 1.0);
-//    // 屏幕分辨率 scale = 1 代表 分辨率是320 * 480; = 2 代表 分辨率是 640 * 960; = 3 代表 分辨率是 1242 * 2208
-//    CGFloat scale = [UIScreen mainScreen].scale;
-//    CGFloat pixelWidth = photoWidth * scale;
-//    CGFloat pixelHeight = pixelWidth / aspectRatio;
+    //    CGFloat photoWidth = [UIScreen mainScreen].bounds.size.width;
+    //    CGFloat aspectRatio = phAsset.pixelWidth * 1.0 / (phAsset.pixelHeight * 1.0);
+    //    // 屏幕分辨率 scale = 1 代表 分辨率是320 * 480; = 2 代表 分辨率是 640 * 960; = 3 代表 分辨率是 1242 * 2208
+    //    CGFloat scale = [UIScreen mainScreen].scale;
+    //    CGFloat pixelWidth = photoWidth * scale;
+    //    CGFloat pixelHeight = pixelWidth / aspectRatio;
     /**
      * PHImageManager 是通过请求的方式拉取图像，并可以控制请求得到的图像的尺寸、剪裁方式、质量，缓存以及请求本身的管理（发出请求、取消请求）等
      *
@@ -250,22 +367,22 @@
      *
      */
     PHImageRequestOptions *options = [[PHImageRequestOptions alloc] init];
-//    options.synchronous = YES; // 默认为NO则获取的是低清图
+    //    options.synchronous = YES; // 默认为NO则获取的是低清图
     options.deliveryMode = PHImageRequestOptionsDeliveryModeOpportunistic;
     options.resizeMode = PHImageRequestOptionsResizeModeFast; // 不强制尺寸与目标相同
     
     [[PHImageManager defaultManager] requestImageForAsset:phAsset targetSize:(targetSize.width <= 0 || targetSize.height <= 0) ? PHImageManagerMaximumSize : targetSize contentMode:PHImageContentModeAspectFit options:nil resultHandler:^(UIImage * _Nullable result, NSDictionary * _Nullable info) {
         complection(result, [[info objectForKey:PHImageResultIsDegradedKey] boolValue]);
-//        NSLog(@"系统方法获取图片-->当前线程--->%@", [NSThread currentThread]);
+        //        NSLog(@"系统方法获取图片-->当前线程--->%@", [NSThread currentThread]);
         // 排除取消，错误，低清图三种情况，即已经获取到了高清图
-//        BOOL downloadFinined = (![[info objectForKey:PHImageCancelledKey] boolValue] && ![info objectForKey:PHImageErrorKey] /*&& ![[info objectForKey:PHImageResultIsDegradedKey] boolValue]*/);
-//        
-//        if (downloadFinined) {
-//            // 回调
-//            if (complection){
-//                complection(result, [[info objectForKey:PHImageResultIsDegradedKey] boolValue]);
-//            }
-//        }
+        //        BOOL downloadFinined = (![[info objectForKey:PHImageCancelledKey] boolValue] && ![info objectForKey:PHImageErrorKey] /*&& ![[info objectForKey:PHImageResultIsDegradedKey] boolValue]*/);
+        //
+        //        if (downloadFinined) {
+        //            // 回调
+        //            if (complection){
+        //                complection(result, [[info objectForKey:PHImageResultIsDegradedKey] boolValue]);
+        //            }
+        //        }
     }];
 }
 @end
