@@ -13,7 +13,7 @@
 @interface JKPhotoAlbumListView : UIView
 
 /** 监听点击选中cell的block */
-@property (nonatomic, copy) void(^selectRowBlock)(JKPhotoItem *photoItem);
+@property (nonatomic, copy) void(^selectRowBlock)(JKPhotoItem *photoItem, BOOL isReload);
 
 /** 监听重新加载相册完成的block */
 @property (nonatomic, copy) void(^reloadCompleteBlock)(void);

@@ -19,7 +19,15 @@
  * seletedItems      : 已选择的item，数组中放的是JKPhotoItem对象
  * dataType          : 要选择的数据类型
  * completeHandler   : 选择完成的回调
- * isOpenCameraFirst : 是否直接打开摄像头
  */
-+ (void)showWithPresentVc:(UIViewController *)presentVc maxSelectCount:(NSUInteger)maxSelectCount seletedItems:(NSArray <JKPhotoItem *> *)seletedItems dataType:(JKPhotoPickerMediaDataType)dataType isOpenCameraFirst:(BOOL)isOpenCameraFirst completeHandler:(void(^)(NSArray <JKPhotoItem *> *photoItems))completeHandler;
++ (void)showWithPresentVc:(UIViewController *)presentVc maxSelectCount:(NSUInteger)maxSelectCount seletedItems:(NSArray <JKPhotoItem *> *)seletedItems dataType:(JKPhotoPickerMediaDataType)dataType completeHandler:(void(^)(NSArray <JKPhotoItem *> *photoItems))completeHandler;
+
+/**
+ * 使用UIImagePicker
+ * presentVc : 由哪个控制器present出来，传nil则由根控制器弹出
+ * dataType : 要选择的数据类型 仅支持JKPhotoPickerMediaDataTypeStaticImage和JKPhotoPickerMediaDataTypeVideo
+ * allowsEditing : 是否允许编辑
+ * completeHandler : 选择完成的回调
+ */
+//+ (void)showUIImagePickerWithPresentVc:(UIViewController *)presentVc dataType:(JKPhotoPickerMediaDataType)dataType allowsEditing:(BOOL)allowsEditing completeHandler:(void(^)(UIImage *image))completeHandler;
 @end

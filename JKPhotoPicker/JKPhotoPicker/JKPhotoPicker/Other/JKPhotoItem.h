@@ -21,6 +21,9 @@
 /* 是否可以播放gif */
 @property (nonatomic, assign, readonly) BOOL shouldPlayGif;
 
+/** 数据类型描述 */
+@property (nonatomic, copy) NSString *dataTypeDescription;
+
 /* 媒体类型 */
 @property (nonatomic, assign, readonly) JKPhotoPickerMediaDataType dataType;
 

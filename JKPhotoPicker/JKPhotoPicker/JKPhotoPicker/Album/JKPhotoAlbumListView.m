@@ -172,7 +172,7 @@ static CGFloat const rowHeight = 70;
     
     [self loadAlbumData];
     
-    !self.selectRowBlock ? : self.selectRowBlock(self.albums[self.currentSelectedIndex.row]);
+    !self.selectRowBlock ? : self.selectRowBlock(self.albums[self.currentSelectedIndex.row], YES);
     
     [self.tableView selectRowAtIndexPath:self.currentSelectedIndex animated:NO scrollPosition:UITableViewScrollPositionNone];
 }
@@ -292,7 +292,7 @@ static CGFloat const rowHeight = 70;
         
         JKPhotoItem *item = weakSelf.albums[indexPath.row];
         
-        !weakSelf.selectRowBlock ? : weakSelf.selectRowBlock(item);
+        !weakSelf.selectRowBlock ? : weakSelf.selectRowBlock(item, NO);
     }];
 }
 

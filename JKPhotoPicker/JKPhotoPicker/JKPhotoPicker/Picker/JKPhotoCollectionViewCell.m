@@ -25,6 +25,9 @@
 
 /** 不可选择的遮盖 */
 @property (nonatomic, weak) UIView *selectCoverView;
+
+/** 数据类型 */
+@property (nonatomic, weak) UILabel *dataTypeLabel;
 @end
 
 @implementation JKPhotoCollectionViewCell
@@ -84,7 +87,7 @@
     [self.contentView addConstraints:photoImageViewCons2];
     
     // 不允许选择时的遮盖view
-    UIView *selectCoverView = [[UIImageView alloc] init];
+    UIView *selectCoverView = [[UIView alloc] init];
     selectCoverView.userInteractionEnabled = YES;
     selectCoverView.backgroundColor = [[UIColor whiteColor] colorWithAlphaComponent:0.7];
     [self.contentView insertSubview:selectCoverView aboveSubview:photoImageView];
@@ -97,6 +100,27 @@
     
     NSArray *selectCoverViewCons2 = [NSLayoutConstraint constraintsWithVisualFormat:@"V:|-0-[selectCoverView]-0-|" options:0 metrics:nil views:@{@"selectCoverView" : selectCoverView}];
     [self.contentView addConstraints:selectCoverViewCons2];
+    
+    // 数据类型
+    UILabel *dataTypeLabel = [[UILabel alloc] init];
+    dataTypeLabel.textColor = [UIColor whiteColor];
+    dataTypeLabel.font = [UIFont systemFontOfSize:11];
+    dataTypeLabel.textAlignment = NSTextAlignmentRight;
+    [selectCoverView addSubview:dataTypeLabel];
+    _dataTypeLabel = dataTypeLabel;
+    
+    dataTypeLabel.translatesAutoresizingMaskIntoConstraints = NO;
+    NSLayoutConstraint *dataTypeLabelLeftCons = [NSLayoutConstraint constraintWithItem:dataTypeLabel attribute:(NSLayoutAttributeLeft) relatedBy:(NSLayoutRelationEqual) toItem:selectCoverView attribute:(NSLayoutAttributeLeft) multiplier:1 constant:0];
+    [self.contentView addConstraint:dataTypeLabelLeftCons];
+    
+    NSLayoutConstraint *dataTypeLabelRightCons = [NSLayoutConstraint constraintWithItem:dataTypeLabel attribute:(NSLayoutAttributeRight) relatedBy:(NSLayoutRelationEqual) toItem:selectCoverView attribute:(NSLayoutAttributeRight) multiplier:1 constant:0];
+    [self.contentView addConstraint:dataTypeLabelRightCons];
+    
+    NSLayoutConstraint *dataTypeLabelBottomCons = [NSLayoutConstraint constraintWithItem:dataTypeLabel attribute:(NSLayoutAttributeBottom) relatedBy:(NSLayoutRelationEqual) toItem:selectCoverView attribute:(NSLayoutAttributeBottom) multiplier:1 constant:0];
+    [self.contentView addConstraint:dataTypeLabelBottomCons];
+    
+    NSLayoutConstraint *dataTypeLabelHCons = [NSLayoutConstraint constraintWithItem:dataTypeLabel attribute:(NSLayoutAttributeHeight) relatedBy:(NSLayoutRelationEqual) toItem:nil attribute:(NSLayoutAttributeNotAnAttribute) multiplier:1 constant:_dataTypeLabel.font.lineHeight];
+    [self.contentView addConstraint:dataTypeLabelHCons];
 }
 
 - (void)setupSelectedIcon{
@@ -141,6 +165,8 @@
 
 - (void)setPhotoItem:(JKPhotoItem *)photoItem{
     _photoItem = photoItem;
+    
+    _dataTypeLabel.text = _photoItem.dataTypeDescription;
     
     self.selectIconImageView.highlighted = _photoItem.isSelected;
     

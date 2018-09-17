@@ -11,13 +11,13 @@
 
 @implementation JKPhotoManager
 
-+ (void)checkPhotoAccessFinished:(void (^)(BOOL isAccessed))finished{
++ (void)checkPhotoAccessWithPresentVc:(UIViewController *)presentVc finished:(void (^)(BOOL isAccessed))finished{
     
     if (![UIImagePickerController isSourceTypeAvailable:(UIImagePickerControllerSourceTypePhotoLibrary)]) {
         
         !finished ? : finished(NO);
         
-        [self showRestrictAlertWithText:@"相册不支持"];
+        [self showRestrictAlertWithText:@"相册不支持" presentVc:presentVc];
         
         return;
     }
@@ -51,22 +51,22 @@
     
     if ([PHPhotoLibrary authorizationStatus] == PHAuthorizationStatusDenied) { // 没有照片权限
         
-        [self jumpToSettingWithTip:@"当前程序未获得照片权限，是否打开？"];
+        [self jumpToSettingWithTip:@"当前程序未获得照片权限，是否打开？" presentVc:presentVc];
         
         return;
     }
     
-    [self showRestrictAlertWithText:@"相册不支持"];
+    [self showRestrictAlertWithText:@"相册受限" presentVc:presentVc];
 }
 
 /** 检查相机访问权限 */
-+ (void)checkCameraAccessFinished:(void(^)(BOOL isAccessed))finished{
++ (void)checkCameraAccessWithPresentVc:(UIViewController *)presentVc finished:(void(^)(BOOL isAccessed))finished{
     
     if (![UIImagePickerController isSourceTypeAvailable:(UIImagePickerControllerSourceTypeCamera)]) {
         
         !finished ? : finished(NO);
         
-        [self showRestrictAlertWithText:@"相机不可用"];
+        [self showRestrictAlertWithText:@"相机不可用" presentVc:presentVc];
         
         return;
     }
@@ -82,7 +82,7 @@
             //            NSLog(@"Denied");
             !finished ? : finished(NO);
             
-            [self jumpToSettingWithTip:@"当前程序未获得相机权限，是否打开？"];
+            [self jumpToSettingWithTip:@"当前程序未获得相机权限，是否打开？" presentVc:presentVc];
             break;
         case AVAuthorizationStatusNotDetermined:
             //            NSLog(@"not Determined");
@@ -106,7 +106,7 @@
             
             !finished ? : finished(NO);
             
-            [self showRestrictAlertWithText:@"相机不支持"];
+            [self showRestrictAlertWithText:@"相机受限" presentVc:presentVc];
             break;
         default:
             break;
@@ -114,7 +114,15 @@
 }
 
 /** 检查麦克风访问权限 */
-+ (void)checkMicrophoneAccessFinished:(void(^)(BOOL isAccessed))finished{
++ (void)checkMicrophoneAccessWithPresentVc:(UIViewController *)presentVc finished:(void(^)(BOOL isAccessed))finished{
+    
+    if ([AVCaptureDevice devicesWithMediaType:AVMediaTypeAudio].count == 0) {
+        
+        !finished ? : finished(NO);
+        [self showRestrictAlertWithText:@"麦克风不可用" presentVc:presentVc];
+        
+        return;
+    }
     
     AVAuthorizationStatus AVstatus = [AVCaptureDevice authorizationStatusForMediaType:AVMediaTypeAudio];//麦克风权限
     switch (AVstatus) {
@@ -125,7 +133,7 @@
             break;
         case AVAuthorizationStatusDenied:
             !finished ? : finished(NO);
-            [self jumpToSettingWithTip:@"当前程序未获得麦克风权限，是否打开？"];
+            [self jumpToSettingWithTip:@"当前程序未获得麦克风权限，是否打开？" presentVc:presentVc];
             //            NSLog(@"Denied");
             break;
         case AVAuthorizationStatusNotDetermined:
@@ -149,14 +157,14 @@
         case AVAuthorizationStatusRestricted:
             !finished ? : finished(NO);
             
-            [self showRestrictAlertWithText:@"麦克风不支持"];
+            [self showRestrictAlertWithText:@"麦克风受限" presentVc:presentVc];
             break;
         default:
             break;
     }
 }
 
-+ (void)jumpToSettingWithTip:(NSString *)tip{
++ (void)jumpToSettingWithTip:(NSString *)tip presentVc:(UIViewController *)presentVc{
     
     UIAlertController *alertVc = [UIAlertController alertControllerWithTitle:@"提示" message:tip preferredStyle:(UIAlertControllerStyleAlert)];
     
@@ -166,16 +174,16 @@
         [[UIApplication sharedApplication]openURL:[NSURL URLWithString:UIApplicationOpenSettingsURLString]];
     }]];
     
-    [[UIApplication sharedApplication].delegate.window.rootViewController presentViewController:alertVc animated:YES completion:nil];
+    [(presentVc ? presentVc : [UIApplication sharedApplication].delegate.window.rootViewController) presentViewController:alertVc animated:YES completion:nil];
 }
 
-+ (void)showRestrictAlertWithText:(NSString *)text{
++ (void)showRestrictAlertWithText:(NSString *)text presentVc:(UIViewController *)presentVc{
     
     UIAlertController *alertVc = [UIAlertController alertControllerWithTitle:@"提示" message:text preferredStyle:(UIAlertControllerStyleAlert)];
     
     [alertVc addAction:[UIAlertAction actionWithTitle:@"确定" style:(UIAlertActionStyleDefault) handler:nil]];
     
-    [[UIApplication sharedApplication].delegate.window.rootViewController presentViewController:alertVc animated:YES completion:nil];
+    [(presentVc ? presentVc : [UIApplication sharedApplication].delegate.window.rootViewController) presentViewController:alertVc animated:YES completion:nil];
 }
 
 /** 获取相机胶卷所有照片对象 倒序 数组中是PHAsset对象 */

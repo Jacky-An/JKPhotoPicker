@@ -60,7 +60,11 @@
             _dataType = JKPhotoPickerMediaDataTypeStaticImage;
             _shouldSelected = [JKPhotoItem selectDataType] == _dataType || ([JKPhotoItem selectDataType] == JKPhotoPickerMediaDataTypeImageIncludeGif);
             
+            _dataTypeDescription = @"image";
+            
             if (_photoAsset.mediaSubtypes == PHAssetMediaSubtypePhotoLive) {
+                
+                _dataTypeDescription = @"live photo";
                 
                 _dataType = JKPhotoPickerMediaDataTypePhotoLive;
                 _shouldSelected = [JKPhotoItem selectDataType] == _dataType;
@@ -72,6 +76,8 @@
             
             _dataType = JKPhotoPickerMediaDataTypeVideo;
             _shouldSelected = [JKPhotoItem selectDataType] == _dataType;
+            
+            _dataTypeDescription = @"video";
             
             break;
             
@@ -86,6 +92,8 @@
     NSString *fileName = [_photoAsset valueForKey:@"filename"];
     
     if ([fileName.lowercaseString containsString:@"gif"]) {
+        
+        _dataTypeDescription = @"GIF";
         
         _dataType = JKPhotoPickerMediaDataTypeGif;
         

@@ -73,7 +73,7 @@ static NSString * const reuseID = @"JKPhotoCollectionViewCell"; // 重用ID
 static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; // 选中的照片重用ID
 
 #pragma mark - 类方法
-+ (void)showWithPresentVc:(UIViewController *)presentVc maxSelectCount:(NSUInteger)maxSelectCount seletedItems:(NSArray <JKPhotoItem *> *)seletedItems dataType:(JKPhotoPickerMediaDataType)dataType isOpenCameraFirst:(BOOL)isOpenCameraFirst completeHandler:(void(^)(NSArray <JKPhotoItem *> *photoItems))completeHandler{
++ (void)showWithPresentVc:(UIViewController *)presentVc maxSelectCount:(NSUInteger)maxSelectCount seletedItems:(NSArray <JKPhotoItem *> *)seletedItems dataType:(JKPhotoPickerMediaDataType)dataType completeHandler:(void(^)(NSArray <JKPhotoItem *> *photoItems))completeHandler{
     
     if (dataType == JKPhotoPickerMediaDataTypeUnknown) {
         return;
@@ -81,36 +81,15 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
     
     [JKPhotoItem setSelectDataType:dataType];
     
-    if (isOpenCameraFirst) {
-        
-        [JKPhotoManager checkCameraAccessFinished:^(BOOL isAccessed) {
-            
-            if (!isAccessed) { return; }
-            
-            if (dataType == JKPhotoPickerMediaDataTypeVideo) {
-                
-                [JKPhotoManager checkMicrophoneAccessFinished:^(BOOL isAccessed) {
-                    
-                    [self showWithVc:presentVc maxSelectCount:maxSelectCount seletedItems:seletedItems dataType:dataType isOpenCameraFirst:isOpenCameraFirst completeHandler:completeHandler];
-                }];
-                return;
-            }
-            
-            [self showWithVc:presentVc maxSelectCount:maxSelectCount seletedItems:seletedItems dataType:dataType isOpenCameraFirst:isOpenCameraFirst completeHandler:completeHandler];
-        }];
-        
-        return;
-    }
-    
-    [JKPhotoManager checkPhotoAccessFinished:^(BOOL isAccessed) {
+    [JKPhotoManager checkPhotoAccessWithPresentVc:presentVc finished:^(BOOL isAccessed) {
         
         if (!isAccessed) { return; }
         
-        [self showWithVc:presentVc maxSelectCount:maxSelectCount seletedItems:seletedItems dataType:dataType isOpenCameraFirst:isOpenCameraFirst completeHandler:completeHandler];
+        [self showWithVc:presentVc maxSelectCount:maxSelectCount seletedItems:seletedItems dataType:dataType completeHandler:completeHandler];
     }];
 }
 
-+ (void)showWithVc:(UIViewController *)presentVc maxSelectCount:(NSUInteger)maxSelectCount seletedItems:(NSArray <JKPhotoItem *> *)seletedItems dataType:(JKPhotoPickerMediaDataType)dataType isOpenCameraFirst:(BOOL)isOpenCameraFirst completeHandler:(void(^)(NSArray <JKPhotoItem *> *photoItems))completeHandler{
++ (void)showWithVc:(UIViewController *)presentVc maxSelectCount:(NSUInteger)maxSelectCount seletedItems:(NSArray <JKPhotoItem *> *)seletedItems dataType:(JKPhotoPickerMediaDataType)dataType completeHandler:(void(^)(NSArray <JKPhotoItem *> *photoItems))completeHandler{
     
     JKPhotoPickerViewController *vc = [[self alloc] init];
     vc.maxSelectCount = maxSelectCount;
@@ -126,18 +105,15 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
     UINavigationController *nav = [[UINavigationController alloc] initWithRootViewController:vc];
     
     if (presentVc && [presentVc isKindOfClass:[UIViewController class]]) {
+        
         [presentVc presentViewController:nav animated:YES completion:^{
-            if (isOpenCameraFirst) {
-                [vc updateIconWithSourType:(UIImagePickerControllerSourceTypeCamera)];
-            }
+            
         }];
         return;
     }
     
     [[UIApplication sharedApplication].delegate.window.rootViewController presentViewController:nav animated:YES completion:^{
-        if (isOpenCameraFirst) {
-            [vc updateIconWithSourType:(UIImagePickerControllerSourceTypeCamera)];
-        }
+        
     }];
 }
 
@@ -185,23 +161,20 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
         
         dispatch_async(dispatch_get_global_queue(0, 0), ^{
             
-            [self loadPhotoWithAlbumItem:albumListView.cameraRollItem];
+            [self loadPhotoWithAlbumItem:albumListView.cameraRollItem isReload:NO];
         });
         
         __weak typeof(self) weakSelf = self;
 #pragma mark - 选中相册
-        [albumListView setSelectRowBlock:^(JKPhotoItem *photoItem) {
+        [albumListView setSelectRowBlock:^(JKPhotoItem *photoItem, BOOL isReload) {
             
-            dispatch_async(dispatch_get_main_queue(), ^{
-                
-                [weakSelf.titleButton setTitle:[photoItem.albumTitle stringByAppendingString:@"  "] forState:(UIControlStateNormal)];
-                weakSelf.titleButton.selected = NO;
-                weakSelf.isAllPhotosAlbum = [photoItem.albumLocalIdentifier isEqualToString:weakSelf.albumListView.cameraRollItem.albumLocalIdentifier];
-            });
+            [weakSelf.titleButton setTitle:[photoItem.albumTitle stringByAppendingString:@"  "] forState:(UIControlStateNormal)];
+            weakSelf.titleButton.selected = NO;
+            weakSelf.isAllPhotosAlbum = [photoItem.albumLocalIdentifier isEqualToString:weakSelf.albumListView.cameraRollItem.albumLocalIdentifier];
             
             dispatch_async(dispatch_get_global_queue(0, 0), ^{
                 
-                [weakSelf loadPhotoWithAlbumItem:photoItem];
+                [weakSelf loadPhotoWithAlbumItem:photoItem isReload:isReload];
             });
         }];
     }
@@ -376,7 +349,7 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
 }
 
 #pragma mark - 加载数据
-- (void)loadPhotoWithAlbumItem:(JKPhotoItem *)photoItem{
+- (void)loadPhotoWithAlbumItem:(JKPhotoItem *)photoItem isReload:(BOOL)isReload{
     
     [self.allPhotosIdentifierCache removeAllObjects];
     
@@ -412,7 +385,10 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
         
         [self changeSelectedCount];
         
-//        [self.collectionView setContentOffset:CGPointMake(0, -self.collectionView.contentInset.top) animated:YES];
+        if (!isReload) {
+            
+            [self.collectionView setContentOffset:CGPointMake(0, -self.collectionView.contentInset.top) animated:YES];
+        }
     });
 }
 
@@ -526,62 +502,90 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
         return;
     }
     
-    AVAuthorizationStatus videoAuthStatus = [AVCaptureDevice authorizationStatusForMediaType:AVMediaTypeVideo];
-    
-    if (videoAuthStatus == AVAuthorizationStatusNotDetermined) {// 未询问用户是否授权
+    [JKPhotoManager checkCameraAccessWithPresentVc:self finished:^(BOOL isAccessed) {
         
-    }else if(videoAuthStatus == AVAuthorizationStatusRestricted || videoAuthStatus == AVAuthorizationStatusDenied) {// 未授权
+        if (!isAccessed) { return; }
         
-    }else{// 已授权
-        
-    }
-    
-    if (videoAuthStatus == AVAuthorizationStatusDenied) {
-        
-        UIAlertController *alertVc = [UIAlertController alertControllerWithTitle:@"提示" message:@"当前程序未获得相机权限，是否打开？由于iOS系统原因，设置相机权限会导致app崩溃，请知晓。" preferredStyle:(UIAlertControllerStyleAlert)];
-        
-        [alertVc addAction:[UIAlertAction actionWithTitle:@"不用了" style:(UIAlertActionStyleDefault) handler:nil]];
-        [alertVc addAction:[UIAlertAction actionWithTitle:@"去打开" style:(UIAlertActionStyleDefault) handler:^(UIAlertAction * _Nonnull action) {
-            // 打开本程序对应的权限设置
-            [[UIApplication sharedApplication]openURL:[NSURL URLWithString:UIApplicationOpenSettingsURLString]];
-        }]];
-        
-        [self presentViewController:alertVc animated:YES completion:nil];
-        
-        return;
-    }
-    
-    if ([JKPhotoItem selectDataType] == JKPhotoPickerMediaDataTypeVideo || ([JKPhotoItem selectDataType] == JKPhotoPickerMediaDataTypePhotoLive)) {
-        
-        AVAuthorizationStatus audioAuthStatus = [AVCaptureDevice authorizationStatusForMediaType:AVMediaTypeAudio];
-        
-        if (audioAuthStatus == AVAuthorizationStatusNotDetermined) {// 未询问用户是否授权
+        if ([JKPhotoItem selectDataType] == JKPhotoPickerMediaDataTypeVideo) {
             
-        }else if(audioAuthStatus == AVAuthorizationStatusRestricted || audioAuthStatus == AVAuthorizationStatusDenied) {// 未授权
-            
-            UIAlertController *alertVc = [UIAlertController alertControllerWithTitle:@"提示" message:@"当前程序未获得麦克风权限，会导致拍摄没有声音。是否打开？由于iOS系统原因，设置麦克风权限会导致app崩溃，请知晓。" preferredStyle:(UIAlertControllerStyleAlert)];
-            
-            [alertVc addAction:[UIAlertAction actionWithTitle:@"无声拍摄" style:(UIAlertActionStyleDefault) handler:^(UIAlertAction * _Nonnull action) {
+            [JKPhotoManager checkMicrophoneAccessWithPresentVc:self finished:^(BOOL isAccessed) {
+                
+                if (!isAccessed) {
+                    
+                    UIAlertController *alertVc = [UIAlertController alertControllerWithTitle:@"提示" message:@"当前程序未获得麦克风权限，会导致拍摄没有声音。是否打开？由于iOS系统原因，设置麦克风权限会导致app崩溃，请知晓。" preferredStyle:(UIAlertControllerStyleAlert)];
+                    
+                    [alertVc addAction:[UIAlertAction actionWithTitle:@"无声拍摄" style:(UIAlertActionStyleDefault) handler:^(UIAlertAction * _Nonnull action) {
+                        
+                        [self showImagePickerControllerWithSourceType:sourceType];
+                    }]];
+                    
+                    [alertVc addAction:[UIAlertAction actionWithTitle:@"去打开" style:(UIAlertActionStyleDefault) handler:^(UIAlertAction * _Nonnull action) {
+                        
+                        // 打开本程序对应的权限设置
+                        [[UIApplication sharedApplication]openURL:[NSURL URLWithString:UIApplicationOpenSettingsURLString]];
+                    }]];
+                    
+                    [self presentViewController:alertVc animated:YES completion:nil];
+                    
+                    return;
+                }
                 
                 [self showImagePickerControllerWithSourceType:sourceType];
-            }]];
-            
-            [alertVc addAction:[UIAlertAction actionWithTitle:@"去打开" style:(UIAlertActionStyleDefault) handler:^(UIAlertAction * _Nonnull action) {
-                
-                // 打开本程序对应的权限设置
-                [[UIApplication sharedApplication]openURL:[NSURL URLWithString:UIApplicationOpenSettingsURLString]];
-            }]];
-            
-            [self presentViewController:alertVc animated:YES completion:nil];
-            
-        }else{// 已授权
-            
+            }];
         }
-        
-        return;
-    }
+    }];
+}
+
+
+/**
+ * 使用UIImagePicker
+ * presentVc : 由哪个控制器present出来，传nil则由根控制器弹出
+ * dataType : 要选择的数据类型 仅支持JKPhotoPickerMediaDataTypeStaticImage和JKPhotoPickerMediaDataTypeVideo
+ * allowsEditing : 是否允许编辑
+ * completeHandler : 选择完成的回调
+ */
++ (void)showUIImagePickerWithConfig:(void(^)(UIImagePickerController *imagPicker))config presentVc:(UIViewController *)presentVc dataType:(JKPhotoPickerMediaDataType)dataType allowsEditing:(BOOL)allowsEditing completeHandler:(void(^)(UIImage *image))completeHandler{
     
-    [self showImagePickerControllerWithSourceType:sourceType];
+    UIImagePickerControllerSourceType sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
+    
+    [JKPhotoItem setSelectDataType:dataType];
+    
+    switch (dataType) {
+        case JKPhotoPickerMediaDataTypeStaticImage:
+        {
+            [JKPhotoManager checkCameraAccessWithPresentVc:presentVc finished:^(BOOL isAccessed) {
+                
+                if (!isAccessed) { return; }
+                
+                [self showWithConfig:config presentVc:presentVc sourceType:sourceType allowsEditing:allowsEditing completeHandler:completeHandler];
+            }];
+        }
+            break;
+        case JKPhotoPickerMediaDataTypeVideo:
+        {
+            sourceType = UIImagePickerControllerSourceTypeCamera;
+            
+            [JKPhotoManager checkCameraAccessWithPresentVc:presentVc finished:^(BOOL isAccessed) {
+                
+                if (!isAccessed) { return; }
+                
+            }];
+        }
+            break;
+            
+        default:
+            return;
+            break;
+    }
+}
+
++ (void)showWithConfig:(void(^)(UIImagePickerController *imagPicker))config presentVc:(UIViewController *)presentVc sourceType:(UIImagePickerControllerSourceType)sourceType allowsEditing:(BOOL)allowsEditing completeHandler:(void(^)(UIImage *image))completeHandler{
+    
+    
+    UIImagePickerController *imagePicker = [[UIImagePickerController alloc] init];
+    imagePicker.sourceType = sourceType;
+    imagePicker.allowsEditing = allowsEditing;
+    !config ? : config(imagePicker);
 }
 
 - (void)showImagePickerControllerWithSourceType:(UIImagePickerControllerSourceType)sourceType{
@@ -939,6 +943,11 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
 }
 
 #pragma mark - <UIImagePickerControllerDelegate>
+
+- (void)imagePickerControllerDidCancel:(UIImagePickerController *)picker{
+    [picker dismissViewControllerAnimated:YES completion:nil];
+}
+
 - (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary<NSString *,id> *)info{
     
     // 获取媒体类型

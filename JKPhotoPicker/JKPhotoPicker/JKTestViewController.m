@@ -35,7 +35,7 @@
     [alertVc addAction:[UIAlertAction actionWithTitle:@"拍照" style:(UIAlertActionStyleDefault) handler:^(UIAlertAction * _Nonnull action) {
         
 //        [self updateIconWithSourType:(UIImagePickerControllerSourceTypeCamera)];
-        [JKPhotoPickerViewController showWithPresentVc:self maxSelectCount:7 seletedItems:self.selectCompleteView.photoItems dataType:JKPhotoPickerMediaDataTypeImageIncludeGif isOpenCameraFirst:YES completeHandler:^(NSArray<JKPhotoItem *> *photoItems) {
+        [JKPhotoPickerViewController showWithPresentVc:self maxSelectCount:7 seletedItems:self.selectCompleteView.photoItems dataType:JKPhotoPickerMediaDataTypeImageIncludeGif completeHandler:^(NSArray<JKPhotoItem *> *photoItems) {
             [self.imageView removeFromSuperview];
             self.imageView = nil;
             self.selectCompleteView.photoItems = photoItems;
@@ -43,7 +43,7 @@
     }]];
     
     [alertVc addAction:[UIAlertAction actionWithTitle:@"从相册选择" style:(UIAlertActionStyleDefault) handler:^(UIAlertAction * _Nonnull action) {
-        [JKPhotoPickerViewController showWithPresentVc:self maxSelectCount:7 seletedItems:self.selectCompleteView.photoItems dataType:JKPhotoPickerMediaDataTypeImageIncludeGif isOpenCameraFirst:NO completeHandler:^(NSArray<JKPhotoItem *> *photoItems) {
+        [JKPhotoPickerViewController showWithPresentVc:self maxSelectCount:7 seletedItems:self.selectCompleteView.photoItems dataType:JKPhotoPickerMediaDataTypeImageIncludeGif completeHandler:^(NSArray<JKPhotoItem *> *photoItems) {
             [self.imageView removeFromSuperview];
             self.imageView = nil;
             self.selectCompleteView.photoItems = photoItems;

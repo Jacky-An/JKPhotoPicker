@@ -12,13 +12,13 @@
 
 @interface JKPhotoManager : NSObject
 /** 检查相册访问权限 */
-+ (void)checkPhotoAccessFinished:(void(^)(BOOL isAccessed))finished;
++ (void)checkPhotoAccessWithPresentVc:(UIViewController *)presentVc finished:(void (^)(BOOL isAccessed))finished;
 
 /** 检查相机访问权限 */
-+ (void)checkCameraAccessFinished:(void(^)(BOOL isAccessed))finished;
++ (void)checkCameraAccessWithPresentVc:(UIViewController *)presentVc finished:(void(^)(BOOL isAccessed))finished;
 
 /** 检查麦克风访问权限 */
-+ (void)checkMicrophoneAccessFinished:(void(^)(BOOL isAccessed))finished;
++ (void)checkMicrophoneAccessWithPresentVc:(UIViewController *)presentVc finished:(void(^)(BOOL isAccessed))finished;
 
 /** 获取相机胶卷所有照片对象 倒序 数组中是PHAsset对象 */
 + (NSMutableArray *)getCameraRollAssets;
