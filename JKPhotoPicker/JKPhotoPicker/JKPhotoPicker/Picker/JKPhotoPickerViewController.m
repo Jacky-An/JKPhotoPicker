@@ -476,64 +476,79 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
     
     JKPhotoPickerMediaDataType type = [JKPhotoItem selectDataType];
     
-    if (type == JKPhotoPickerMediaDataTypeGif) {  // 仅选中gif时，不允许拍照
-        
-        UIAlertController *alertVc = [UIAlertController alertControllerWithTitle:@"提示" message:@"暂不支持gif拍摄" preferredStyle:(UIAlertControllerStyleAlert)];
-        
-        [alertVc addAction:[UIAlertAction actionWithTitle:@"知道了" style:(UIAlertActionStyleDefault) handler:^(UIAlertAction * _Nonnull action) {
+    switch (type) {
+        case JKPhotoPickerMediaDataTypeGif:
+        {  // 仅选中gif时，不允许拍照
             
-        }]];
-        
-        [self presentViewController:alertVc animated:YES completion:nil];
-        
-        return;
-    }
-    
-    if (type == JKPhotoPickerMediaDataTypePhotoLive) {
-        
-        UIAlertController *alertVc = [UIAlertController alertControllerWithTitle:@"提示" message:@"暂不支持livePhoto拍摄" preferredStyle:(UIAlertControllerStyleAlert)];
-        
-        [alertVc addAction:[UIAlertAction actionWithTitle:@"知道了" style:(UIAlertActionStyleDefault) handler:^(UIAlertAction * _Nonnull action) {
+            UIAlertController *alertVc = [UIAlertController alertControllerWithTitle:@"提示" message:@"暂不支持gif拍摄" preferredStyle:(UIAlertControllerStyleAlert)];
             
-        }]];
-        
-        [self presentViewController:alertVc animated:YES completion:nil];
-        
-        return;
-    }
-    
-    [JKPhotoManager checkCameraAccessWithPresentVc:self finished:^(BOOL isAccessed) {
-        
-        if (!isAccessed) { return; }
-        
-        if ([JKPhotoItem selectDataType] == JKPhotoPickerMediaDataTypeVideo) {
-            
-            [JKPhotoManager checkMicrophoneAccessWithPresentVc:self finished:^(BOOL isAccessed) {
+            [alertVc addAction:[UIAlertAction actionWithTitle:@"知道了" style:(UIAlertActionStyleDefault) handler:^(UIAlertAction * _Nonnull action) {
                 
-                if (!isAccessed) {
+            }]];
+            
+            [self presentViewController:alertVc animated:YES completion:nil];
+        }
+            break;
+            case JKPhotoPickerMediaDataTypePhotoLive:
+        {
+            
+            UIAlertController *alertVc = [UIAlertController alertControllerWithTitle:@"提示" message:@"暂不支持livePhoto拍摄" preferredStyle:(UIAlertControllerStyleAlert)];
+            
+            [alertVc addAction:[UIAlertAction actionWithTitle:@"知道了" style:(UIAlertActionStyleDefault) handler:^(UIAlertAction * _Nonnull action) {
+                
+            }]];
+            
+            [self presentViewController:alertVc animated:YES completion:nil];
+        }
+            break;
+        case JKPhotoPickerMediaDataTypeUnknown:
+        {
+            
+        }
+            break;
+            
+        default:
+        {
+            [JKPhotoManager checkCameraAccessWithPresentVc:self finished:^(BOOL isAccessed) {
+                
+                if (!isAccessed) { return; }
+                
+                if ([JKPhotoItem selectDataType] == JKPhotoPickerMediaDataTypeVideo) {
                     
-                    UIAlertController *alertVc = [UIAlertController alertControllerWithTitle:@"提示" message:@"当前程序未获得麦克风权限，会导致拍摄没有声音。是否打开？由于iOS系统原因，设置麦克风权限会导致app崩溃，请知晓。" preferredStyle:(UIAlertControllerStyleAlert)];
-                    
-                    [alertVc addAction:[UIAlertAction actionWithTitle:@"无声拍摄" style:(UIAlertActionStyleDefault) handler:^(UIAlertAction * _Nonnull action) {
+                    [JKPhotoManager checkMicrophoneAccessWithPresentVc:self finished:^(BOOL isAccessed) {
+                        
+                        if (!isAccessed) {
+                            
+                            UIAlertController *alertVc = [UIAlertController alertControllerWithTitle:@"提示" message:@"当前程序未获得麦克风权限，会导致拍摄没有声音。是否打开？由于iOS系统原因，设置麦克风权限会导致app崩溃，请知晓。" preferredStyle:(UIAlertControllerStyleAlert)];
+                            
+                            [alertVc addAction:[UIAlertAction actionWithTitle:@"无声拍摄" style:(UIAlertActionStyleDefault) handler:^(UIAlertAction * _Nonnull action) {
+                                
+                                [self showImagePickerControllerWithSourceType:sourceType];
+                            }]];
+                            
+                            [alertVc addAction:[UIAlertAction actionWithTitle:@"去打开" style:(UIAlertActionStyleDefault) handler:^(UIAlertAction * _Nonnull action) {
+                                
+                                // 打开本程序对应的权限设置
+                                [[UIApplication sharedApplication]openURL:[NSURL URLWithString:UIApplicationOpenSettingsURLString]];
+                            }]];
+                            
+                            [self presentViewController:alertVc animated:YES completion:nil];
+                            
+                            return;
+                        }
                         
                         [self showImagePickerControllerWithSourceType:sourceType];
-                    }]];
-                    
-                    [alertVc addAction:[UIAlertAction actionWithTitle:@"去打开" style:(UIAlertActionStyleDefault) handler:^(UIAlertAction * _Nonnull action) {
-                        
-                        // 打开本程序对应的权限设置
-                        [[UIApplication sharedApplication]openURL:[NSURL URLWithString:UIApplicationOpenSettingsURLString]];
-                    }]];
-                    
-                    [self presentViewController:alertVc animated:YES completion:nil];
-                    
+                    }];
                     return;
                 }
                 
                 [self showImagePickerControllerWithSourceType:sourceType];
             }];
         }
-    }];
+            break;
+    }
+    
+    
 }
 
 
