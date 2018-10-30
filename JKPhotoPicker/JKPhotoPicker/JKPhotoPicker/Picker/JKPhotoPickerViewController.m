@@ -23,7 +23,7 @@
 #define JKPhotoPickerScreenH [UIScreen mainScreen].bounds.size.height
 #define JKPhotoPickerScreenBounds [UIScreen mainScreen].bounds
 
-@interface JKPhotoPickerViewController () <UICollectionViewDataSource, UICollectionViewDelegate, CAAnimationDelegate, UINavigationControllerDelegate, UIImagePickerControllerDelegate>
+@interface JKPhotoPickerViewController () <UICollectionViewDataSource, UICollectionViewDelegate, CAAnimationDelegate, UINavigationControllerDelegate, UIImagePickerControllerDelegate, PHPhotoLibraryChangeObserver>
 /** collectionView */
 @property (nonatomic, weak) UICollectionView *collectionView;
 
@@ -72,6 +72,13 @@
 static NSString * const reuseID = @"JKPhotoCollectionViewCell"; // 重用ID
 static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; // 选中的照片重用ID
 
+- (instancetype)init{
+    if (self = [super init]) {
+        [[PHPhotoLibrary sharedPhotoLibrary] registerChangeObserver:self];
+    }
+    return self;
+}
+
 #pragma mark - 类方法
 + (void)showWithPresentVc:(UIViewController *)presentVc maxSelectCount:(NSUInteger)maxSelectCount seletedItems:(NSArray <JKPhotoItem *> *)seletedItems dataType:(JKPhotoPickerMediaDataType)dataType completeHandler:(void(^)(NSArray <JKPhotoItem *> *photoItems))completeHandler{
     
@@ -119,6 +126,10 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
 
 + (void)initialize{
     [[UIView appearance] setExclusiveTouch:YES];
+}
+
+- (void)photoLibraryDidChange:(PHChange *)changeInstance{
+    NSLog(@"%@", changeInstance);
 }
 
 #pragma mark - 懒加载
@@ -1068,6 +1079,9 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
 }
 
 - (void)dealloc{
+    
+    [[PHPhotoLibrary sharedPhotoLibrary] unregisterChangeObserver:self];
+    
     NSLog(@"%d, %s",__LINE__, __func__);
 }
 
