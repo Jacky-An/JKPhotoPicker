@@ -109,6 +109,9 @@
     [selectCoverView addSubview:dataTypeLabel];
     _dataTypeLabel = dataTypeLabel;
     
+    dataTypeLabel.shadowColor = [UIColor blackColor];
+    dataTypeLabel.shadowOffset = CGSizeMake(0, 0.5);
+    
     dataTypeLabel.translatesAutoresizingMaskIntoConstraints = NO;
     NSLayoutConstraint *dataTypeLabelLeftCons = [NSLayoutConstraint constraintWithItem:dataTypeLabel attribute:(NSLayoutAttributeLeft) relatedBy:(NSLayoutRelationEqual) toItem:selectCoverView attribute:(NSLayoutAttributeLeft) multiplier:1 constant:0];
     [self.contentView addConstraint:dataTypeLabelLeftCons];
