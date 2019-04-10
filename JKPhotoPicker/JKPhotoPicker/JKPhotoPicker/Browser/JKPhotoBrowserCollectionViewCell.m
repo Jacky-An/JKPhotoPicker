@@ -59,6 +59,12 @@
 
 /** playVideoButton */
 @property (nonatomic, weak) UIButton *playVideoButton;
+
+/** shouldRecognizePanGesture */
+@property (nonatomic, assign) BOOL shouldRecognizePanGesture;
+
+/** panGesturePoint */
+@property (nonatomic, assign) CGPoint panGesturePoint;
 @end
 
 CGFloat const dismissDistance = 80;
@@ -90,6 +96,48 @@ CGFloat const dismissDistance = 80;
     indicatorView.center = CGPointMake(JKPhotoPickerScreenW * 0.5 + 10, JKPhotoPickerScreenH * 0.5);
 }
 
+- (void)panGestureAction:(UIPanGestureRecognizer *)panGesture{
+    
+    switch (panGesture.state) {
+        case UIGestureRecognizerStateBegan:
+        {
+            _panGesturePoint = CGPointZero;
+        }
+            break;
+        case UIGestureRecognizerStateChanged:
+        {
+            
+            if (self.scrollView.contentOffset.y + self.scrollView.contentInset.top <= 0) {
+                // 获取偏移
+                CGPoint point = [panGesture translationInView:self.photoImageView];
+
+                _panGesturePoint.x += point.x;
+                _panGesturePoint.y += point.y;
+
+                NSLog(@"translationInView == %@", NSStringFromCGPoint(point));
+
+                self.bgAlpha = 1 - ((_panGesturePoint.y) / dismissDistance * 0.2);
+
+                self.collectionView.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:self.bgAlpha];
+
+                self.transformScale = self.currentZoomScale - ((_panGesturePoint.y) / dismissDistance * 0.1);//self.currentZoomScale - (scrollView.contentOffset.y + scrollView.contentInset.top) / (-350 - scrollView.contentInset.top) * 1.0;
+                self.transformScale = self.transformScale < 0.2 ? 0.2 : self.transformScale;
+                CGAffineTransform transform = CGAffineTransformMakeScale(self.transformScale, self.transformScale);
+
+
+                self.photoImageView.transform = transform;//CGAffineTransformTranslate(transform, point.x, point.y);
+
+                [panGesture setTranslation:CGPointZero inView:self.photoImageView];
+            }
+        }
+            break;
+            
+        default:
+            _panGesturePoint = CGPointZero;
+            break;
+    }
+}
+
 - (void)setupPhotoImageView{
     
     UIScrollView *scrollView = [[UIScrollView alloc] init];
@@ -102,6 +150,10 @@ CGFloat const dismissDistance = 80;
 //    scrollView.backgroundColor = [UIColor blackColor];
     scrollView.alwaysBounceVertical = YES;
     scrollView.alwaysBounceHorizontal = YES;
+    scrollView.bounces = NO;
+    scrollView.scrollEnabled = NO;
+    
+    [scrollView.panGestureRecognizer addTarget:self action:@selector(panGestureAction:)];
     
     [self.contentView insertSubview:scrollView atIndex:0];
     self.scrollView = scrollView;
@@ -502,6 +554,9 @@ CGFloat const dismissDistance = 80;
 #pragma mark - UIScrollViewDelegate
 
 - (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView{
+    
+    [(UIScrollView *)self.superview setScrollEnabled:NO];
+    
     self.isDoubleTap = NO;
     
     isDragging = YES;
@@ -589,6 +644,7 @@ CGFloat const dismissDistance = 80;
 }
 
 - (void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate{
+    
     //    scrollView.userInteractionEnabled = YES;
     
     isDragging = NO;
@@ -598,7 +654,7 @@ CGFloat const dismissDistance = 80;
 }
 
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView{
-    
+    return;
     NSLog(@"contentOffset --> %@", NSStringFromCGPoint(scrollView.contentOffset));
     
 //    if (!isFirstScroll) {
@@ -651,8 +707,20 @@ CGFloat const dismissDistance = 80;
         lastOffsetY = currentOffsetY;
     }
     
+    if (self.shouldRecognizePanGesture) {
+        return;
+    }
+    
     
     if (scrollView.contentOffset.y + scrollView.contentInset.top >= 0) {
+        
+        return;
+    } else {
+        
+        [scrollView setContentOffset:CGPointMake(scrollView.contentOffset.x, -scrollView.contentInset.top)];
+        
+        self.shouldRecognizePanGesture = YES;
+        
         return;
     }
     
@@ -678,15 +746,25 @@ CGFloat const dismissDistance = 80;
     self.transformScale = self.transformScale < 0.2 ? 0.2 : self.transformScale;
     CGAffineTransform transform = CGAffineTransformMakeScale(self.transformScale, self.transformScale);
     
-    self.photoImageView.transform = CGAffineTransformTranslate(transform, self.currentZoomScale > 1 ? 0 : point.x, self.currentZoomScale > 1 ? 0 : (originalHeight > JKPhotoPickerScreenH + 100 ? 0 : point.y * 0.5));
+    //self.photoImageView.transform = CGAffineTransformTranslate(transform, self.currentZoomScale > 1 ? 0 : point.x, self.currentZoomScale > 1 ? 0 : (originalHeight > JKPhotoPickerScreenH + 100 ? 0 : point.y * 0.5));
+    
+    self.photoImageView.transform = CGAffineTransformTranslate(transform, 1.0 / self.transformScale, 1.0 / self.transformScale);
 }
 
 - (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView{
+    
+    [(UIScrollView *)self.superview setScrollEnabled:YES];
 //    if (!isGonnaDismiss && self.transformScale <= 1) {
 //        [UIView animateWithDuration:0.25 animations:^{
 //            self.photoImageView.transform = CGAffineTransformIdentity;
 //        }];
 //    }
+}
+
+- (void)scrollViewDidEndScrollingAnimation:(UIScrollView *)scrollView{
+    
+    
+    [(UIScrollView *)self.superview setScrollEnabled:YES];
 }
 
 - (void)scrollViewWillBeginZooming:(UIScrollView *)scrollView withView:(UIView *)view{
