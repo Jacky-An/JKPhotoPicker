@@ -9,7 +9,7 @@
 #import <UIKit/UIKit.h>
 #import "JKPhotoPickerMacro.h"
 
-@class JKPhotoItem;
+@class JKPhotoItem, PHAsset;
 
 @interface JKPhotoPickerViewController : UIViewController
 
@@ -20,7 +20,11 @@
  * dataType          : 要选择的数据类型
  * completeHandler   : 选择完成的回调
  */
-+ (void)showWithPresentVc:(UIViewController *)presentVc maxSelectCount:(NSUInteger)maxSelectCount seletedItems:(NSArray <JKPhotoItem *> *)seletedItems dataType:(JKPhotoPickerMediaDataType)dataType completeHandler:(void(^)(NSArray <JKPhotoItem *> *photoItems))completeHandler;
++ (void)showWithPresentVc:(UIViewController *)presentVc
+           maxSelectCount:(NSUInteger)maxSelectCount
+             seletedItems:(NSArray <JKPhotoItem *> *)seletedItems
+                 dataType:(JKPhotoPickerMediaDataType)dataType
+          completeHandler:(void(^)(NSArray <JKPhotoItem *> *photoItems, NSArray<PHAsset *> *selectedAssetArray))completeHandler;
 
 /**
  * 使用UIImagePicker

@@ -28,7 +28,10 @@
 @property (nonatomic, strong) NSArray *dataSourceArr;
 
 /** 选中的图片数组 */
-@property (nonatomic, strong) NSMutableArray *selectedPhotoItemss;
+@property (nonatomic, strong) NSMutableArray *selectedPhotoItems;
+
+/** 选中的asset数组 */
+@property (nonatomic, strong) NSMutableArray *selectedAssetArray;
 
 /** 点击的索引 */
 @property (nonatomic, strong) NSIndexPath *indexPath;
@@ -49,7 +52,7 @@
 @property (nonatomic, strong) NSMutableArray *dismissReloadIndexPaths;
 
 /** 监听退出图片浏览器的block */
-@property (nonatomic, copy) void (^completionBlock)(NSArray <JKPhotoItem *> *seletedPhotos, NSArray <NSIndexPath *> *indexPaths, NSMutableDictionary *selectedPhotosIdentifierCache);
+@property (nonatomic, copy) void (^completionBlock)(NSArray <JKPhotoItem *> *seletedPhotos, NSArray<PHAsset *> *selectedAssetArray, NSArray <NSIndexPath *> *indexPaths, NSMutableDictionary *selectedPhotosIdentifierCache);
 
 /** 点击的索引 */
 @property (nonatomic, strong) JKPhotoBrowserPresentationManager *presentationManager;
@@ -74,7 +77,7 @@
 
 static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用ID
 
-+ (void)showWithViewController:(UIViewController *)viewController dataDict:(NSDictionary *)dataDict completion:(void(^)(NSArray <JKPhotoItem *> *seletedPhotos, NSArray <NSIndexPath *> *indexPaths, NSMutableDictionary *selectedPhotosIdentifierCache))completion{
++ (void)showWithViewController:(UIViewController *)viewController dataDict:(NSDictionary *)dataDict completion:(void(^)(NSArray <JKPhotoItem *> *seletedPhotos, NSArray<PHAsset *> *selectedAssetArray, NSArray <NSIndexPath *> *indexPaths, NSMutableDictionary *selectedPhotosIdentifierCache))completion{
     
     JKPhotoBrowserViewController *vc = [[self alloc] init];
     
@@ -104,12 +107,16 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
     vc.allPhotosIdentifierCache      = dataDict[@"allPhotosCache"];
     vc.selectedPhotosIdentifierCache = dataDict[@"selectedItemsCache"];
     
-    [vc.selectedPhotoItemss removeAllObjects];
+    [vc.selectedPhotoItems removeAllObjects];
     NSArray *selectedItems = dataDict[@"selectedItems"];
     vc.initialSelectCount  = selectedItems.count;
-    [vc.selectedPhotoItemss addObjectsFromArray:selectedItems];
+    [vc.selectedPhotoItems addObjectsFromArray:selectedItems];
     
-//    [vc.dismissReloadIndexPaths addObjectsFromArray:[vc.selectedPhotoItemss valueForKeyPath:@"currentIndexPath"]];
+    [vc.selectedAssetArray removeAllObjects];
+    NSArray *selectedAssets = dataDict[@"selectedAssets"];
+    [vc.selectedAssetArray addObjectsFromArray:selectedAssets];
+    
+//    [vc.dismissReloadIndexPaths addObjectsFromArray:[vc.selectedPhotoItems valueForKeyPath:@"currentIndexPath"]];
     
     [vc addReloadIndexPaths];
     
@@ -141,7 +148,7 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
 
 - (void)addReloadIndexPaths{
     
-    for (JKPhotoItem *itm in self.selectedPhotoItemss) {
+    for (JKPhotoItem *itm in self.selectedPhotoItems) {
         
         JKPhotoItem *item = [self.allPhotosIdentifierCache objectForKey:itm.assetLocalIdentifier];
         
@@ -160,7 +167,7 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
     
     [self.selectedPhotosIdentifierCache removeAllObjects];
     
-    for (JKPhotoItem *itm in self.selectedPhotoItemss) {
+    for (JKPhotoItem *itm in self.selectedPhotoItems) {
         
         [self.selectedPhotosIdentifierCache setObject:itm forKey:itm.assetLocalIdentifier];
     }
@@ -179,11 +186,18 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
     return _cachingImageManager;
 }
 
-- (NSMutableArray *)selectedPhotoItemss{
-    if (!_selectedPhotoItemss) {
-        _selectedPhotoItemss = [NSMutableArray array];
+- (NSMutableArray *)selectedPhotoItems{
+    if (!_selectedPhotoItems) {
+        _selectedPhotoItems = [NSMutableArray array];
     }
-    return _selectedPhotoItemss;
+    return _selectedPhotoItems;
+}
+
+- (NSMutableArray *)selectedAssetArray{
+    if (!_selectedAssetArray) {
+        _selectedAssetArray = [NSMutableArray array];
+    }
+    return _selectedAssetArray;
 }
 
 - (NSMutableDictionary *)selectedPhotosIdentifierCache{
@@ -303,7 +317,7 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
     
 //    item.isSelected = NO;
     
-//    for (JKPhotoItem *it in self.selectedPhotoItemss) {
+//    for (JKPhotoItem *it in self.selectedPhotoItems) {
 //
 //        if (![it.assetLocalIdentifier isEqualToString:item.assetLocalIdentifier]) continue;
 //
@@ -345,7 +359,7 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
             }
             
             if (weakSelf.maxSelectCount <= 0 ||
-                weakSelf.selectedPhotoItemss.count < weakSelf.maxSelectCount) {
+                weakSelf.selectedPhotoItems.count < weakSelf.maxSelectCount) {
                 
                 [weakSelf selectPhotoWithCell:currentCell];
                 
@@ -370,7 +384,7 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
 //    if (!cell.deleteButtonClickBlock) {
 //        [cell setDeleteButtonClickBlock:^(JKPhotoCollectionViewCell *currentCell) {
 //            currentCell.photoItem.isSelected = NO;
-//            [weakSelf.selectedPhotoItemss removeObject:currentCell.photoItem];
+//            [weakSelf.selectedPhotoItems removeObject:currentCell.photoItem];
 //            [weakSelf.bottomCollectionView reloadData];
 //            [weakSelf.collectionView reloadData];
 //            [weakSelf changeSelectedCount];
@@ -414,9 +428,10 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
     
     [self.selectedPhotosIdentifierCache setObject:currentCell.photoItem forKey:currentCell.photoItem.assetLocalIdentifier];
     
-    [self.selectedPhotoItemss addObject:currentCell.photoItem];
+    [self.selectedPhotoItems addObject:currentCell.photoItem];
+    [self.selectedAssetArray addObject:currentCell.photoItem.photoAsset];
     
-    NSLog(@"选中了%ld个", (unsigned long)self.selectedPhotoItemss.count);
+    NSLog(@"选中了%ld个", (unsigned long)self.selectedPhotoItems.count);
 }
 
 #pragma mark - 最大选择数量提示
@@ -448,9 +463,14 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
         }
     }
     
-    if ([self.selectedPhotoItemss containsObject:currentCell.photoItem]) {
+    if ([self.selectedPhotoItems containsObject:currentCell.photoItem]) {
         
-        [self.selectedPhotoItemss removeObject:currentCell.photoItem];
+        [self.selectedPhotoItems removeObject:currentCell.photoItem];
+        
+        if ([self.selectedAssetArray containsObject:currentCell.photoItem.photoAsset]) {
+            
+            [self.selectedAssetArray removeObject:currentCell.photoItem.photoAsset];
+        }
         
         if ([self.selectedPhotosIdentifierCache objectForKey:currentCell.photoItem.assetLocalIdentifier] != nil) {
             
@@ -463,7 +483,7 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
         
         if (itm == nil) {
             
-            for (JKPhotoItem *it in self.selectedPhotoItemss) {
+            for (JKPhotoItem *it in self.selectedPhotoItems) {
                 
                 if ([it.assetLocalIdentifier isEqualToString:currentCell.photoItem.assetLocalIdentifier]) {
                     
@@ -478,13 +498,18 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
             [self.selectedPhotosIdentifierCache removeObjectForKey:currentCell.photoItem.assetLocalIdentifier];
         }
         
-        if ([self.selectedPhotoItemss containsObject:itm]) {
+        if ([self.selectedPhotoItems containsObject:itm]) {
             
-            [self.selectedPhotoItemss removeObject:itm];
+            [self.selectedPhotoItems removeObject:itm];
+            
+            if ([self.selectedAssetArray containsObject:itm.photoAsset]) {
+                
+                [self.selectedAssetArray removeObject:itm.photoAsset];
+            }
         }
     }
     
-    NSLog(@"取消选中,当前选中了%ld个", (unsigned long)self.selectedPhotoItemss.count);
+    NSLog(@"取消选中,当前选中了%ld个", (unsigned long)self.selectedPhotoItems.count);
 }
 
 #pragma mark - 退出
@@ -514,7 +539,7 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
     
     if (self.isShowSelectedPhotos) {
         
-        self.presentationManager.isZoomUpAnimation = !CGRectIntersectsRect(presentFrame, bottomOrCompleteRect) || (self.initialSelectCount != self.selectedPhotoItemss.count);
+        self.presentationManager.isZoomUpAnimation = !CGRectIntersectsRect(presentFrame, bottomOrCompleteRect) || (self.initialSelectCount != self.selectedPhotoItems.count);
         
     }else{
         
@@ -573,7 +598,7 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
     
     [self dismissViewControllerAnimated:YES completion:^{
         
-        !self.completionBlock ? : self.completionBlock(self.selectedPhotoItemss, self.dismissReloadIndexPaths, self.selectedPhotosIdentifierCache);
+        !self.completionBlock ? : self.completionBlock(self.selectedPhotoItems, self.selectedAssetArray, self.dismissReloadIndexPaths, self.selectedPhotosIdentifierCache);
     }];
 }
 

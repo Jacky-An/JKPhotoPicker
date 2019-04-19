@@ -9,12 +9,15 @@
 #import <UIKit/UIKit.h>
 #import <Photos/Photos.h>
 
-@class JKPhotoItem;
+@class JKPhotoItem, PHAsset;
 
 @interface JKPhotoSelectCompleteView : UIView
 
 /** 选中的图片模型数组 JKPhotoItem */
 @property (nonatomic, strong) NSArray <JKPhotoItem *> *photoItems;
+
+/** 选中的图片模型数组 PHAsset */
+@property (nonatomic, strong) NSArray <PHAsset *> *assets;
 
 /** 流水布局 */
 @property (nonatomic, strong, readonly) UICollectionViewFlowLayout *flowLayout;

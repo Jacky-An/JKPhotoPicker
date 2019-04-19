@@ -21,6 +21,9 @@
 /** 选中的图片数组 */
 @property (nonatomic, strong) NSMutableArray *selectedPhotoItems;
 
+/** 选中的asset数组 */
+@property (nonatomic, strong) NSMutableArray *selectedAssetArray;
+
 /** 父控件所在的控制器 */
 @property (nonatomic, weak) UIViewController *superViewController;
 
@@ -33,6 +36,7 @@
 static NSString * const reuseID = @"JKPhotoSelectCompleteCollectionViewCell"; // 重用ID
 
 + (instancetype)completeViewWithSuperView:(UIView *)superView viewController:(UIViewController *)viewController frame:(CGRect)frame itemSize:(CGSize)itemSize scrollDirection:(UICollectionViewScrollDirection)scrollDirection{
+    
     JKPhotoSelectCompleteView *view = [[JKPhotoSelectCompleteView alloc] initWithFrame:frame];
     
     [superView addSubview:view];
@@ -45,6 +49,7 @@ static NSString * const reuseID = @"JKPhotoSelectCompleteCollectionViewCell"; //
         view.collectionView.alwaysBounceVertical = YES;
         
     }else{
+        
         view.collectionView.alwaysBounceHorizontal = YES;
     }
     
@@ -58,6 +63,14 @@ static NSString * const reuseID = @"JKPhotoSelectCompleteCollectionViewCell"; //
     }
     return _selectedPhotoItems;
 }
+
+- (NSMutableArray *)selectedAssetArray{
+    if (!_selectedAssetArray) {
+        _selectedAssetArray = [NSMutableArray array];
+    }
+    return _selectedAssetArray;
+}
+
 
 - (PHCachingImageManager *)cachingImageManager{
     if (!_cachingImageManager) {
@@ -415,6 +428,17 @@ static NSString *videoCacheDirectoryPath_;
     [self.collectionView reloadData];
 }
 
+- (void)setAssets:(NSArray<PHAsset *> *)assets{
+    
+    [self.selectedAssetArray removeAllObjects];
+    [self.selectedAssetArray addObjectsFromArray:assets];
+}
+
+- (NSArray<PHAsset *> *)assets{
+    
+    return self.selectedAssetArray;
+}
+
 #pragma mark - collectionView数据源
 - (NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section{
     return self.selectedPhotoItems.count;
@@ -479,6 +503,7 @@ static NSString *videoCacheDirectoryPath_;
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
     dict[@"allPhotos"] = nil;
     dict[@"selectedItems"] = self.selectedPhotoItems;
+    dict[@"selectedAssets"] = self.selectedAssetArray;
     dict[@"maxSelectCount"] = @(NSIntegerMax);
     dict[@"imageView"] = cell.photoImageView;
     dict[@"collectionView"] = collectionView;
@@ -486,7 +511,7 @@ static NSString *videoCacheDirectoryPath_;
     dict[@"isSelectedCell"] = @(YES);
     dict[@"isShowSelectedPhotos"] = @(YES);
     
-    [JKPhotoBrowserViewController showWithViewController:self.superViewController dataDict:dict completion:^(NSArray <JKPhotoItem *> *seletedPhotos, NSArray <NSIndexPath *> *indexPaths, NSMutableDictionary *selectedPhotosIdentifierCache) {
+    [JKPhotoBrowserViewController showWithViewController:self.superViewController dataDict:dict completion:^(NSArray <JKPhotoItem *> *seletedPhotos, NSArray<PHAsset *> *selectedAssetArray, NSArray <NSIndexPath *> *indexPaths, NSMutableDictionary *selectedPhotosIdentifierCache) {
         
         if (self.selectedPhotoItems.count == seletedPhotos.count) {
             return;
@@ -494,6 +519,9 @@ static NSString *videoCacheDirectoryPath_;
         
         [self.selectedPhotoItems removeAllObjects];
         [self.selectedPhotoItems addObjectsFromArray:seletedPhotos];
+        
+        [self.selectedAssetArray removeAllObjects];
+        [self.selectedAssetArray addObjectsFromArray:seletedPhotos];
         
         [self.collectionView performBatchUpdates:^{
             
