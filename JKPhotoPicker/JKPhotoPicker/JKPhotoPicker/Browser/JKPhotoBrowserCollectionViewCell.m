@@ -120,7 +120,7 @@ CGFloat const dismissDistance = 80;
     
     // 照片
     UIImageView *photoImageView = [[UIImageView alloc] init];
-    photoImageView.userInteractionEnabled = YES;
+    //photoImageView.userInteractionEnabled = YES;
     photoImageView.contentMode = UIViewContentModeScaleAspectFit;
     photoImageView.clipsToBounds = YES;
     [self.scrollView insertSubview:photoImageView atIndex:0];
@@ -408,8 +408,10 @@ CGFloat const dismissDistance = 80;
     CGFloat imageAspectRatio = imageW / imageH;
     
     if (imageW / imageH >= _screenAspectRatio) { // 宽高比大于屏幕宽高比，基于宽度缩放
+        
         self.photoImageView.frame = CGRectMake(0, 0, JKPhotoPickerScreenW, JKPhotoPickerScreenW / imageAspectRatio);
-    }else{
+        
+    } else {
         
         // 宽高比小于屏幕宽高比，基于高度缩放
         self.photoImageView.frame = CGRectMake(0, 0, JKPhotoPickerScreenH * imageAspectRatio, JKPhotoPickerScreenH);
@@ -518,7 +520,7 @@ CGFloat const dismissDistance = 80;
         
         CGAffineTransform transform = CGAffineTransformMakeScale(self.currentZoomScale, self.currentZoomScale);
         
-        [UIView animateWithDuration:0.25 animations:^{
+        [UIView animateWithDuration:0.25 delay:0 options:(UIViewAnimationOptionAllowUserInteraction) animations:^{
             [UIView setAnimationCurve:(7)];//CGAffineTransformTranslate(self.photoImageView.transform, 0, 0);
             
             self.photoImageView.transform = transform;//CGAffineTransformTranslate(transform, 0, 0);
@@ -556,8 +558,6 @@ CGFloat const dismissDistance = 80;
     self.scrollView = nil;
     self.selectButton.hidden = YES;
     
-//    self.scrollView.contentInset = UIEdgeInsetsMake(rect.origin.y, 0, 0, 0);
-    
     [UIView animateWithDuration:0.3 animations:^{
         
         self.selectIconImageView.hidden = YES;
@@ -571,7 +571,7 @@ CGFloat const dismissDistance = 80;
 
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView{
     
-    NSLog(@"contentOffset --> %@", NSStringFromCGPoint(scrollView.contentOffset));
+    //NSLog(@"contentOffset --> %@", NSStringFromCGPoint(scrollView.contentOffset));
     
     if (isDragging) {
         
@@ -586,12 +586,12 @@ CGFloat const dismissDistance = 80;
             
             endScrollDirection = JKPhotoPickerScrollDirectionUp;
             
-//            JKLog("上滑-------")
+            //JKLog("上滑-------")
         }
         
         if (currentOffsetY < lastOffsetY) {
             
-//            JKLog("下滑-------")
+            //JKLog("下滑-------")
             
             if (beginScrollDirection == JKPhotoPickerScrollDirectionNone) {
                 
@@ -603,7 +603,6 @@ CGFloat const dismissDistance = 80;
         
         lastOffsetY = currentOffsetY;
     }
-    
     
     if (scrollView.contentOffset.y + scrollView.contentInset.top >= 0) {
         return;
@@ -678,22 +677,5 @@ CGFloat const dismissDistance = 80;
     }
     
     self.scrollView.contentInset = UIEdgeInsetsMake(offsetY, offsetX, offsetY, offsetX);
-}
-
-#pragma mark - UIGestureRecognizerDelegate
-- (BOOL)gestureRecognizerShouldBegin:(UIGestureRecognizer *)gestureRecognizer{
-    if ([gestureRecognizer isKindOfClass:[UIPanGestureRecognizer class]]) {
-        
-        UIPanGestureRecognizer *pan = (UIPanGestureRecognizer *)gestureRecognizer;
-        CGPoint pos = [pan velocityInView:pan.view];
-        NSLog(@"手势--->%@", NSStringFromCGPoint(pos));
-//        if (pos.y > 0) {
-//            self.scrollView.scrollEnabled = NO;
-//            return YES;
-//        }
-        return YES;
-    }
-    
-    return NO;
 }
 @end
