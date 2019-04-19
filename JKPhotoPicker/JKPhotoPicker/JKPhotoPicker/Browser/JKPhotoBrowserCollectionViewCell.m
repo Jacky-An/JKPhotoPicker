@@ -120,7 +120,7 @@ CGFloat const dismissDistance = 80;
     
     // 照片
     UIImageView *photoImageView = [[UIImageView alloc] init];
-    //photoImageView.userInteractionEnabled = YES;
+    photoImageView.userInteractionEnabled = YES;
     photoImageView.contentMode = UIViewContentModeScaleAspectFit;
     photoImageView.clipsToBounds = YES;
     [self.scrollView insertSubview:photoImageView atIndex:0];
@@ -285,10 +285,10 @@ CGFloat const dismissDistance = 80;
     [self.gifWebView stopLoading];
     self.gifWebView.hidden = !_photoItem.shouldPlayGif;
     
-    self.playVideoButton.hidden = _photoItem.dataType != JKPhotoPickerMediaDataTypeVideo;
-    
     self.selectIconImageView.hidden = !_photoItem.shouldSelected;
     self.selectButton.hidden = !_photoItem.shouldSelected;
+    
+    self.playVideoButton.hidden = _photoItem.dataType != JKPhotoPickerMediaDataTypeVideo;
     
     self.selectIconImageView.highlighted = _photoItem.isSelected;
     

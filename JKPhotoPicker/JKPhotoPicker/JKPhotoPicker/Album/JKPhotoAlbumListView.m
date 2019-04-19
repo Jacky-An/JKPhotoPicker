@@ -250,6 +250,7 @@ static CGFloat const rowHeight = 70;
     [self.albums removeAllObjects];
     
     for (PHAssetCollection *assetCollection in arr) {
+        
         PHFetchResult *result = [JKPhotoManager getFetchResultWithAssetCollection:assetCollection];
         
         if (result.count <= 0) continue;

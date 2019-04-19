@@ -344,7 +344,8 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
                 return !selected;
             }
             
-            if (weakSelf.selectedPhotoItemss.count < weakSelf.maxSelectCount) {
+            if (weakSelf.maxSelectCount <= 0 ||
+                weakSelf.selectedPhotoItemss.count < weakSelf.maxSelectCount) {
                 
                 [weakSelf selectPhotoWithCell:currentCell];
                 

@@ -32,6 +32,7 @@ typedef NS_ENUM(NSUInteger, JKPhotoPickerMediaDataType) {
     JKPhotoPickerMediaDataTypeImageIncludeGif,
     JKPhotoPickerMediaDataTypeVideo,
     JKPhotoPickerMediaDataTypePhotoLive,
+    JKPhotoPickerMediaDataTypeAll,
 };
 
 typedef NS_ENUM(NSUInteger, JKPhotoPickerScrollDirection) {

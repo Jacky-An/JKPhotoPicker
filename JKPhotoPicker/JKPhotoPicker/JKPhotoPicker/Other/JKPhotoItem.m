@@ -91,19 +91,24 @@
     
     NSString *fileName = [_photoAsset valueForKey:@"filename"];
     
-    if ([fileName.lowercaseString containsString:@"gif"]) {
+    if ([[[fileName pathExtension] lowercaseString] isEqualToString:@"gif"]) {
         
         _dataTypeDescription = @"GIF";
         
         _dataType = JKPhotoPickerMediaDataTypeGif;
         
-        _shouldPlayGif = ([JKPhotoItem selectDataType] == JKPhotoPickerMediaDataTypeGif || [JKPhotoItem selectDataType] == JKPhotoPickerMediaDataTypeImageIncludeGif);
+        _shouldPlayGif = ([JKPhotoItem selectDataType] == JKPhotoPickerMediaDataTypeGif || [JKPhotoItem selectDataType] == JKPhotoPickerMediaDataTypeImageIncludeGif || [JKPhotoItem selectDataType] == JKPhotoPickerMediaDataTypeAll);
         
         if ([JKPhotoItem selectDataType] == JKPhotoPickerMediaDataTypeGif) {
             
             _shouldSelected = YES;
         }
         NSLog(@"%@", fileName);
+    }
+    
+    if ([JKPhotoItem selectDataType] == JKPhotoPickerMediaDataTypeAll) {
+        
+        _shouldSelected = YES;
     }
     
     

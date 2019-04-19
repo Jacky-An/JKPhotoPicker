@@ -234,10 +234,6 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
     
     _isAllPhotosAlbum = YES;
     
-    if (self.maxSelectCount <= 0) {
-        self.maxSelectCount = 3;
-    }
-    
     [self setupNav];
     
     [self setupCollectionView];
@@ -459,7 +455,8 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
                 return !selected;
             }
             
-            if (weakSelf.selectedPhotoItems.count < weakSelf.maxSelectCount) {
+            if (weakSelf.maxSelectCount <= 0 ||
+                weakSelf.selectedPhotoItems.count < weakSelf.maxSelectCount) {
                 
                 [weakSelf selectPhotoWithCell:currentCell];
                 
@@ -841,6 +838,13 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
     
     [self.selectedCountButton.layer addAnimation:rotationAnimation forKey:nil];
     
+    if (self.maxSelectCount <= 0) {
+        
+        [self.selectedCountButton setTitle:[NSString stringWithFormat:@"%ld", (unsigned long)self.selectedPhotoItems.count] forState:(UIControlStateNormal)];
+        
+        return;
+    }
+    
     [self.selectedCountButton setTitle:[NSString stringWithFormat:@"%ld/%ld", (unsigned long)self.selectedPhotoItems.count, (unsigned long)self.maxSelectCount] forState:(UIControlStateNormal)];
 }
 
@@ -1055,7 +1059,8 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
     
     [self.albumListView setReloadCompleteBlock:^{
         
-        if (weakSelf.selectedPhotoItems.count >= weakSelf.maxSelectCount) {
+        if (weakSelf.maxSelectCount > 0 &&
+            weakSelf.selectedPhotoItems.count >= weakSelf.maxSelectCount) {
             return;
         }
         
