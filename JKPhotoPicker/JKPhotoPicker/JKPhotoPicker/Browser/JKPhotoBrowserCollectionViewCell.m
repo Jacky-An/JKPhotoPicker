@@ -99,9 +99,10 @@ CGFloat const dismissDistance = 80;
     scrollView.delegate = self;
     scrollView.minimumZoomScale = 1;
     scrollView.maximumZoomScale = 3;
-//    scrollView.backgroundColor = [UIColor blackColor];
     scrollView.alwaysBounceVertical = YES;
     scrollView.alwaysBounceHorizontal = YES;
+    
+    scrollView.panGestureRecognizer.requiresExclusiveTouchType = NO;
     
     [self.contentView insertSubview:scrollView atIndex:0];
     self.scrollView = scrollView;
@@ -117,23 +118,6 @@ CGFloat const dismissDistance = 80;
         // [tbView performSelector:@selector(setContentInsetAdjustmentBehavior:) withObject:@(2)];
     }
     
-//    UIPanGestureRecognizer *contentPan = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(contentPan:)];
-//    [self.contentView addGestureRecognizer:contentPan];
-//    
-//    contentPan.delegate = self;
-    
-//    self.scrollView.userInteractionEnabled = NO;
-//    [self.contentView addGestureRecognizer:self.scrollView.panGestureRecognizer];
-//    [self.contentView addGestureRecognizer:self.scrollView.pinchGestureRecognizer];
-    
-    // 照片约束
-    //    scrollView.translatesAutoresizingMaskIntoConstraints = NO;
-    //    NSArray *scrollViewCons1 = [NSLayoutConstraint constraintsWithVisualFormat:@"H:|-0-[scrollView]-0-|" options:0 metrics:nil views:@{@"scrollView" : scrollView}];
-    //    [self.contentView addConstraints:scrollViewCons1];
-    //
-    //    NSArray *scrollViewCons2 = [NSLayoutConstraint constraintsWithVisualFormat:@"V:|-0-[scrollView]-0-|" options:0 metrics:nil views:@{@"scrollView" : scrollView}];
-    //    [self.contentView addConstraints:scrollViewCons2];
-    
     // 照片
     UIImageView *photoImageView = [[UIImageView alloc] init];
     photoImageView.userInteractionEnabled = YES;
@@ -141,16 +125,7 @@ CGFloat const dismissDistance = 80;
     photoImageView.clipsToBounds = YES;
     [self.scrollView insertSubview:photoImageView atIndex:0];
     self.photoImageView = photoImageView;
-//    photoImageView.frame = JKPhotoPickerScreenBounds;
-    // 照片约束
-    //    photoImageView.translatesAutoresizingMaskIntoConstraints = NO;
-    //    NSArray *photoImageViewCons1 = [NSLayoutConstraint constraintsWithVisualFormat:@"H:|-0-[photoImageView]-0-|" options:0 metrics:nil views:@{@"photoImageView" : photoImageView}];
-    //    [self.scrollView addConstraints:photoImageViewCons1];
-    //
-    //    NSArray *photoImageViewCons2 = [NSLayoutConstraint constraintsWithVisualFormat:@"V:|-0-[photoImageView]-0-|" options:0 metrics:nil views:@{@"photoImageView" : photoImageView}];
-    //    [self.scrollView addConstraints:photoImageViewCons2];
     
-//    self.photoImageView.userInteractionEnabled = YES;
     UITapGestureRecognizer *doubleTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(doubleTap:)];
     doubleTap.numberOfTapsRequired = 2;
     [self.contentView addGestureRecognizer:doubleTap];
@@ -185,11 +160,9 @@ CGFloat const dismissDistance = 80;
     
     [self.contentView addConstraints:@[cons1, cons2, cons3, cons4]];
     
-    
     // 照片
     PHLivePhotoView *livePhotoView = [[PHLivePhotoView alloc] init];
     
-    //    photoImageView.backgroundColor = JKRandomColor;
     [self.photoImageView insertSubview:livePhotoView atIndex:0];
     self.livePhotoView = livePhotoView;
     
@@ -205,19 +178,11 @@ CGFloat const dismissDistance = 80;
     WKWebView *gifWebView = [[WKWebView alloc] init];
     gifWebView.userInteractionEnabled = NO;
 //    gifWebView.scalesPageToFit = YES;
-    gifWebView.backgroundColor = nil;//[UIColor whiteColor];
+    gifWebView.backgroundColor = nil;
     gifWebView.opaque = NO;
     gifWebView.hidden = YES;
     [self.photoImageView addSubview:gifWebView];
     self.gifWebView = gifWebView;
-    
-    // webView约束
-//    gifWebView.translatesAutoresizingMaskIntoConstraints = NO;
-//    NSArray *gifWebViewCons1 = [NSLayoutConstraint constraintsWithVisualFormat:@"H:|-0-[gifWebView]-0-|" options:0 metrics:nil views:@{@"gifWebView" : gifWebView}];
-//    [self.photoImageView addConstraints:gifWebViewCons1];
-//
-//    NSArray *gifWebViewCons2 = [NSLayoutConstraint constraintsWithVisualFormat:@"V:|-0-[gifWebView]-0-|" options:0 metrics:nil views:@{@"gifWebView" : gifWebView}];
-//    [self.photoImageView addConstraints:gifWebViewCons2];
 }
 
 - (void)loadGifData:(NSData *)gifData{
@@ -272,6 +237,7 @@ CGFloat const dismissDistance = 80;
 }
 
 - (void)setupSelectedIcon{
+    
     // 照片选中按钮
     UIButton *selectButton = [UIButton buttonWithType:(UIButtonTypeCustom)];
     [selectButton addTarget:self action:@selector(selectImageClick) forControlEvents:(UIControlEventTouchUpInside)];
@@ -502,6 +468,9 @@ CGFloat const dismissDistance = 80;
 #pragma mark - UIScrollViewDelegate
 
 - (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView{
+    
+    [(UICollectionView *)self.superview setScrollEnabled:NO];
+    
     self.isDoubleTap = NO;
     
     isDragging = YES;
@@ -525,6 +494,16 @@ CGFloat const dismissDistance = 80;
     }];
 }
 
+- (void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate{
+    
+    [(UICollectionView *)self.superview setScrollEnabled:YES];
+    
+    isDragging = NO;
+    
+    beginScrollDirection = JKPhotoPickerScrollDirectionNone;
+    endScrollDirection = JKPhotoPickerScrollDirectionNone;
+}
+
 - (void)scrollViewWillEndDragging:(UIScrollView *)scrollView withVelocity:(CGPoint)velocity targetContentOffset:(inout CGPoint *)targetContentOffset{
     
     if (self.isZooming) { return; }
@@ -537,11 +516,13 @@ CGFloat const dismissDistance = 80;
         
     }else{
         
+        CGAffineTransform transform = CGAffineTransformMakeScale(self.currentZoomScale, self.currentZoomScale);
+        
         [UIView animateWithDuration:0.25 animations:^{
-            [UIView setAnimationCurve:(7)];
+            [UIView setAnimationCurve:(7)];//CGAffineTransformTranslate(self.photoImageView.transform, 0, 0);
             
-            CGAffineTransform transform = CGAffineTransformMakeScale(self.currentZoomScale, self.currentZoomScale);//CGAffineTransformTranslate(self.photoImageView.transform, 0, 0);
-            self.photoImageView.transform = CGAffineTransformTranslate(transform, 0, 0);
+            self.photoImageView.transform = transform;//CGAffineTransformTranslate(transform, 0, 0);
+            self.collectionView.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:1];
             
         } completion:^(BOOL finished) {
             
@@ -588,37 +569,9 @@ CGFloat const dismissDistance = 80;
     !self.dismissBlock ? : self.dismissBlock(self, rect);
 }
 
-- (void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate{
-    //    scrollView.userInteractionEnabled = YES;
-    
-    isDragging = NO;
-    
-    beginScrollDirection = JKPhotoPickerScrollDirectionNone;
-    endScrollDirection = JKPhotoPickerScrollDirectionNone;
-}
-
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView{
     
     NSLog(@"contentOffset --> %@", NSStringFromCGPoint(scrollView.contentOffset));
-    
-//    if (!isFirstScroll) {
-//        
-//        isFirstScroll = YES;
-//        
-//        if (scrollView.contentOffset.x != beginDraggingOffset.x) {
-//            
-//            shouldZoomdown = NO;
-//            
-//            return;
-//        }
-//    }
-//    
-//    if (!shouldZoomdown) {
-//        
-//        scrollView.contentOffset = beginDraggingOffset;
-//        
-//        return;
-//    }
     
     if (isDragging) {
         
@@ -656,29 +609,28 @@ CGFloat const dismissDistance = 80;
         return;
     }
     
-    if (self.isZooming || isGonnaDismiss || self.isDoubleTap) {
+    if (self.isZooming || isGonnaDismiss || self.isDoubleTap || !isDragging) {
         return;
     }
     
-    self.bgAlpha = 1 - ((-scrollView.contentOffset.y - scrollView.contentInset.top) / dismissDistance * 0.2);
+    CGPoint point = [scrollView.panGestureRecognizer translationInView:scrollView.panGestureRecognizer.view.superview];
+    
+    point.y -= (beginDraggingOffset.y + scrollView.contentInset.top);
+    
+    CGFloat scale = point.y / JKPhotoPickerScreenH;
+    
+    self.bgAlpha = 1 - scale;
     
     self.collectionView.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:self.bgAlpha];
     
     if (!isDragging) { return; }
     
     scrollView.pinchGestureRecognizer.enabled = NO;
-    self.collectionView.scrollEnabled = NO;
     
-    CGPoint point = [scrollView.panGestureRecognizer translationInView:scrollView.panGestureRecognizer.view.superview];
-    NSLog(@"%@", NSStringFromCGPoint(point));
-    
-    NSLog(@"正在形变！！！");
-    
-    self.transformScale = self.currentZoomScale - (scrollView.contentOffset.y + scrollView.contentInset.top) / (-350 - scrollView.contentInset.top) * 1.0;
+    self.transformScale = (self.currentZoomScale - scale);
     self.transformScale = self.transformScale < 0.2 ? 0.2 : self.transformScale;
-    CGAffineTransform transform = CGAffineTransformMakeScale(self.transformScale, self.transformScale);
     
-    self.photoImageView.transform = CGAffineTransformTranslate(transform, self.currentZoomScale > 1 ? 0 : point.x, self.currentZoomScale > 1 ? 0 : (originalHeight > JKPhotoPickerScreenH + 100 ? 0 : point.y * 0.5));
+    self.photoImageView.transform = CGAffineTransformMakeScale(self.transformScale, self.transformScale);
 }
 
 - (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView{

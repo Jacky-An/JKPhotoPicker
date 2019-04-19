@@ -342,7 +342,7 @@
 				TargetAttributes = {
 					50B23CD11E09256200D9926B = {
 						CreatedOnToolsVersion = 8.2;
-						DevelopmentTeam = X9Z8284J37;
+						DevelopmentTeam = BA4DMKLYJJ;
 						ProvisioningStyle = Automatic;
 					};
 					50B23CEA1E09256200D9926B = {
@@ -364,6 +364,7 @@
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
+				English,
 				en,
 				Base,
 			);
@@ -577,7 +578,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				DEVELOPMENT_TEAM = X9Z8284J37;
+				DEVELOPMENT_TEAM = BA4DMKLYJJ;
 				INFOPLIST_FILE = JKPhotoPicker/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
@@ -591,7 +592,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				DEVELOPMENT_TEAM = X9Z8284J37;
+				DEVELOPMENT_TEAM = BA4DMKLYJJ;
 				INFOPLIST_FILE = JKPhotoPicker/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
