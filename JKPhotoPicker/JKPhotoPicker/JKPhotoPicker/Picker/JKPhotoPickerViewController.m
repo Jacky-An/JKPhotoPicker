@@ -30,6 +30,9 @@
 /** 底部的collectionView */
 @property (nonatomic, weak) UICollectionView *bottomCollectionView;
 
+/** selectAllButton */
+@property (nonatomic, weak) UIButton *selectAllButton;
+
 /** 选中数量提示按钮 */
 @property (nonatomic, weak) UIButton *selectedCountButton;
 
@@ -68,6 +71,12 @@
 
 /** 当前是否是所有照片相册 */
 @property (nonatomic, assign) BOOL isAllPhotosAlbum;
+
+/** shouldPreview */
+@property (nonatomic, assign) BOOL shouldPreview;
+
+/** shouldSelectAll */
+@property (nonatomic, assign) BOOL shouldSelectAll;
 @end
 
 @implementation JKPhotoPickerViewController
@@ -86,6 +95,8 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
 + (void)showWithPresentVc:(UIViewController *)presentVc
            maxSelectCount:(NSUInteger)maxSelectCount
              seletedItems:(NSArray <JKPhotoItem *> *)seletedItems
+            shouldPreview:(BOOL)shouldPreview
+          shouldSelectAll:(BOOL)shouldSelectAll
                  dataType:(JKPhotoPickerMediaDataType)dataType
           completeHandler:(void(^)(NSArray <JKPhotoItem *> *photoItems, NSArray<PHAsset *> *selectedAssetArray))completeHandler{
     
@@ -99,17 +110,21 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
         
         if (!isAccessed) { return; }
         
-        [self showWithVc:presentVc maxSelectCount:maxSelectCount seletedItems:seletedItems dataType:dataType completeHandler:completeHandler];
+        [self showWithVc:presentVc maxSelectCount:maxSelectCount seletedItems:seletedItems shouldPreview:shouldPreview shouldSelectAll:shouldSelectAll dataType:dataType completeHandler:completeHandler];
     }];
 }
 
 + (void)showWithVc:(UIViewController *)presentVc
     maxSelectCount:(NSUInteger)maxSelectCount
       seletedItems:(NSArray <JKPhotoItem *> *)seletedItems
+     shouldPreview:(BOOL)shouldPreview
+   shouldSelectAll:(BOOL)shouldSelectAll
           dataType:(JKPhotoPickerMediaDataType)dataType
    completeHandler:(void(^)(NSArray <JKPhotoItem *> *photoItems, NSArray<PHAsset *> *selectedAssetArray))completeHandler{
     
     JKPhotoPickerViewController *vc = [[self alloc] init];
+    vc.shouldPreview = shouldPreview;
+    vc.shouldSelectAll = shouldSelectAll;
     vc.maxSelectCount = maxSelectCount;
     vc.completeHandler = completeHandler;
     [vc.selectedPhotoItems removeAllObjects];
@@ -204,6 +219,15 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
             [weakSelf.titleButton setTitle:[photoItem.albumTitle stringByAppendingString:@"  "] forState:(UIControlStateNormal)];
             weakSelf.titleButton.selected = NO;
             weakSelf.isAllPhotosAlbum = [photoItem.albumLocalIdentifier isEqualToString:weakSelf.albumListView.cameraRollItem.albumLocalIdentifier];
+            
+            if (weakSelf.shouldSelectAll) {
+                
+                [weakSelf.selectedPhotoItems removeAllObjects];
+                [weakSelf.selectedAssetArray removeAllObjects];
+                [weakSelf.selectedPhotosIdentifierCache removeAllObjects];
+                
+                [weakSelf.selectAllButton setTitle:@"全选" forState:(UIControlStateNormal)];
+            }
             
             dispatch_async(dispatch_get_global_queue(0, 0), ^{
                 
@@ -343,28 +367,43 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
     bottomContentView.backgroundColor = [UIColor colorWithRed:250.0 / 255.0 green:250.0 / 255.0 blue:250.0 / 255.0 alpha:1];
     [self.view addSubview:bottomContentView];
     
-    // 底部的collectionView
-    UICollectionViewFlowLayout *flowLayout2 = [[UICollectionViewFlowLayout alloc] init];
-    flowLayout2.itemSize = CGSizeMake(60, 70);
-    flowLayout2.minimumLineSpacing = 1;
-    flowLayout2.minimumInteritemSpacing = 1;
-    flowLayout2.scrollDirection = UICollectionViewScrollDirectionHorizontal;
-    
-    UICollectionView *bottomCollectionView = [[UICollectionView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width - 70, 70) collectionViewLayout:flowLayout2];
-    bottomCollectionView.backgroundColor = [UIColor clearColor];
-    bottomCollectionView.alwaysBounceHorizontal = YES;
-    bottomCollectionView.showsHorizontalScrollIndicator = NO;
-    bottomCollectionView.dataSource = self;
-    bottomCollectionView.delegate = self;
-    bottomCollectionView.contentInset = UIEdgeInsetsMake(0, 5, 0, 0);
-    [bottomContentView addSubview:bottomCollectionView];
-    self.bottomCollectionView = bottomCollectionView;
-    
-    // 注册cell
-    [bottomCollectionView registerClass:[JKPhotoSelectedCollectionViewCell class] forCellWithReuseIdentifier:reuseIDSelected];
+    if (self.shouldPreview) {
+        
+        // 底部的collectionView
+        UICollectionViewFlowLayout *flowLayout2 = [[UICollectionViewFlowLayout alloc] init];
+        flowLayout2.itemSize = CGSizeMake(60, 70);
+        flowLayout2.minimumLineSpacing = 1;
+        flowLayout2.minimumInteritemSpacing = 1;
+        flowLayout2.scrollDirection = UICollectionViewScrollDirectionHorizontal;
+        
+        UICollectionView *bottomCollectionView = [[UICollectionView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width - 70, 70) collectionViewLayout:flowLayout2];
+        bottomCollectionView.backgroundColor = [UIColor clearColor];
+        bottomCollectionView.alwaysBounceHorizontal = YES;
+        bottomCollectionView.showsHorizontalScrollIndicator = NO;
+        bottomCollectionView.dataSource = self;
+        bottomCollectionView.delegate = self;
+        bottomCollectionView.contentInset = UIEdgeInsetsMake(0, 5, 0, 0);
+        [bottomContentView addSubview:bottomCollectionView];
+        self.bottomCollectionView = bottomCollectionView;
+        
+        // 注册cell
+        [bottomCollectionView registerClass:[JKPhotoSelectedCollectionViewCell class] forCellWithReuseIdentifier:reuseIDSelected];
+        
+    } else if (self.shouldSelectAll) {
+        
+        UIButton *selectAllButton = [UIButton buttonWithType:(UIButtonTypeSystem)];
+        selectAllButton.frame = CGRectMake(15, 10, 100, 50);
+        selectAllButton.contentHorizontalAlignment = UIControlContentHorizontalAlignmentLeft;
+        [selectAllButton setTitle:@"全选" forState:(UIControlStateNormal)];
+        
+        [selectAllButton addTarget:self action:@selector(selectAllButtonClick:) forControlEvents:(UIControlEventTouchUpInside)];
+        
+        [bottomContentView addSubview:selectAllButton];
+        _selectAllButton = selectAllButton;
+    }
     
     UIButton *selectedCountButton = [UIButton buttonWithType:(UIButtonTypeSystem)];
-    selectedCountButton.frame = CGRectMake(CGRectGetMaxX(bottomCollectionView.frame) + 10, 10, 50, 50);
+    selectedCountButton.frame = CGRectMake(CGRectGetMaxX(self.collectionView.frame) - 65, 10, 50, 50);
     selectedCountButton.backgroundColor = [UIColor redColor];
     selectedCountButton.layer.cornerRadius = 25;
     selectedCountButton.layer.masksToBounds = YES;
@@ -375,6 +414,59 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
     [selectedCountButton addTarget:self action:@selector(done) forControlEvents:(UIControlEventTouchUpInside)];
     
     [self changeSelectedCount];
+}
+
+- (void)selectAllButtonClick:(UIButton *)button{
+    
+    BOOL isSelectAll = [button.currentTitle isEqualToString:@"全选"];
+    
+    [self.selectedAssetArray removeAllObjects];
+    [self.selectedPhotoItems removeAllObjects];
+    [self.selectedPhotosIdentifierCache removeAllObjects];
+    
+    if (isSelectAll) {
+        
+        [button setTitle:@"取消全选" forState:(UIControlStateNormal)];
+        
+        if (self.isAllPhotosAlbum) {
+            
+            NSMutableArray *arrM = [NSMutableArray arrayWithArray:self.allPhotoItems];
+            [arrM removeObjectAtIndex:0];
+            
+            self.selectedPhotoItems = arrM;
+            
+        } else {
+            
+            [self.selectedPhotoItems addObjectsFromArray:self.allPhotoItems];
+        }
+        
+    } else {
+        
+        [button setTitle:@"全选" forState:(UIControlStateNormal)];
+    }
+    
+    [self.allPhotoItems enumerateObjectsUsingBlock:^(JKPhotoItem *  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+        
+        if (obj.isShowCameraIcon) { return; }
+        
+        if (isSelectAll) {
+            
+            obj.isSelected = YES;
+            
+            [self.selectedPhotosIdentifierCache setObject:obj forKey:obj.assetLocalIdentifier];
+            
+            [self.selectedAssetArray addObject:obj.photoAsset];
+            
+        } else {
+            
+            obj.isSelected = NO;
+        }
+    }];
+    
+    [self changeSelectedCount];
+    
+    [self.collectionView reloadData];
+    [self.bottomCollectionView reloadData];
 }
 
 #pragma mark - 加载数据
@@ -685,6 +777,15 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
 
 #pragma mark - 选中照片
 
+- (void)checkSelectAllButton{
+    
+    NSInteger totalCount = self.allPhotoItems.count - (self.isAllPhotosAlbum ? 1 : 0);
+    
+    NSString *title = (self.selectedPhotoItems.count == totalCount) ? @"取消全选" : @"全选";
+    
+    [self.selectAllButton setTitle:title forState:(UIControlStateNormal)];
+}
+
 - (void)selectPhotoWithCell:(JKPhotoCollectionViewCell *)currentCell {
     
     currentCell.photoItem.isSelected = YES;
@@ -694,6 +795,8 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
     [self.selectedPhotoItems addObject:currentCell.photoItem];
     
     [self.selectedAssetArray addObject:currentCell.photoItem.photoAsset];
+    
+    [self checkSelectAllButton];
     
     [self.bottomCollectionView insertItemsAtIndexPaths:@[[NSIndexPath indexPathForItem:self.selectedPhotoItems.count - 1 inSection:0]]];
     //                [weakSelf.bottomCollectionView reloadData];
@@ -777,6 +880,8 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
                         [self.selectedAssetArray removeObject:itm.photoAsset];
                     }
                     
+                    [self checkSelectAllButton];
+                    
                     [self.bottomCollectionView deleteItemsAtIndexPaths:@[indexPath]];
                 }
                 
@@ -796,6 +901,8 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
             
             [self.selectedAssetArray removeObject:itm.photoAsset];
         }
+        
+        [self checkSelectAllButton];
     }
     
     [self.collectionView reloadData];
@@ -825,6 +932,8 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
             [self.selectedAssetArray removeObject:currentCell.photoItem.photoAsset];
         }
         
+        [self checkSelectAllButton];
+        
         [self.bottomCollectionView deleteItemsAtIndexPaths:@[indexPath]];
         
     }else{
@@ -835,6 +944,8 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
             
             [self.selectedAssetArray removeObject:currentCell.photoItem.photoAsset];
         }
+        
+        [self checkSelectAllButton];
         
         [self.collectionView performBatchUpdates:^{
             
@@ -938,6 +1049,8 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
         
         [self.selectedAssetArray removeAllObjects];
         [self.selectedAssetArray addObjectsFromArray:selectedAssetArray];
+        
+        [self checkSelectAllButton];
         
         [self.collectionView performBatchUpdates:^{
             
@@ -1119,6 +1232,8 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
         [weakSelf.selectedPhotosIdentifierCache setObject:itm forKey:itm.assetLocalIdentifier];
         
         [weakSelf.selectedAssetArray addObject:itm.photoAsset];
+        
+        [self checkSelectAllButton];
         
         //        [weakSelf.collectionView reloadItemsAtIndexPaths:@[[NSIndexPath indexPathForItem:1 inSection:0]]];
         [weakSelf.bottomCollectionView reloadData];

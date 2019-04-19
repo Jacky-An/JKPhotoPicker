@@ -23,6 +23,8 @@
 + (void)showWithPresentVc:(UIViewController *)presentVc
            maxSelectCount:(NSUInteger)maxSelectCount
              seletedItems:(NSArray <JKPhotoItem *> *)seletedItems
+            shouldPreview:(BOOL)shouldPreview
+          shouldSelectAll:(BOOL)shouldSelectAll
                  dataType:(JKPhotoPickerMediaDataType)dataType
           completeHandler:(void(^)(NSArray <JKPhotoItem *> *photoItems, NSArray<PHAsset *> *selectedAssetArray))completeHandler;
 
