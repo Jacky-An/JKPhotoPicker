@@ -29,6 +29,10 @@
     BOOL isFirstScroll;
     BOOL shouldZoomdown;
     
+    BOOL beginDraggingZoom;
+    CGPoint beginDraggingZoomTranslation;
+    BOOL draggingZoomDeltaX;
+    
     JKPhotoPickerScrollDirection beginScrollDirection;
     JKPhotoPickerScrollDirection endScrollDirection;
 }
@@ -102,7 +106,7 @@ CGFloat const dismissDistance = 80;
     scrollView.minimumZoomScale = 1;
     scrollView.maximumZoomScale = 3;
     scrollView.alwaysBounceVertical = YES;
-    scrollView.alwaysBounceHorizontal = YES;
+    //scrollView.alwaysBounceHorizontal = NO;
     
     [self.contentView insertSubview:scrollView atIndex:0];
     _scrollView = scrollView;
@@ -449,7 +453,6 @@ CGFloat const dismissDistance = 80;
     self.scrollView.contentOffset = CGPointZero;
     self.scrollView.contentInset = UIEdgeInsetsZero;
     self.scrollView.contentSize = CGSizeZero;
-    self.scrollView.alwaysBounceHorizontal = (!JKPlayerIsDeviceiPad() && !JKPhotoIsLandscape());
     
     // 放大图片实质就是transform形变
     self.photoImageView.transform = CGAffineTransformIdentity;
@@ -493,6 +496,8 @@ CGFloat const dismissDistance = 80;
 
 - (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView{
     
+    beginDraggingZoomTranslation = [scrollView.panGestureRecognizer translationInView:scrollView.panGestureRecognizer.view.superview];
+    
     self.isDoubleTap = NO;
     
     isDragging = YES;
@@ -528,6 +533,10 @@ CGFloat const dismissDistance = 80;
 
 - (void)scrollViewWillEndDragging:(UIScrollView *)scrollView withVelocity:(CGPoint)velocity targetContentOffset:(inout CGPoint *)targetContentOffset{
     
+    beginDraggingZoom = NO;
+    
+    self.scrollView.alwaysBounceHorizontal = NO;
+    
     if (self.isZooming) { return; }
     
     if (scrollView.contentOffset.y + scrollView.contentInset.top < -dismissDistance && (beginScrollDirection == endScrollDirection)) {
@@ -539,6 +548,8 @@ CGFloat const dismissDistance = 80;
     }else{
         
         CGAffineTransform transform = CGAffineTransformMakeScale(self.currentZoomScale, self.currentZoomScale);
+        
+        transform = CGAffineTransformTranslate(transform, 0, 0);
         
         [UIView animateWithDuration:0.25 delay:0 options:(UIViewAnimationOptionAllowUserInteraction) animations:^{
             [UIView setAnimationCurve:(7)];//CGAffineTransformTranslate(self.photoImageView.transform, 0, 0);
@@ -634,6 +645,17 @@ CGFloat const dismissDistance = 80;
     
     CGPoint point = [scrollView.panGestureRecognizer translationInView:scrollView.panGestureRecognizer.view.superview];
     
+    if (!beginDraggingZoom) {
+        
+        beginDraggingZoom = YES;
+        
+        draggingZoomDeltaX = beginDraggingZoomTranslation.x - point.x;
+        
+        self.scrollView.alwaysBounceHorizontal = YES;
+    }
+    
+    point.x -= draggingZoomDeltaX;
+    
     point.y -= (beginDraggingOffset.y + scrollView.contentInset.top);
     
     CGFloat scale = point.y / JKPhotoScreenHeight;
@@ -654,7 +676,9 @@ CGFloat const dismissDistance = 80;
     self.transformScale = (self.currentZoomScale - scale);
     self.transformScale = self.transformScale < 0.2 ? 0.2 : self.transformScale;
     
-    self.photoImageView.transform = CGAffineTransformMakeScale(self.transformScale, self.transformScale);
+    CGAffineTransform transform = CGAffineTransformMakeTranslation(point.x * 0.5, point.y * 0.15);
+    
+    self.photoImageView.transform = CGAffineTransformScale(transform, self.transformScale, self.transformScale);
 }
 
 - (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView{
