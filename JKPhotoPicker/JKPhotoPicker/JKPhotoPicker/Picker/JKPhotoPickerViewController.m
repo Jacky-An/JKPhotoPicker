@@ -20,10 +20,6 @@
 #import <AssetsLibrary/AssetsLibrary.h>
 #import "JKPhotoResourceManager.h"
 
-#define JKPhotoPickerScreenW [UIScreen mainScreen].bounds.size.width
-#define JKPhotoPickerScreenH [UIScreen mainScreen].bounds.size.height
-#define JKPhotoPickerScreenBounds [UIScreen mainScreen].bounds
-
 @interface JKPhotoPickerViewController () <UICollectionViewDataSource, UICollectionViewDelegate, CAAnimationDelegate, UINavigationControllerDelegate, UIImagePickerControllerDelegate, PHPhotoLibraryChangeObserver>
 /** collectionView */
 @property (nonatomic, weak) UICollectionView *collectionView;
@@ -209,6 +205,7 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
     if (!_albumListView) {
         JKPhotoAlbumListView *albumListView = [[JKPhotoAlbumListView alloc] init];
         albumListView.hidden = YES;
+        albumListView.navigationController = self.navigationController;
         [self.view addSubview:albumListView];
         _albumListView = albumListView;
         
@@ -362,12 +359,12 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
     self.automaticallyAdjustsScrollViewInsets = NO;
     
     UICollectionViewFlowLayout *flowLayout = [[UICollectionViewFlowLayout alloc] init];
-    flowLayout.itemSize = CGSizeMake((JKPhotoPickerScreenW - 3) / 4, (JKPhotoPickerScreenW - 3) / 4);
+    flowLayout.itemSize = CGSizeMake((JKPhotoScreenWidth - 3) / 4, (JKPhotoScreenWidth - 3) / 4);
     flowLayout.minimumLineSpacing = 1;
     flowLayout.minimumInteritemSpacing = 1;
     
-    UICollectionView *collectionView = [[UICollectionView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height - 70 - (JKPhotoPickerIsIphoneX ? JKPhotoPickerBottomSafeAreaHeight : 0)) collectionViewLayout:flowLayout];
-    collectionView.contentInset = UIEdgeInsetsMake(JKPhotoPickerNavBarHeight, 0, 0, 0);
+    UICollectionView *collectionView = [[UICollectionView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height - 70 - JKPhotoCurrentHomeIndicatorHeight()) collectionViewLayout:flowLayout];
+    collectionView.contentInset = UIEdgeInsetsMake(JKPhotoCurrentNavigationBarHeight, 0, 0, 0);
     collectionView.backgroundColor = [UIColor clearColor];
     collectionView.alwaysBounceVertical = YES;
     collectionView.dataSource = self;
@@ -390,7 +387,7 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
     [collectionView registerClass:[JKPhotoCollectionViewCell class] forCellWithReuseIdentifier:reuseID];
     
     UIView *bottomContentView = [[UIView alloc] init];
-    bottomContentView.frame = CGRectMake(0, CGRectGetMaxY(collectionView.frame), self.view.frame.size.width, 70 + (JKPhotoPickerIsIphoneX ? JKPhotoPickerBottomSafeAreaHeight : 0));
+    bottomContentView.frame = CGRectMake(0, CGRectGetMaxY(collectionView.frame), self.view.frame.size.width, 70 + JKPhotoCurrentHomeIndicatorHeight());
     bottomContentView.backgroundColor = [UIColor colorWithRed:250.0 / 255.0 green:250.0 / 255.0 blue:250.0 / 255.0 alpha:1];
     [self.view addSubview:bottomContentView];
     
@@ -1255,27 +1252,30 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
     
     __weak typeof(self) weakSelf = self;
     
-    [self.albumListView setReloadCompleteBlock:^{
+    if (!self.albumListView.reloadCompleteBlock) {
         
-        if (weakSelf.maxSelectCount > 0 &&
-            weakSelf.selectedPhotoItems.count >= weakSelf.maxSelectCount) {
-            return;
-        }
-        
-        JKPhotoItem *itm = weakSelf.allPhotoItems[1];
-        itm.isSelected = YES;
-        
-        [weakSelf.selectedPhotoItems addObject:itm];
-        [weakSelf.selectedPhotosIdentifierCache setObject:itm forKey:itm.assetLocalIdentifier];
-        
-        [weakSelf.selectedAssetArray addObject:itm.photoAsset];
-        
-        [self checkSelectAllButton];
-        
-        //        [weakSelf.collectionView reloadItemsAtIndexPaths:@[[NSIndexPath indexPathForItem:1 inSection:0]]];
-        [weakSelf.bottomCollectionView reloadData];
-        [weakSelf changeSelectedCount];
-    }];
+        [self.albumListView setReloadCompleteBlock:^{
+            
+            if (weakSelf.maxSelectCount > 0 &&
+                weakSelf.selectedPhotoItems.count >= weakSelf.maxSelectCount) {
+                return;
+            }
+            
+            JKPhotoItem *itm = weakSelf.allPhotoItems[1];
+            itm.isSelected = YES;
+            
+            [weakSelf.selectedPhotoItems addObject:itm];
+            [weakSelf.selectedPhotosIdentifierCache setObject:itm forKey:itm.assetLocalIdentifier];
+            
+            [weakSelf.selectedAssetArray addObject:itm.photoAsset];
+            
+            [self checkSelectAllButton];
+            
+            //        [weakSelf.collectionView reloadItemsAtIndexPaths:@[[NSIndexPath indexPathForItem:1 inSection:0]]];
+            [weakSelf.bottomCollectionView reloadData];
+            [weakSelf changeSelectedCount];
+        }];
+    }
     
     [self.albumListView reloadAlbum];
 }

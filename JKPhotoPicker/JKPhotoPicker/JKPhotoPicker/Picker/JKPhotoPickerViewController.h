@@ -7,7 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "JKPhotoPickerMacro.h"
+#import "JKPhotoConst.h"
 
 @class JKPhotoItem, PHAsset;
 

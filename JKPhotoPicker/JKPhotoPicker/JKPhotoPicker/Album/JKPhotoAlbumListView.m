@@ -72,7 +72,7 @@ static CGFloat const rowHeight = 70;
         NSArray *tableViewCons1 = [NSLayoutConstraint constraintsWithVisualFormat:@"H:|-0-[tableView]-0-|" options:0 metrics:nil views:@{@"tableView" : tableView}];
         [self.contentView addConstraints:tableViewCons1];
         
-        NSArray *tableViewCons2 = [NSLayoutConstraint constraintsWithVisualFormat:[NSString stringWithFormat:@"V:|-%.0f-[tableView]-0-|", JKPhotoPickerNavBarHeight + 15] options:0 metrics:nil views:@{@"tableView" : tableView}];
+        NSArray *tableViewCons2 = [NSLayoutConstraint constraintsWithVisualFormat:[NSString stringWithFormat:@"V:|-%.0f-[tableView]-0-|", JKPhotoCurrentNavigationBarHeight + 15] options:0 metrics:nil views:@{@"tableView" : tableView}];
         [self.contentView addConstraints:tableViewCons2];
         
         tableView.dataSource = self;
@@ -148,7 +148,7 @@ static CGFloat const rowHeight = 70;
     
     UIButton *navBgButton = [UIButton buttonWithType:(UIButtonTypeCustom)];
     navBgButton.hidden = YES;
-    navBgButton.frame = CGRectMake(0, 0, [UIScreen mainScreen].bounds.size.width, JKPhotoPickerNavBarHeight);
+    navBgButton.frame = CGRectMake(0, 0, [UIScreen mainScreen].bounds.size.width, JKPhotoCurrentNavigationBarHeight);
     [[UIApplication sharedApplication].delegate.window addSubview:navBgButton];
     self.navBgButton = navBgButton;
     
@@ -240,7 +240,7 @@ static CGFloat const rowHeight = 70;
     
     [self.tableView selectRowAtIndexPath:self.currentSelectedIndex animated:NO scrollPosition:(UITableViewScrollPositionNone)];
     
-    self.contentView.frame = CGRectMake(0, -[UIScreen mainScreen].bounds.size.height * 0.5 - 15, [UIScreen mainScreen].bounds.size.width, (rowHeight * self.albums.count + JKPhotoPickerNavBarHeight > [UIScreen mainScreen].bounds.size.height * 0.5) ? [UIScreen mainScreen].bounds.size.height * 0.5 + 15 : rowHeight * self.albums.count + JKPhotoPickerNavBarHeight + 15);
+    self.contentView.frame = CGRectMake(0, -[UIScreen mainScreen].bounds.size.height * 0.5 - 15, [UIScreen mainScreen].bounds.size.width, (rowHeight * self.albums.count + JKPhotoCurrentNavigationBarHeight > [UIScreen mainScreen].bounds.size.height * 0.5) ? [UIScreen mainScreen].bounds.size.height * 0.5 + 15 : rowHeight * self.albums.count + JKPhotoCurrentNavigationBarHeight + 15);
 }
 
 - (void)loadAlbumData{

@@ -13,4 +13,4 @@
 #import "JKPhotoSelectCompleteView.h"
 
 /** 宏定义 */
-#import "JKPhotoPickerMacro.h"
+#import "JKPhotoConst.h"

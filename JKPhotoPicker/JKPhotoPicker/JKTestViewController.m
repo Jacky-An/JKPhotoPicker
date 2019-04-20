@@ -29,7 +29,7 @@
     
     isiPad = [[UIDevice currentDevice].model isEqualToString:@"iPad"];
     
-    self.selectCompleteView = [JKPhotoSelectCompleteView completeViewWithSuperView:self.view viewController:self frame:CGRectMake(0, (JKPhotoPickerIsIphoneX ? 88 : 64), self.view.frame.size.width, 130) itemSize:CGSizeMake((self.view.frame.size.width - 3) / 4, (self.view.frame.size.width - 3) / 4 + 10) scrollDirection:UICollectionViewScrollDirectionHorizontal];
+    self.selectCompleteView = [JKPhotoSelectCompleteView completeViewWithSuperView:self.view viewController:self frame:CGRectMake(0, (JKPhotoIsDeviceX() ? 88 : 64), self.view.frame.size.width, 130) itemSize:CGSizeMake((self.view.frame.size.width - 3) / 4, (self.view.frame.size.width - 3) / 4 + 10) scrollDirection:UICollectionViewScrollDirectionHorizontal];
     
     self.selectCompleteView.backgroundColor = [UIColor cyanColor];
 }

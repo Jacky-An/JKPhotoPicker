@@ -33,6 +33,12 @@
 /** collectionView */
 @property (nonatomic, weak) UICollectionView *collectionView;
 
+/** controllerView */
+@property (nonatomic, weak) UIView *controllerView;
+
+/** browserContentView */
+@property (nonatomic, weak) UIView *browserContentView;
+
 /** 监听点击选中照片的block */
 @property (nonatomic, copy) BOOL(^selectBlock)(BOOL selected, JKPhotoBrowserCollectionViewCell *currentCell);
 

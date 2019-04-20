@@ -14,7 +14,11 @@
 #import "JKPhotoCollectionViewCell.h"
 #import <AVKit/AVKit.h>
 
-@interface JKPhotoBrowserViewController () <UICollectionViewDataSource, UICollectionViewDelegate>
+@interface JKPhotoBrowserViewController () <UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout>
+
+/** browserContentView */
+@property (nonatomic, weak) UIView *browserContentView;
+
 /** collectionView */
 @property (nonatomic, weak) UICollectionView *collectionView;
 
@@ -88,6 +92,7 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
     CGRect presentFrame = [imageView.superview convertRect:imageView.frame toView:[UIApplication sharedApplication].delegate.window];
     
     vc.transitioningDelegate  = vc.presentationManager;
+    vc.presentationManager.navigationController = viewController.navigationController;
     vc.modalPresentationStyle = UIModalPresentationCustom;
     
     vc.presentationManager.isSelectedCell     = [dataDict[@"isSelectedCell"] boolValue];
@@ -96,6 +101,17 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
     vc.presentationManager.touchImageView     = imageView;
     vc.presentationManager.fromCollectionView = dataDict[@"collectionView"];
     vc.presentationManager.presentFrame       = presentFrame;
+    
+    UIEdgeInsets safeAreaInsets = UIEdgeInsetsZero;
+    
+    if (@available(iOS 11.0, *)) {
+        
+        safeAreaInsets = [UIApplication sharedApplication].delegate.window.safeAreaInsets;
+    }
+    
+    CGFloat width = (JKPhotoIsLandscape() && JKPhotoIsDeviceX()) ? JKPhotoScreenWidth - safeAreaInsets.left - safeAreaInsets.right : JKPhotoScreenWidth;
+    
+    vc.presentationManager.calculateFrameSize = CGSizeMake(width, JKPhotoScreenHeight);
     
     vc.indexPath            = dataDict[@"indexPath"];
     vc.maxSelectCount       = [dataDict[@"maxSelectCount"] integerValue];
@@ -256,39 +272,52 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
     
 //    [self.cachingImageManager startCachingImagesForAssets:[self.dataSourceArr valueForKeyPath:@"photoAsset"] targetSize:PHImageManagerMaximumSize contentMode:(PHImageContentModeAspectFit) options:nil];
     
-    self.view.backgroundColor = [UIColor clearColor];
+    self.view.backgroundColor = [UIColor blackColor];
     
 //    [[UIApplication sharedApplication] setStatusBarHidden:YES withAnimation:UIStatusBarAnimationFade];
     
     [self setupCollectionView];
     
-    [self.collectionView scrollToItemAtIndexPath:self.indexPath atScrollPosition:(UICollectionViewScrollPositionNone) animated:NO];
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.2 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        
+        
+        [self.collectionView scrollToItemAtIndexPath:self.indexPath atScrollPosition:(UICollectionViewScrollPositionNone) animated:NO];
+    });
+}
+
+- (void)viewDidLayoutSubviews{
+    [super viewDidLayoutSubviews];
+    
+    UIEdgeInsets safeAreaInsets = UIEdgeInsetsZero;
+    
+    if (@available(iOS 11.0, *)) {
+        
+        safeAreaInsets = self.view.safeAreaInsets;
+    }
+    
+    self.browserContentView.frame = CGRectMake(safeAreaInsets.left, 0, self.view.frame.size.width - safeAreaInsets.left - safeAreaInsets.right, self.view.frame.size.height);
+    self.collectionView.frame = CGRectMake(-10, 0, self.browserContentView.frame.size.width + 20, self.browserContentView.frame.size.height);
+    
+    self.presentationManager.calculateFrameSize = self.browserContentView.frame.size;
 }
 
 - (void)setupCollectionView{
     
+    UIView *browserContentView = [[UIView alloc] init];
+    [self.view insertSubview:browserContentView atIndex:0];
+    _browserContentView = browserContentView;
+    
     UICollectionViewFlowLayout *flowLayout = [[UICollectionViewFlowLayout alloc] init];
-    flowLayout.itemSize = CGSizeMake(JKPhotoPickerScreenW + 20, JKPhotoPickerScreenH);
-    flowLayout.minimumLineSpacing = 0;
-    flowLayout.minimumInteritemSpacing = 0;
     flowLayout.scrollDirection = UICollectionViewScrollDirectionHorizontal;
     
     UICollectionView *collectionView = [[UICollectionView alloc] initWithFrame:CGRectMake(-10, 0, self.view.frame.size.width + 20, self.view.frame.size.height) collectionViewLayout:flowLayout];
-    collectionView.backgroundColor = [UIColor blackColor];
+    collectionView.backgroundColor = [UIColor clearColor];
     collectionView.showsHorizontalScrollIndicator = NO;
     collectionView.pagingEnabled = YES;
     collectionView.dataSource = self;
     collectionView.delegate = self;
-    [self.view insertSubview:collectionView atIndex:0];
+    [self.browserContentView insertSubview:collectionView atIndex:0];
     self.collectionView = collectionView;
-    
-    // 布局collectionView
-//    collectionView.translatesAutoresizingMaskIntoConstraints = NO;
-//    NSArray *collectionViewCons1 = [NSLayoutConstraint constraintsWithVisualFormat:@"H:|-0-[collectionView]-0-|" options:0 metrics:nil views:@{@"collectionView" : collectionView}];
-//    [self.view addConstraints:collectionViewCons1];
-//    
-//    NSArray *collectionViewCons2 = [NSLayoutConstraint constraintsWithVisualFormat:@"V:|-0-[collectionView]-0-|" options:0 metrics:nil views:@{@"collectionView" : collectionView}];
-//    [self.view addConstraints:collectionViewCons2];
     
     // 注册cell
     [collectionView registerClass:[JKPhotoBrowserCollectionViewCell class] forCellWithReuseIdentifier:reuseID];
@@ -302,6 +331,10 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
 - (UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath{
     
     JKPhotoBrowserCollectionViewCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:reuseID forIndexPath:indexPath];
+    
+    cell.collectionView = self.collectionView;
+    cell.browserContentView = self.browserContentView;
+    cell.controllerView = self.view;
     
     cell.cachingImageManager = self.cachingImageManager;
     
@@ -341,8 +374,6 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
     cell.photoItem = item;
     
     [self solveSelectBlockWithCell:cell];
-    
-    cell.collectionView = self.collectionView;
     
     return cell;
 }
@@ -535,7 +566,7 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
     
     //    CGRect fromCollectionViewFrame = [self.fromCollectionView.superview convertRect:self.fromCollectionView.frame toView:[UIApplication sharedApplication].delegate.window];
     
-    CGRect rect = CGRectMake(0, JKPhotoPickerNavBarHeight, JKPhotoPickerScreenW, JKPhotoPickerScreenH - JKPhotoPickerNavBarHeight - (70 + (JKPhotoPickerIsIphoneX ? JKPhotoPickerBottomSafeAreaHeight : 0)));
+    CGRect rect = CGRectMake(0, JKPhotoCurrentNavigationBarHeight, JKPhotoScreenWidth, JKPhotoScreenHeight - JKPhotoCurrentNavigationBarHeight - (70 + JKPhotoCurrentHomeIndicatorHeight()));
     
     CGRect bottomOrCompleteRect = [[UIApplication sharedApplication].delegate.window convertRect:self.fromCollectionView.frame fromView:self.fromCollectionView.superview];
     
@@ -606,12 +637,27 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
     }];
 }
 
+- (CGSize)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout *)collectionViewLayout sizeForItemAtIndexPath:(NSIndexPath *)indexPath{
+    
+    return self.collectionView.frame.size;
+}
+
+- (CGFloat)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout *)collectionViewLayout minimumLineSpacingForSectionAtIndex:(NSInteger)section{
+    
+    return 0;
+}
+
+- (CGFloat)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout *)collectionViewLayout minimumInteritemSpacingForSectionAtIndex:(NSInteger)section{
+    
+    return 0;
+}
+
 #pragma mark - scrollView代理
 - (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView{
     
     NSLog(@"可见cell--->%zd", self.collectionView.visibleCells.count);
     
-    self.indexPath = [NSIndexPath indexPathForItem:(self.isShowSelectedPhotos || (!self.isAllPhotosAlbum) || !self.isShowTakePhoto) ? scrollView.contentOffset.x / JKPhotoPickerScreenW : scrollView.contentOffset.x / JKPhotoPickerScreenW + 1 inSection:0];
+    self.indexPath = [NSIndexPath indexPathForItem:(self.isShowSelectedPhotos || (!self.isAllPhotosAlbum) || !self.isShowTakePhoto) ? scrollView.contentOffset.x / JKPhotoScreenWidth : scrollView.contentOffset.x / JKPhotoScreenWidth + 1 inSection:0];
 
     JKPhotoCollectionViewCell *fromCell = (JKPhotoCollectionViewCell *)[self.fromCollectionView cellForItemAtIndexPath:self.indexPath];
 

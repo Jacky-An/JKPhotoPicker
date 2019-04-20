@@ -48,4 +48,10 @@
 
 /** 是否执行放大动画 */
 @property (nonatomic, assign) BOOL isZoomUpAnimation;
+
+/** navigationController */
+@property (nonatomic, weak) UINavigationController *navigationController;
+
+/** 用于计算frame的size */
+@property (nonatomic, assign) CGSize calculateFrameSize;
 @end

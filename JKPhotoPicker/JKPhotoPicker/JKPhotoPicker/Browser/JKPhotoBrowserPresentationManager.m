@@ -8,7 +8,7 @@
 
 #import "JKPhotoBrowserPresentationManager.h"
 #import "JKPhotoBrowserPresentationController.h"
-#import "JKPhotoPickerMacro.h"
+#import "JKPhotoConst.h"
 #import "JKPhotoResourceManager.h"
 
 @interface JKPhotoBrowserPresentationManager ()
@@ -25,6 +25,7 @@
 @implementation JKPhotoBrowserPresentationManager
 
 #pragma mark - UIViewControllerTransitioningDelegate协议方法
+
 // 该方法返回一个负责转场动画的对象
 - (UIPresentationController *)presentationControllerForPresentedViewController:(UIViewController *)presented presentingViewController:(UIViewController *)presenting sourceViewController:(UIViewController *)source{
     
@@ -118,6 +119,7 @@
 //    toView.layer.anchorPoint = CGPointMake(0.5, 0);
     
     UIView *imageView = [[UIView alloc] init];
+    imageView.userInteractionEnabled = NO;
     imageView.layer.contentsGravity = kCAGravityResizeAspect;
     
 //    UIImageView *imageView = [[UIImageView alloc] init];
@@ -137,7 +139,7 @@
     
     [UIView animateWithDuration:[self transitionDuration:transitionContext] animations:^{
 //        toView.transform = CGAffineTransformIdentity;
-        imageView.frame = [self calculateImageViewSizeWithImage:self.touchImage];//[UIScreen mainScreen].bounds;
+        imageView.frame = [self calculateImageViewSizeWithImage:self.touchImage];
         
     } completion:^(BOOL finished) {
         
@@ -179,23 +181,33 @@
     //图片要显示的尺寸
     CGFloat pictureX = 0;
     CGFloat pictureY = 0;
-    CGFloat pictureW = JKPhotoPickerScreenW;
-    CGFloat pictureH = JKPhotoPickerScreenW * image.size.height / image.size.width;
+    CGFloat pictureW = self.calculateFrameSize.width;
+    CGFloat pictureH = self.calculateFrameSize.width * image.size.height / image.size.width;
     
-    if (pictureH >= (JKPhotoPickerScreenH - (JKPhotoPickerIsIphoneX ? (44 + 44) : 0))) {//图片高过屏幕
-        //        self.imageView.frame = CGRectMake(0, 0, pictureW, pictureH);
-        //设置scrollView的contentSize
-        //        self.scrollView.contentSize = CGSizeMake(pictureW, pictureH);
-        //        NSLog(@"更新了contentSize");
-        pictureY = JKPhotoPickerIsIphoneX ? 44 : 0;
+    if (JKPlayerIsDeviceiPad() || JKPhotoIsLandscape()) {
         
-    }else{//图片不高于屏幕
+        pictureH = self.calculateFrameSize.height;
+        pictureW = self.calculateFrameSize.width * image.size.width / image.size.height;
         
-        pictureY = (JKPhotoPickerScreenH - pictureH) * 0.5;
-        //        self.imageView.frame = CGRectMake(0, 0, pictureW, pictureH);//CGSizeMake(pictureW, pictureH);
-        //图片显示在中间
-        //        self.imageView.center= CGPointMake(JKPhotoPickerScreenW * 0.5, JKPhotoPickerScreenH * 0.5);
+        if (pictureW > self.calculateFrameSize.width) {
+            
+            pictureW = self.calculateFrameSize.width;
+            pictureH = self.calculateFrameSize.width * image.size.height / image.size.width;
+        }
     }
+    
+    BOOL flag = JKPhotoIsDeviceX() && !JKPhotoIsLandscape();
+    
+    if (pictureH >= (self.calculateFrameSize.height - (flag ? (44 + 44) : 0))) {
+        
+        pictureY = flag ? 44 : 0;
+        
+    } else { // 图片不高于屏幕
+        
+        pictureY = (self.calculateFrameSize.height - pictureH) * 0.5;
+    }
+    
+    pictureX = (JKPhotoScreenWidth - pictureW) * 0.5;
     
     return CGRectMake(pictureX, pictureY, pictureW, pictureH);
 }
@@ -219,7 +231,7 @@
     
     imageView.layer.contents = (__bridge id)self.touchImage.CGImage;
     
-    imageView.frame = self.dismissFrame;//[self calculateImageCoverViewFrameWithImageView:self.touchImageView];
+    imageView.frame = self.dismissFrame;
     [[transitionContext containerView] addSubview:imageView];
     
     self.touchImageView.hidden = YES;
@@ -254,21 +266,6 @@
     CGRect rect = [imageView.superview convertRect:imageView.frame toView:[UIApplication sharedApplication].delegate.window];
     
     return rect;
-    
-//    CGFloat imageW = imageView.image.size.width;
-//    CGFloat imageH = imageView.image.size.height;
-//    CGFloat imageAspectRatio = imageW / imageH;
-//    
-//    if (imageW / imageH >= JKPhotoPickerScreenW / JKPhotoPickerScreenH) { // 宽高比大于屏幕宽高比，基于宽度缩放
-//        imageView.frame = CGRectMake(0, 0, JKPhotoPickerScreenW, JKPhotoPickerScreenW / imageAspectRatio);
-//        
-//    }else{
-//        
-//        // 宽高比小于屏幕宽高比，基于高度缩放
-//        imageView.frame = CGRectMake(0, 0, JKPhotoPickerScreenH * imageAspectRatio, JKPhotoPickerScreenH);
-//    }
-//    
-//    imageView.center = CGPointMake(JKPhotoPickerScreenW * 0.5, JKPhotoPickerScreenH * 0.5);
 }
 
 - (void)setPresentFrame:(CGRect)presentFrame{
@@ -283,7 +280,7 @@
     
     if (self.whiteView == nil) { return; }
     
-    CGRect rect = CGRectMake(0, JKPhotoPickerNavBarHeight, JKPhotoPickerScreenW, JKPhotoPickerScreenH - JKPhotoPickerNavBarHeight - (70 + (JKPhotoPickerIsIphoneX ? JKPhotoPickerBottomSafeAreaHeight : 0)));
+    CGRect rect = CGRectMake(0, JKPhotoCurrentNavigationBarHeight, JKPhotoScreenWidth, JKPhotoScreenHeight - JKPhotoCurrentNavigationBarHeight - (70 + JKPhotoCurrentHomeIndicatorHeight()));
     
     CGRect bottomOrCompleteRect = [[UIApplication sharedApplication].delegate.window convertRect:self.fromCollectionView.frame fromView:self.fromCollectionView.superview];
     
@@ -320,9 +317,9 @@
             
         }else{
             
-            CGFloat Y = _presentCellFrame.origin.y < JKPhotoPickerNavBarHeight ? JKPhotoPickerNavBarHeight : _presentCellFrame.origin.y;
+            CGFloat Y = _presentCellFrame.origin.y < JKPhotoCurrentNavigationBarHeight ? JKPhotoCurrentNavigationBarHeight : _presentCellFrame.origin.y;
             
-            CGFloat bottomY = JKPhotoPickerScreenH - (JKPhotoPickerIsIphoneX ? 104 : 70);
+            CGFloat bottomY = JKPhotoScreenHeight - (JKPhotoIsDeviceX() ? 104 : 70);
             
             CGFloat H = (Y > bottomY ? CGRectGetMaxY(_presentCellFrame) : (CGRectGetMaxY(_presentCellFrame) > bottomY ? bottomY : CGRectGetMaxY(_presentCellFrame))) - Y;
             

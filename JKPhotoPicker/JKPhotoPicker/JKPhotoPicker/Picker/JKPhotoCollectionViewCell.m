@@ -195,6 +195,7 @@
     self.selectButton.hidden = !self.selectCoverView.hidden;
     
     [[PHImageManager defaultManager] requestImageForAsset:_photoItem.photoAsset targetSize:CGSizeMake(200, 200) contentMode:PHImageContentModeAspectFit options:nil resultHandler:^(UIImage * _Nullable result, NSDictionary * _Nullable info) {
+        
         self.photoImageView.image = result;
     }];
     

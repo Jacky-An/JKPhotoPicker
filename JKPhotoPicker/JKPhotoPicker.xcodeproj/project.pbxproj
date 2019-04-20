@@ -25,6 +25,7 @@
 		505AD64D1E1A79070037BF3B /* JKPhotoTapGestureRecognizer.m in Sources */ = {isa = PBXBuildFile; fileRef = 505AD64C1E1A79070037BF3B /* JKPhotoTapGestureRecognizer.m */; };
 		50873C4D226B00C00003FD90 /* JKPhotoPickerResource.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 50873C4C226B00C00003FD90 /* JKPhotoPickerResource.bundle */; };
 		50873C51226B00E80003FD90 /* JKPhotoResourceManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 50873C50226B00E80003FD90 /* JKPhotoResourceManager.m */; };
+		50873C54226B08360003FD90 /* JKPhotoConst.m in Sources */ = {isa = PBXBuildFile; fileRef = 50873C53226B08360003FD90 /* JKPhotoConst.m */; };
 		50B23CD71E09256200D9926B /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 50B23CD61E09256200D9926B /* main.m */; };
 		50B23CDA1E09256200D9926B /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 50B23CD91E09256200D9926B /* AppDelegate.m */; };
 		50B23CDD1E09256200D9926B /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 50B23CDC1E09256200D9926B /* ViewController.m */; };
@@ -90,6 +91,8 @@
 		50873C4C226B00C00003FD90 /* JKPhotoPickerResource.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = JKPhotoPickerResource.bundle; sourceTree = "<group>"; };
 		50873C4F226B00E80003FD90 /* JKPhotoResourceManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = JKPhotoResourceManager.h; sourceTree = "<group>"; };
 		50873C50226B00E80003FD90 /* JKPhotoResourceManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = JKPhotoResourceManager.m; sourceTree = "<group>"; };
+		50873C52226B08360003FD90 /* JKPhotoConst.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = JKPhotoConst.h; sourceTree = "<group>"; };
+		50873C53226B08360003FD90 /* JKPhotoConst.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = JKPhotoConst.m; sourceTree = "<group>"; };
 		50B23CD21E09256200D9926B /* JKPhotoPicker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = JKPhotoPicker.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		50B23CD61E09256200D9926B /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		50B23CD81E09256200D9926B /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
@@ -186,6 +189,8 @@
 		505AD61D1E1A5A6E0037BF3B /* Utility */ = {
 			isa = PBXGroup;
 			children = (
+				50873C52226B08360003FD90 /* JKPhotoConst.h */,
+				50873C53226B08360003FD90 /* JKPhotoConst.m */,
 				505AD63F1E1A5B3E0037BF3B /* JKPhotoItem.h */,
 				505AD6401E1A5B3E0037BF3B /* JKPhotoItem.m */,
 				505AD6411E1A5B3E0037BF3B /* JKPhotoManager.h */,
@@ -432,6 +437,7 @@
 				505AD64D1E1A79070037BF3B /* JKPhotoTapGestureRecognizer.m in Sources */,
 				505AD6231E1A5AAC0037BF3B /* JKPhotoAlbumListView.m in Sources */,
 				505AD62F1E1A5ADE0037BF3B /* JKPhotoBrowserViewController.m in Sources */,
+				50873C54226B08360003FD90 /* JKPhotoConst.m in Sources */,
 				505AD62C1E1A5ADE0037BF3B /* JKPhotoBrowserCollectionViewCell.m in Sources */,
 				505AD6451E1A5B3E0037BF3B /* JKPhotoItem.m in Sources */,
 				505AD6471E1A5B3E0037BF3B /* JKPhotoTitleButton.m in Sources */,

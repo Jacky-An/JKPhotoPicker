@@ -21,6 +21,9 @@
 /** 相机胶卷的相册item */
 @property (nonatomic, strong, readonly) JKPhotoItem *cameraRollItem;
 
+/** navigationController */
+@property (nonatomic, weak) UINavigationController *navigationController;
+
 /** 执行动画 */
 - (void)executeAlbumListViewAnimationCompletion:(void(^)(void))completion;
 
