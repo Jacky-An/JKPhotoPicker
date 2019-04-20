@@ -18,6 +18,7 @@
 
 #import <MobileCoreServices/MobileCoreServices.h>
 #import <AssetsLibrary/AssetsLibrary.h>
+#import "JKPhotoResourceManager.h"
 
 #define JKPhotoPickerScreenW [UIScreen mainScreen].bounds.size.width
 #define JKPhotoPickerScreenH [UIScreen mainScreen].bounds.size.height
@@ -307,10 +308,10 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
     
     JKPhotoTitleButton *titleButton = [JKPhotoTitleButton buttonWithType:(UIButtonTypeCustom)];
     titleButton.frame = CGRectMake(0, 0, 200, 40);
-    [titleButton setTitleColor:[UIColor blackColor] forState:(UIControlStateNormal)];
-//    [titleButton setTitle:@"相机胶卷  " forState:(UIControlStateNormal)];
-    [titleButton setImage:[UIImage imageWithContentsOfFile:[[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"JKPhotoPickerResource.bundle/images/arrow_down@2x.png"]] forState:(UIControlStateNormal)];
-    [titleButton setImage:[UIImage imageWithContentsOfFile:[[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"JKPhotoPickerResource.bundle/images/arrow_up@2x.png"]] forState:(UIControlStateSelected)];
+    [titleButton setTitleColor:[UIColor colorWithRed:51.0/255.0 green:51.0/255.0 blue:51.0/255.0 alpha:1] forState:(UIControlStateNormal)];
+    
+    [titleButton setImage:[JKPhotoResourceManager jk_imageNamed:@"arrow_down@2x"] forState:(UIControlStateNormal)];
+    [titleButton setImage:[JKPhotoResourceManager jk_imageNamed:@"arrow_up@2x"] forState:(UIControlStateSelected)];
     
     [titleButton addTarget:self action:@selector(titleViewClick:) forControlEvents:(UIControlEventTouchUpInside)];
     

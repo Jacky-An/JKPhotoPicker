@@ -11,6 +11,7 @@
 #import <Photos/Photos.h>
 
 @interface JKPhotoManager : NSObject
+
 /** 检查相册访问权限 */
 + (void)checkPhotoAccessWithPresentVc:(UIViewController *)presentVc finished:(void (^)(BOOL isAccessed))finished;
 

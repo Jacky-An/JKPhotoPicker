@@ -7,6 +7,7 @@
 //
 
 #import "JKPhotoSelectedCollectionViewCell.h"
+#import "JKPhotoResourceManager.h"
 
 @interface JKPhotoSelectedCollectionViewCell ()
 /** 照片 */
@@ -23,7 +24,8 @@
         // 删除按钮
         UIButton *deleteButton = [UIButton buttonWithType:(UIButtonTypeCustom)];
         [self.contentView addSubview:deleteButton];
-        [deleteButton setBackgroundImage:[UIImage imageWithContentsOfFile:[[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"JKPhotoPickerResource.bundle/images/delete_icon@3x.png"]] forState:(UIControlStateNormal)];
+        
+        [deleteButton setBackgroundImage:[JKPhotoResourceManager jk_imageNamed:@"delete_icon@3x"] forState:(UIControlStateNormal)];
         _deleteButton = deleteButton;
         
         [deleteButton addTarget:self action:@selector(deleteButtonClick) forControlEvents:(UIControlEventTouchUpInside)];

@@ -9,6 +9,7 @@
 #import "JKPhotoCollectionViewCell.h"
 #import "JKPhotoItem.h"
 #import <Photos/Photos.h>
+#import "JKPhotoResourceManager.h"
 
 // 随机色
 #define JKRandomColor [UIColor colorWithRed:arc4random_uniform(100)/100.0 green:arc4random_uniform(100)/100.0 blue:arc4random_uniform(100)/100.0 alpha:1]
@@ -36,7 +37,8 @@
     if (!_cameraIconButton) {
         UIButton *cameraIconButton = [UIButton buttonWithType:(UIButtonTypeCustom)];
         cameraIconButton.hidden = YES;
-        [cameraIconButton setBackgroundImage:[UIImage imageWithContentsOfFile:[[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"JKPhotoPickerResource.bundle/images/take_photo.png"]] forState:(UIControlStateNormal)];
+        
+        [cameraIconButton setBackgroundImage:[JKPhotoResourceManager jk_imageNamed:@"take_photo"] forState:(UIControlStateNormal)];
         [self.contentView addSubview:cameraIconButton];
         _cameraIconButton = cameraIconButton;
         
@@ -144,8 +146,9 @@
     
     // 照片选中标识
     UIImageView *selectIconImageView = [[UIImageView alloc] init];
-    selectIconImageView.image = [UIImage imageWithContentsOfFile:[[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"JKPhotoPickerResource.bundle/images/deselected_icon@3x.png"]];
-    selectIconImageView.highlightedImage = [UIImage imageWithContentsOfFile:[[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"JKPhotoPickerResource.bundle/images/selected_icon@3x.png"]];
+    
+    selectIconImageView.image = [JKPhotoResourceManager jk_imageNamed:@"deselected_icon@3x"];
+    selectIconImageView.highlightedImage = [JKPhotoResourceManager jk_imageNamed:@"selected_icon@3x"];
     [self.contentView addSubview:selectIconImageView];
     self.selectIconImageView = selectIconImageView;
     

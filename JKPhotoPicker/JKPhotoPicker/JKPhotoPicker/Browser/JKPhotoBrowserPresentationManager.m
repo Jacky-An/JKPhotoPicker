@@ -9,6 +9,7 @@
 #import "JKPhotoBrowserPresentationManager.h"
 #import "JKPhotoBrowserPresentationController.h"
 #import "JKPhotoPickerMacro.h"
+#import "JKPhotoResourceManager.h"
 
 @interface JKPhotoBrowserPresentationManager ()
 /** 是否已经被present */
@@ -99,7 +100,8 @@
         UIButton *deleteButton = [UIButton buttonWithType:(UIButtonTypeCustom)];
         deleteButton.frame = CGRectMake(self.presentFrame.size.width - 15, -10, 20, 20);
         [v1 addSubview:deleteButton];
-        [deleteButton setBackgroundImage:[UIImage imageWithContentsOfFile:[[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"JKPhotoPickerResource.bundle/images/delete_icon@3x.png"]] forState:(UIControlStateNormal)];
+        
+        [deleteButton setBackgroundImage:[JKPhotoResourceManager jk_imageNamed:@"delete_icon@3x"] forState:(UIControlStateNormal)];
     }
     
     self.presentFrame = self.presentFrame;

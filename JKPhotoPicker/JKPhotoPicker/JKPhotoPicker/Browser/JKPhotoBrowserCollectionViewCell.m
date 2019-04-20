@@ -11,6 +11,7 @@
 #import <Photos/Photos.h>
 #import <PhotosUI/PhotosUI.h>
 #import <WebKit/WebKit.h>
+#import "JKPhotoResourceManager.h"
 
 @interface JKPhotoBrowserCollectionViewCell () <UIScrollViewDelegate, UIGestureRecognizerDelegate>
 {
@@ -143,7 +144,7 @@ CGFloat const dismissDistance = 80;
     
     [playVideoButton addTarget:self action:@selector(playVideoButtonClick:) forControlEvents:(UIControlEventTouchUpInside)];
     
-    [playVideoButton setBackgroundImage:[UIImage imageWithContentsOfFile:[[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"JKPhotoPickerResource.bundle/images/video-play@3x"]] forState:(UIControlStateNormal)];
+    [playVideoButton setBackgroundImage:[JKPhotoResourceManager jk_imageNamed:@"video-play@3x"] forState:(UIControlStateNormal)];
     
     // 播放按钮约束
     playVideoButton.translatesAutoresizingMaskIntoConstraints = NO;
@@ -259,8 +260,9 @@ CGFloat const dismissDistance = 80;
     // 照片选中标识
     UIImageView *selectIconImageView = [[UIImageView alloc] init];
     selectIconImageView.contentMode = PHImageContentModeAspectFit;
-    selectIconImageView.image = [UIImage imageWithContentsOfFile:[[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"JKPhotoPickerResource.bundle/images/deselected_icon@3x.png"]];
-    selectIconImageView.highlightedImage = [UIImage imageWithContentsOfFile:[[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"JKPhotoPickerResource.bundle/images/selected_icon@3x.png"]];
+    
+    selectIconImageView.image = [JKPhotoResourceManager jk_imageNamed:@"deselected_icon@3x"];
+    selectIconImageView.highlightedImage = [JKPhotoResourceManager jk_imageNamed:@"selected_icon@3x"];
     [self.contentView addSubview:selectIconImageView];
     self.selectIconImageView = selectIconImageView;
     
