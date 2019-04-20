@@ -193,9 +193,9 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
     }
 }
 
-//- (BOOL)prefersStatusBarHidden{
-//    return YES;
-//}
+- (BOOL)prefersStatusBarHidden{
+    return YES;
+}
 
 #pragma mark - 懒加载
 
@@ -246,23 +246,11 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
 - (void)viewWillAppear:(BOOL)animated{
     [super viewWillAppear:animated];
     
-    UIView *statusBar = [[UIApplication sharedApplication] valueForKeyPath:@"statusBar"];
-    
-    [UIView animateWithDuration:0.25 animations:^{
-        
-        statusBar.alpha = 0;
-    }];
 }
 
 - (void)viewWillDisappear:(BOOL)animated{
     [super viewWillDisappear:animated];
     
-    UIView *statusBar = [[UIApplication sharedApplication] valueForKeyPath:@"statusBar"];
-    
-    [UIView animateWithDuration:0.5 animations:^{
-        
-        statusBar.alpha = 1;
-    }];
 }
 
 #pragma mark - 初始化
@@ -273,8 +261,6 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
 //    [self.cachingImageManager startCachingImagesForAssets:[self.dataSourceArr valueForKeyPath:@"photoAsset"] targetSize:PHImageManagerMaximumSize contentMode:(PHImageContentModeAspectFit) options:nil];
     
     self.view.backgroundColor = [UIColor blackColor];
-    
-//    [[UIApplication sharedApplication] setStatusBarHidden:YES withAnimation:UIStatusBarAnimationFade];
     
     [self setupCollectionView];
     

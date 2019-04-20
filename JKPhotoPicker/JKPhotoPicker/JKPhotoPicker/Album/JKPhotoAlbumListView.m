@@ -67,14 +67,6 @@ static CGFloat const rowHeight = 70;
         [self.contentView addSubview:tableView];
         _tableView = tableView;
         
-        // tableView约束
-        tableView.translatesAutoresizingMaskIntoConstraints = NO;
-        NSArray *tableViewCons1 = [NSLayoutConstraint constraintsWithVisualFormat:@"H:|-0-[tableView]-0-|" options:0 metrics:nil views:@{@"tableView" : tableView}];
-        [self.contentView addConstraints:tableViewCons1];
-        
-        NSArray *tableViewCons2 = [NSLayoutConstraint constraintsWithVisualFormat:[NSString stringWithFormat:@"V:|-%.0f-[tableView]-0-|", JKPhotoCurrentNavigationBarHeight + 15] options:0 metrics:nil views:@{@"tableView" : tableView}];
-        [self.contentView addConstraints:tableViewCons2];
-        
         tableView.dataSource = self;
         tableView.delegate = self;
         tableView.alwaysBounceVertical = YES;
@@ -190,21 +182,25 @@ static CGFloat const rowHeight = 70;
     self.isAnimating = YES;
     
     if (self.hidden) { // 显示动画
+        
         self.contentView.frame = CGRectMake(0, -[UIScreen mainScreen].bounds.size.height * 0.5 - 15, self.frame.size.width, self.contentView.frame.size.height);
         self.hidden = NO;
         self.navBgButton.hidden = NO;
         !self.completion ? : self.completion();
         
         [UIView animateWithDuration:0.25 animations:^{
-            self.contentView.frame = CGRectMake(0, 0, self.frame.size.width, self.contentView.frame.size.height);
+            
+            self.contentView.frame = CGRectMake(0, 15, self.frame.size.width, self.contentView.frame.size.height);
             self.bgButton.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:0.3];
             
         } completion:^(BOOL finished) {
+            
             [UIView animateWithDuration:0.25 animations:^{
                 
-                self.contentView.frame = CGRectMake(0, -15, self.frame.size.width, self.contentView.frame.size.height);
+                self.contentView.frame = CGRectMake(0, 0, self.frame.size.width, self.contentView.frame.size.height);
                 
             } completion:^(BOOL finished) {
+                
                 self.isAnimating = NO;
             }];
         }];
@@ -213,15 +209,19 @@ static CGFloat const rowHeight = 70;
     
     // 隐藏动画
     [UIView animateWithDuration:0.25 animations:^{
-        self.contentView.frame = CGRectMake(self.frame.origin.x, 0, self.frame.size.width, self.contentView.frame.size.height);
+        
+        self.contentView.frame = CGRectMake(self.frame.origin.x, 15, self.frame.size.width, self.contentView.frame.size.height);
         
         self.bgButton.backgroundColor = [UIColor clearColor];
         
     } completion:^(BOOL finished) {
+        
         [UIView animateWithDuration:0.25 animations:^{
+            
             self.contentView.frame = CGRectMake(self.frame.origin.x, -[UIScreen mainScreen].bounds.size.height * 0.5 - 15, self.frame.size.width, self.contentView.frame.size.height);
             
         } completion:^(BOOL finished) {
+            
             self.hidden = YES;
             
             self.isAnimating = NO;
@@ -239,8 +239,16 @@ static CGFloat const rowHeight = 70;
     self.currentSelectedIndex = [NSIndexPath indexPathForRow:0 inSection:0];
     
     [self.tableView selectRowAtIndexPath:self.currentSelectedIndex animated:NO scrollPosition:(UITableViewScrollPositionNone)];
+}
+
+- (void)layoutSubviews{
+    [super layoutSubviews];
     
-    self.contentView.frame = CGRectMake(0, -[UIScreen mainScreen].bounds.size.height * 0.5 - 15, [UIScreen mainScreen].bounds.size.width, (rowHeight * self.albums.count + JKPhotoCurrentNavigationBarHeight > [UIScreen mainScreen].bounds.size.height * 0.5) ? [UIScreen mainScreen].bounds.size.height * 0.5 + 15 : rowHeight * self.albums.count + JKPhotoCurrentNavigationBarHeight + 15);
+    CGFloat Y = self.hidden ? -[UIScreen mainScreen].bounds.size.height * 0.5 - 15 : 0;
+    
+    self.contentView.frame = CGRectMake(0, Y, self.frame.size.width, (rowHeight * self.albums.count + JKPhotoCurrentNavigationBarHeight > [UIScreen mainScreen].bounds.size.height * 0.5) ? [UIScreen mainScreen].bounds.size.height * 0.5 + 15 : rowHeight * self.albums.count + JKPhotoCurrentNavigationBarHeight + 15);
+    
+    self.tableView.frame = CGRectMake(0, JKPhotoCurrentNavigationBarHeight, self.contentView.frame.size.width, self.contentView.frame.size.height - JKPhotoCurrentNavigationBarHeight);
 }
 
 - (void)loadAlbumData{

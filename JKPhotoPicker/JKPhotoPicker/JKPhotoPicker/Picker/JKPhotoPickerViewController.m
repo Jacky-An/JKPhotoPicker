@@ -20,9 +20,15 @@
 #import <AssetsLibrary/AssetsLibrary.h>
 #import "JKPhotoResourceManager.h"
 
-@interface JKPhotoPickerViewController () <UICollectionViewDataSource, UICollectionViewDelegate, CAAnimationDelegate, UINavigationControllerDelegate, UIImagePickerControllerDelegate, PHPhotoLibraryChangeObserver>
+@interface JKPhotoPickerViewController () <UICollectionViewDataSource, UICollectionViewDelegate, CAAnimationDelegate, UINavigationControllerDelegate, UIImagePickerControllerDelegate, PHPhotoLibraryChangeObserver, UICollectionViewDelegateFlowLayout>
+{
+    NSInteger columnCount;
+}
 /** collectionView */
 @property (nonatomic, weak) UICollectionView *collectionView;
+
+/** bottomContentView */
+@property (nonatomic, weak) UIView *bottomContentView;
 
 /** 底部的collectionView */
 @property (nonatomic, weak) UICollectionView *bottomCollectionView;
@@ -204,8 +210,8 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
 - (JKPhotoAlbumListView *)albumListView{
     if (!_albumListView) {
         JKPhotoAlbumListView *albumListView = [[JKPhotoAlbumListView alloc] init];
-        albumListView.hidden = YES;
         albumListView.navigationController = self.navigationController;
+        albumListView.hidden = YES;
         [self.view addSubview:albumListView];
         _albumListView = albumListView;
         
@@ -278,6 +284,8 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
 #pragma mark - 初始化
 - (void)viewDidLoad {
     [super viewDidLoad];
+    
+    columnCount = JKPhotoScreenWidth > 414 ? 6 : 4;
     
     self.automaticallyAdjustsScrollViewInsets = NO;
     self.view.backgroundColor = [UIColor whiteColor];
@@ -354,17 +362,38 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
     [self dismissViewControllerAnimated:YES completion:nil];
 }
 
+- (void)viewWillTransitionToSize:(CGSize)size withTransitionCoordinator:(id<UIViewControllerTransitionCoordinator>)coordinator{
+    
+    columnCount = size.width > 414 ? 6 : 4;
+}
+
+- (void)viewDidLayoutSubviews{
+    [super viewDidLayoutSubviews];
+    
+    UIEdgeInsets safeAreaInsets = UIEdgeInsetsZero;
+    
+    if (@available(iOS 11.0, *)) {
+        
+        safeAreaInsets = self.view.safeAreaInsets;
+    }
+    
+    self.collectionView.frame = CGRectMake(safeAreaInsets.left, JKPhotoCurrentNavigationBarHeight, self.view.frame.size.width - safeAreaInsets.left - safeAreaInsets.right, self.view.frame.size.height - JKPhotoCurrentNavigationBarHeight - JKPhotoCurrentHomeIndicatorHeight() - 70);
+    
+    self.bottomContentView.frame = CGRectMake(0, CGRectGetMaxY(self.collectionView.frame), self.view.frame.size.width, 70 + JKPhotoCurrentHomeIndicatorHeight());
+    
+    self.bottomCollectionView.frame = CGRectMake(safeAreaInsets.left, 0, self.view.frame.size.width - 70, 70);
+    self.selectedCountButton.frame = CGRectMake(CGRectGetMaxX(self.collectionView.frame) - 65 - safeAreaInsets.right, 10, 50, 50);
+    
+    self.albumListView.frame = CGRectMake(self.albumListView.frame.origin.x, self.albumListView.frame.origin.y, self.collectionView.frame.size.width, self.albumListView.frame.size.height);
+}
+
 - (void)setupCollectionView{
     
     self.automaticallyAdjustsScrollViewInsets = NO;
     
     UICollectionViewFlowLayout *flowLayout = [[UICollectionViewFlowLayout alloc] init];
-    flowLayout.itemSize = CGSizeMake((JKPhotoScreenWidth - 3) / 4, (JKPhotoScreenWidth - 3) / 4);
-    flowLayout.minimumLineSpacing = 1;
-    flowLayout.minimumInteritemSpacing = 1;
     
     UICollectionView *collectionView = [[UICollectionView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height - 70 - JKPhotoCurrentHomeIndicatorHeight()) collectionViewLayout:flowLayout];
-    collectionView.contentInset = UIEdgeInsetsMake(JKPhotoCurrentNavigationBarHeight, 0, 0, 0);
     collectionView.backgroundColor = [UIColor clearColor];
     collectionView.alwaysBounceVertical = YES;
     collectionView.dataSource = self;
@@ -390,6 +419,7 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
     bottomContentView.frame = CGRectMake(0, CGRectGetMaxY(collectionView.frame), self.view.frame.size.width, 70 + JKPhotoCurrentHomeIndicatorHeight());
     bottomContentView.backgroundColor = [UIColor colorWithRed:250.0 / 255.0 green:250.0 / 255.0 blue:250.0 / 255.0 alpha:1];
     [self.view addSubview:bottomContentView];
+    _bottomContentView = bottomContentView;
     
     if (self.shouldPreview) {
         
@@ -408,7 +438,7 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
         bottomCollectionView.delegate = self;
         bottomCollectionView.contentInset = UIEdgeInsetsMake(0, 5, 0, 0);
         [bottomContentView addSubview:bottomCollectionView];
-        self.bottomCollectionView = bottomCollectionView;
+        _bottomCollectionView = bottomCollectionView;
         
         // 注册cell
         [bottomCollectionView registerClass:[JKPhotoSelectedCollectionViewCell class] forCellWithReuseIdentifier:reuseIDSelected];
@@ -1036,6 +1066,24 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
 }
 
 #pragma mark - collectionView代理
+
+- (CGSize)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout *)collectionViewLayout sizeForItemAtIndexPath:(NSIndexPath *)indexPath{
+    
+    CGFloat WH = (collectionView.frame.size.width - (columnCount - 1)) / columnCount;
+    
+    return  CGSizeMake(WH, WH);
+}
+
+- (CGFloat)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout *)collectionViewLayout minimumLineSpacingForSectionAtIndex:(NSInteger)section{
+    
+    return 1;
+}
+
+- (CGFloat)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout *)collectionViewLayout minimumInteritemSpacingForSectionAtIndex:(NSInteger)section{
+    
+    return 1;
+}
+
 - (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath{
     [collectionView deselectItemAtIndexPath:indexPath animated:NO];
     
