@@ -304,24 +304,27 @@ static NSString *videoCacheDirectoryPath_;
         return;
     }
     
-    PHAssetResourceRequestOptions *options = [[PHAssetResourceRequestOptions alloc] init];
-    
-    PHAssetResource *resource = [PHAssetResource assetResourcesForAsset:item.photoAsset].firstObject;
-    
-    [[PHAssetResourceManager defaultManager] writeDataForAssetResource:resource toFile:[NSURL fileURLWithPath:path] options:options completionHandler:^(NSError * _Nullable error) {
+    if (@available(iOS 9.0, *)) {
         
-        dispatch_async(dispatch_get_main_queue(), ^{
-           
-            if (error) {
-                
-                !complete ? : complete(nil);
-                
-                return;
-            }
+        PHAssetResourceRequestOptions *options = [[PHAssetResourceRequestOptions alloc] init];
+        
+        PHAssetResource *resource = [PHAssetResource assetResourcesForAsset:item.photoAsset].firstObject;
+        
+        [[PHAssetResourceManager defaultManager] writeDataForAssetResource:resource toFile:[NSURL fileURLWithPath:path] options:options completionHandler:^(NSError * _Nullable error) {
             
-            !complete ? : complete(path);
-        });
-    }];
+            dispatch_async(dispatch_get_main_queue(), ^{
+                
+                if (error) {
+                    
+                    !complete ? : complete(nil);
+                    
+                    return;
+                }
+                
+                !complete ? : complete(path);
+            });
+        }];
+    }
 }
 
 + (void)getVideoDataPathWithItems:(NSArray <JKPhotoItem *> *)items complete:(void(^)(NSArray <NSString *> *videoPaths))complete{

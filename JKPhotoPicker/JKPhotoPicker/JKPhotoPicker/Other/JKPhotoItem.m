@@ -62,12 +62,14 @@
             
             _dataTypeDescription = @"image";
             
-            if (_photoAsset.mediaSubtypes == PHAssetMediaSubtypePhotoLive) {
-                
-                _dataTypeDescription = @"live photo";
-                
-                _dataType = JKPhotoPickerMediaDataTypePhotoLive;
-                _shouldSelected = [JKPhotoItem selectDataType] == _dataType;
+            if (@available(iOS 9.1, *)) {
+                if (_photoAsset.mediaSubtypes == PHAssetMediaSubtypePhotoLive) {
+                    
+                    _dataTypeDescription = @"live photo";
+                    
+                    _dataType = JKPhotoPickerMediaDataTypePhotoLive;
+                    _shouldSelected = [JKPhotoItem selectDataType] == _dataType;
+                }
             }
             
             break;

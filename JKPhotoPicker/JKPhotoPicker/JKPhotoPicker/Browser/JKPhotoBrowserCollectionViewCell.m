@@ -102,8 +102,6 @@ CGFloat const dismissDistance = 80;
     scrollView.alwaysBounceVertical = YES;
     scrollView.alwaysBounceHorizontal = YES;
     
-    scrollView.panGestureRecognizer.requiresExclusiveTouchType = NO;
-    
     [self.contentView insertSubview:scrollView atIndex:0];
     self.scrollView = scrollView;
     
@@ -161,18 +159,21 @@ CGFloat const dismissDistance = 80;
     [self.contentView addConstraints:@[cons1, cons2, cons3, cons4]];
     
     // 照片
-    PHLivePhotoView *livePhotoView = [[PHLivePhotoView alloc] init];
-    
-    [self.photoImageView insertSubview:livePhotoView atIndex:0];
-    self.livePhotoView = livePhotoView;
-    
-    // 照片约束
-    livePhotoView.translatesAutoresizingMaskIntoConstraints = NO;
-    NSArray *livePhotoViewCons1 = [NSLayoutConstraint constraintsWithVisualFormat:@"H:|-0-[livePhotoView]-0-|" options:0 metrics:nil views:@{@"livePhotoView" : livePhotoView}];
-    [self.photoImageView addConstraints:livePhotoViewCons1];
-    
-    NSArray *livePhotoViewCons2 = [NSLayoutConstraint constraintsWithVisualFormat:@"V:|-0-[livePhotoView]-0-|" options:0 metrics:nil views:@{@"livePhotoView" : livePhotoView}];
-    [self.photoImageView addConstraints:livePhotoViewCons2];
+    if (@available(iOS 9.1, *)) {
+        
+        PHLivePhotoView *livePhotoView = [[PHLivePhotoView alloc] init];
+        
+        [self.photoImageView insertSubview:livePhotoView atIndex:0];
+        _livePhotoView = livePhotoView;
+        
+        // 照片约束
+        livePhotoView.translatesAutoresizingMaskIntoConstraints = NO;
+        NSArray *livePhotoViewCons1 = [NSLayoutConstraint constraintsWithVisualFormat:@"H:|-0-[livePhotoView]-0-|" options:0 metrics:nil views:@{@"livePhotoView" : livePhotoView}];
+        [self.photoImageView addConstraints:livePhotoViewCons1];
+        
+        NSArray *livePhotoViewCons2 = [NSLayoutConstraint constraintsWithVisualFormat:@"V:|-0-[livePhotoView]-0-|" options:0 metrics:nil views:@{@"livePhotoView" : livePhotoView}];
+        [self.photoImageView addConstraints:livePhotoViewCons2];
+    }
     
     // 播放gif的webView
     WKWebView *gifWebView = [[WKWebView alloc] init];
@@ -189,7 +190,10 @@ CGFloat const dismissDistance = 80;
     
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.3 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
         
-        [self.gifWebView loadData:gifData MIMEType:@"image/gif" characterEncodingName:@"UTF-8" baseURL:[NSURL new]];
+        if (@available(iOS 9.0, *)) {
+            
+            [self.gifWebView loadData:gifData MIMEType:@"image/gif" characterEncodingName:@"UTF-8" baseURL:[NSURL new]];
+        }
     });
 //    [self.gifWebView loadData:gifData MIMEType:@"image/gif" textEncodingName:@"UTF-8" baseURL:[NSURL new]];
 }
@@ -324,30 +328,33 @@ CGFloat const dismissDistance = 80;
         
         if (photoItem.dataType == JKPhotoPickerMediaDataTypePhotoLive) {
             
-            PHLivePhotoRequestOptions *options = [[PHLivePhotoRequestOptions alloc]init];
-            options.networkAccessAllowed = YES;
-            
-            [[PHImageManager defaultManager] requestLivePhotoForAsset:_photoItem.photoAsset targetSize:PHImageManagerMaximumSize contentMode:PHImageContentModeAspectFit options:options resultHandler:^(PHLivePhoto * _Nullable livePhoto, NSDictionary * _Nullable info) {
+            if (@available(iOS 9.1, *)) {
                 
-                dispatch_async(dispatch_get_main_queue(), ^{
+                PHLivePhotoRequestOptions *options = [[PHLivePhotoRequestOptions alloc]init];
+                options.networkAccessAllowed = YES;
+                
+                [[PHImageManager defaultManager] requestLivePhotoForAsset:_photoItem.photoAsset targetSize:PHImageManagerMaximumSize contentMode:PHImageContentModeAspectFit options:options resultHandler:^(PHLivePhoto * _Nullable livePhoto, NSDictionary * _Nullable info) {
                     
-                    !self.imageLoadFinishBlock ? : self.imageLoadFinishBlock(self);
-                    
-                    if ([info[PHImageResultIsInCloudKey] boolValue]) {
+                    dispatch_async(dispatch_get_main_queue(), ^{
                         
-                        [self.indicatorView startAnimating];
-                        self.selectButton.userInteractionEnabled = NO;
-                    }
-                    
-                    if (livePhoto == nil) { return; }
-                    self.selectButton.userInteractionEnabled = YES;
-                    
-                    [self.indicatorView stopAnimating];
-                    
-                    // block内是主线程
-                    self.livePhotoView.livePhoto = livePhoto;
-                });
-            }];
+                        !self.imageLoadFinishBlock ? : self.imageLoadFinishBlock(self);
+                        
+                        if ([info[PHImageResultIsInCloudKey] boolValue]) {
+                            
+                            [self.indicatorView startAnimating];
+                            self.selectButton.userInteractionEnabled = NO;
+                        }
+                        
+                        if (livePhoto == nil) { return; }
+                        self.selectButton.userInteractionEnabled = YES;
+                        
+                        [self.indicatorView stopAnimating];
+                        
+                        // block内是主线程
+                        self.livePhotoView.livePhoto = livePhoto;
+                    });
+                }];
+            }
         }
         
         if (photoItem.shouldPlayGif) {

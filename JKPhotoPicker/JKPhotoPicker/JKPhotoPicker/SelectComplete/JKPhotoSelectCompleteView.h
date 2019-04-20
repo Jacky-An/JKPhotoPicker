@@ -38,10 +38,10 @@
 + (void)getOriginalImageDatasWithItems:(NSArray <JKPhotoItem *> *)items complete:(void(^)(NSArray <NSData *> *imageDatas))complete;
 
 /** 获取单个livePhoto */
-+ (void)getLivePhotoPathWithItem:(JKPhotoItem *)item complete:(void(^)(PHLivePhoto *livePhoto))complete;
++ (void)getLivePhotoPathWithItem:(JKPhotoItem *)item complete:(void(^)(PHLivePhoto *livePhoto))complete API_AVAILABLE(ios(9.1));
 
 /** 获取多个livePhoto */
-+ (void)getLivePhotoPathWithItems:(NSArray <JKPhotoItem *> *)items complete:(void(^)(NSArray <PHLivePhoto *> *livePhotos))complete;
++ (void)getLivePhotoPathWithItems:(NSArray <JKPhotoItem *> *)items complete:(void(^)(NSArray <PHLivePhoto *> *livePhotos))complete API_AVAILABLE(ios(9.1));
 
 /** 获取单个视频data缓存路径 */
 + (void)getVideoDataPathWithItem:(JKPhotoItem *)item complete:(void(^)(NSString *videoPath))complete;

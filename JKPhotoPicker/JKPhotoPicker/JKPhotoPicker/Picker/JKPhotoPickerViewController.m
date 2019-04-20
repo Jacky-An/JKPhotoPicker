@@ -761,7 +761,10 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
             break;
         case JKPhotoPickerMediaDataTypePhotoLive:
             
-            imagePicker.mediaTypes = [[NSArray alloc] initWithObjects:(NSString*)kUTTypeLivePhoto, (NSString*)kUTTypeImage, nil];
+            if (@available(iOS 9.1, *)) {
+                
+                imagePicker.mediaTypes = [[NSArray alloc] initWithObjects:(NSString*)kUTTypeLivePhoto, (NSString*)kUTTypeImage, nil];
+            }
             
             break;
             
@@ -1153,33 +1156,6 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
         // 将该图像保存到媒体库中
         UIImageWriteToSavedPhotosAlbum(orinalImage, self,@selector(image:didFinishSavingWithError:contextInfo:), NULL);
         
-    }else if ([mediaType isEqualToString:(NSString *)kUTTypeLivePhoto]) { // livePhoto
-        
-        // 获取视频文件的url
-        NSURL *imageURL = [info objectForKey:UIImagePickerControllerReferenceURL];
-        NSURL *videoURL = [info objectForKey:UIImagePickerControllerMediaURL];
-        
-        [[PHPhotoLibrary sharedPhotoLibrary] performChanges:^{
-            
-            PHAssetCreationRequest *req = [PHAssetCreationRequest creationRequestForAsset];
-            
-            [req addResourceWithType:PHAssetResourceTypePhoto fileURL:imageURL options:nil];
-            [req addResourceWithType:PHAssetResourceTypePairedVideo fileURL:videoURL options:nil];
-            
-        } completionHandler:^(BOOL success, NSError * _Nullable error) {
-            
-            if (success) {
-                
-                NSLog(@"已保存至相册");
-                
-                [self reloadAfterTakePhoto];
-                
-            }else{
-                
-                NSLog(@"保存失败");
-            }
-        }];
-        
     }else if ([mediaType isEqualToString:(NSString *)kUTTypeMovie]) { // 视频
         
         // 获取视频文件的url
@@ -1200,6 +1176,39 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
                 NSLog(@"error occured while saving the video:%@", error);
             }
         }];
+        
+    } else if (@available(iOS 9.1, *)) {
+        
+        if ([mediaType isEqualToString:(NSString *)kUTTypeLivePhoto]) { // livePhoto
+            
+            // 获取视频文件的url
+            NSURL *imageURL = [info objectForKey:UIImagePickerControllerReferenceURL];
+            NSURL *videoURL = [info objectForKey:UIImagePickerControllerMediaURL];
+            
+            [[PHPhotoLibrary sharedPhotoLibrary] performChanges:^{
+                
+                PHAssetCreationRequest *req = [PHAssetCreationRequest creationRequestForAsset];
+                
+                [req addResourceWithType:PHAssetResourceTypePhoto fileURL:imageURL options:nil];
+                [req addResourceWithType:PHAssetResourceTypePairedVideo fileURL:videoURL options:nil];
+                
+            } completionHandler:^(BOOL success, NSError * _Nullable error) {
+                
+                if (success) {
+                    
+                    NSLog(@"已保存至相册");
+                    
+                    [self reloadAfterTakePhoto];
+                    
+                }else{
+                    
+                    NSLog(@"保存失败");
+                }
+            }];
+            
+        }
+    } else {
+        // Fallback on earlier versions
     }
     
     [picker dismissViewControllerAnimated:YES completion:nil];
