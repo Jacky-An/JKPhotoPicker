@@ -19,8 +19,9 @@
 #import <MobileCoreServices/MobileCoreServices.h>
 #import <AssetsLibrary/AssetsLibrary.h>
 #import "JKPhotoResourceManager.h"
+#import "JKPhotoConfiguration.h"
 
-@interface JKPhotoPickerViewController () <UICollectionViewDataSource, UICollectionViewDelegate, CAAnimationDelegate, UINavigationControllerDelegate, UIImagePickerControllerDelegate, PHPhotoLibraryChangeObserver, UICollectionViewDelegateFlowLayout>
+@interface JKPhotoPickerViewController () <UICollectionViewDataSource, UICollectionViewDelegate, UINavigationControllerDelegate, UIImagePickerControllerDelegate, PHPhotoLibraryChangeObserver, UICollectionViewDelegateFlowLayout>
 {
     NSInteger columnCount;
 }
@@ -44,9 +45,6 @@
 
 /** titleButton */
 @property (nonatomic, weak) JKPhotoTitleButton *titleButton;
-
-/** 最多选择图片数量 默认3 */
-@property (nonatomic, assign) NSUInteger maxSelectCount;
 
 /** 监听点击完成的block */
 @property (nonatomic, copy) void(^completeHandler)(NSArray *photoItems, NSArray *selectedAssetArray) ;
@@ -75,14 +73,8 @@
 /** 当前是否是所有照片相册 */
 @property (nonatomic, assign) BOOL isAllPhotosAlbum;
 
-/** 是否显示拍照 */
-@property (nonatomic, assign) BOOL isShowTakePhoto;
-
-/** shouldPreview */
-@property (nonatomic, assign) BOOL shouldPreview;
-
-/** shouldSelectAll */
-@property (nonatomic, assign) BOOL shouldSelectAll;
+/** configuration */
+@property (nonatomic, strong) JKPhotoConfiguration *configuration;
 @end
 
 @implementation JKPhotoPickerViewController
@@ -98,46 +90,51 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
 }
 
 #pragma mark - 类方法
-+ (void)showWithPresentVc:(UIViewController *)presentVc
-           maxSelectCount:(NSUInteger)maxSelectCount
-             seletedItems:(NSArray <JKPhotoItem *> *)seletedItems
-            shouldPreview:(BOOL)shouldPreview
-          shouldSelectAll:(BOOL)shouldSelectAll
-            showTakePhoto:(BOOL)showTakePhoto
-                 dataType:(JKPhotoPickerMediaDataType)dataType
-          completeHandler:(void(^)(NSArray <JKPhotoItem *> *photoItems, NSArray<PHAsset *> *selectedAssetArray))completeHandler{
+
++ (void)showWithConfiguration:(void(^)(JKPhotoConfiguration *configuration))configuration
+              completeHandler:(void(^)(NSArray <JKPhotoItem *> *photoItems, NSArray<PHAsset *> *selectedAssetArray))completeHandler{
     
-    if (dataType == JKPhotoPickerMediaDataTypeUnknown) {
+    JKPhotoConfiguration *config = [JKPhotoConfiguration new];
+    
+    !configuration ? : configuration(config);
+    
+    if (config.selectDataType == JKPhotoPickerMediaDataTypeUnknown) {
         return;
     }
     
-    [JKPhotoItem setSelectDataType:dataType];
+    [JKPhotoItem setSelectDataType:config.selectDataType];
     
-    [JKPhotoManager checkPhotoAccessWithPresentVc:presentVc finished:^(BOOL isAccessed) {
+    UIViewController *presentVC = config.presentViewController;
+    
+    if (!presentVC) {
+        
+        presentVC = [UIApplication sharedApplication].delegate.window.rootViewController;
+        
+        while (presentVC.presentedViewController) {
+            
+            presentVC = presentVC.presentedViewController;
+        }
+    }
+    
+    config.presentViewController = presentVC;
+    
+    [JKPhotoManager checkPhotoAccessWithPresentVc:presentVC finished:^(BOOL isAccessed) {
         
         if (!isAccessed) { return; }
         
-        [self showWithVc:presentVc maxSelectCount:maxSelectCount seletedItems:seletedItems shouldPreview:shouldPreview shouldSelectAll:shouldSelectAll showTakePhoto:showTakePhoto dataType:dataType completeHandler:completeHandler];
+        [self showWithConfig:config completeHandler:completeHandler];
     }];
 }
 
-+ (void)showWithVc:(UIViewController *)presentVc
-    maxSelectCount:(NSUInteger)maxSelectCount
-      seletedItems:(NSArray <JKPhotoItem *> *)seletedItems
-     shouldPreview:(BOOL)shouldPreview
-   shouldSelectAll:(BOOL)shouldSelectAll
-     showTakePhoto:(BOOL)showTakePhoto
-          dataType:(JKPhotoPickerMediaDataType)dataType
-   completeHandler:(void(^)(NSArray <JKPhotoItem *> *photoItems, NSArray<PHAsset *> *selectedAssetArray))completeHandler{
++ (void)showWithConfig:(JKPhotoConfiguration *)config completeHandler:(void (^)(NSArray<JKPhotoItem *> *, NSArray<PHAsset *> *))completeHandler{
+    
+    if (!config) { return; }
     
     JKPhotoPickerViewController *vc = [[self alloc] init];
-    vc.shouldPreview = shouldPreview;
-    vc.shouldSelectAll = shouldSelectAll;
-    vc.isShowTakePhoto = showTakePhoto;
-    vc.maxSelectCount = maxSelectCount;
+    vc.configuration = config;
     vc.completeHandler = completeHandler;
     [vc.selectedPhotoItems removeAllObjects];
-    [vc.selectedPhotoItems addObjectsFromArray:seletedItems];
+    [vc.selectedPhotoItems addObjectsFromArray:config.seletedItems];
     
     [vc.selectedAssetArray removeAllObjects];
     
@@ -150,16 +147,12 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
     
     UINavigationController *nav = [[UINavigationController alloc] initWithRootViewController:vc];
     
-    if (presentVc && [presentVc isKindOfClass:[UIViewController class]]) {
+    [config.presentViewController presentViewController:nav animated:YES completion:^{
         
-        [presentVc presentViewController:nav animated:YES completion:^{
+        if (config.takePhotoFirst) {
             
-        }];
-        return;
-    }
-    
-    [[UIApplication sharedApplication].delegate.window.rootViewController presentViewController:nav animated:YES completion:^{
-        
+            [vc updateIconWithSourType:(UIImagePickerControllerSourceTypeCamera)];
+        }
     }];
 }
 
@@ -230,7 +223,7 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
             weakSelf.titleButton.selected = NO;
             weakSelf.isAllPhotosAlbum = [photoItem.albumLocalIdentifier isEqualToString:weakSelf.albumListView.cameraRollItem.albumLocalIdentifier];
             
-            if (weakSelf.shouldSelectAll) {
+            if (weakSelf.configuration.shouldSelectAll) {
                 
                 [weakSelf.selectedPhotoItems removeAllObjects];
                 [weakSelf.selectedAssetArray removeAllObjects];
@@ -381,8 +374,9 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
     
     self.bottomContentView.frame = CGRectMake(0, CGRectGetMaxY(self.collectionView.frame), self.view.frame.size.width, 70 + JKPhotoCurrentHomeIndicatorHeight());
     
-    self.bottomCollectionView.frame = CGRectMake(safeAreaInsets.left, 0, self.view.frame.size.width - 70, 70);
-    self.selectedCountButton.frame = CGRectMake(CGRectGetMaxX(self.collectionView.frame) - 65 - safeAreaInsets.right, 10, 50, 50);
+    self.selectedCountButton.frame = CGRectMake(CGRectGetMaxX(self.collectionView.frame) - 60, 10, 50, 50);
+    
+    self.bottomCollectionView.frame = CGRectMake(safeAreaInsets.left, 0, self.selectedCountButton.frame.origin.x - 10 - safeAreaInsets.left, 70);
     
     self.albumListView.frame = CGRectMake(self.albumListView.frame.origin.x, self.albumListView.frame.origin.y, self.collectionView.frame.size.width, self.albumListView.frame.size.height);
 }
@@ -421,13 +415,22 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
     [self.view addSubview:bottomContentView];
     _bottomContentView = bottomContentView;
     
-    if (self.shouldPreview) {
+    if (self.configuration.shouldSelectAll) {
+        
+        UIButton *selectAllButton = [UIButton buttonWithType:(UIButtonTypeSystem)];
+        selectAllButton.frame = CGRectMake(15, 10, 100, 50);
+        selectAllButton.contentHorizontalAlignment = UIControlContentHorizontalAlignmentLeft;
+        [selectAllButton setTitle:@"全选" forState:(UIControlStateNormal)];
+        
+        [selectAllButton addTarget:self action:@selector(selectAllButtonClick:) forControlEvents:(UIControlEventTouchUpInside)];
+        
+        [bottomContentView addSubview:selectAllButton];
+        _selectAllButton = selectAllButton;
+        
+    } else if (self.configuration.shouldBottomPreview) {
         
         // 底部的collectionView
         UICollectionViewFlowLayout *flowLayout2 = [[UICollectionViewFlowLayout alloc] init];
-        flowLayout2.itemSize = CGSizeMake(60, 70);
-        flowLayout2.minimumLineSpacing = 1;
-        flowLayout2.minimumInteritemSpacing = 1;
         flowLayout2.scrollDirection = UICollectionViewScrollDirectionHorizontal;
         
         UICollectionView *bottomCollectionView = [[UICollectionView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width - 70, 70) collectionViewLayout:flowLayout2];
@@ -442,23 +445,11 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
         
         // 注册cell
         [bottomCollectionView registerClass:[JKPhotoSelectedCollectionViewCell class] forCellWithReuseIdentifier:reuseIDSelected];
-        
-    } else if (self.shouldSelectAll) {
-        
-        UIButton *selectAllButton = [UIButton buttonWithType:(UIButtonTypeSystem)];
-        selectAllButton.frame = CGRectMake(15, 10, 100, 50);
-        selectAllButton.contentHorizontalAlignment = UIControlContentHorizontalAlignmentLeft;
-        [selectAllButton setTitle:@"全选" forState:(UIControlStateNormal)];
-        
-        [selectAllButton addTarget:self action:@selector(selectAllButtonClick:) forControlEvents:(UIControlEventTouchUpInside)];
-        
-        [bottomContentView addSubview:selectAllButton];
-        _selectAllButton = selectAllButton;
     }
     
     UIButton *selectedCountButton = [UIButton buttonWithType:(UIButtonTypeSystem)];
     selectedCountButton.frame = CGRectMake(CGRectGetMaxX(self.collectionView.frame) - 65, 10, 50, 50);
-    selectedCountButton.backgroundColor = [UIColor redColor];
+    selectedCountButton.backgroundColor = JKPhotoSystemRedColor;
     selectedCountButton.layer.cornerRadius = 25;
     selectedCountButton.layer.masksToBounds = YES;
     [selectedCountButton setTitleColor:[UIColor whiteColor] forState:(UIControlStateNormal)];
@@ -482,7 +473,7 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
         
         [button setTitle:@"取消全选" forState:(UIControlStateNormal)];
         
-        if (self.isAllPhotosAlbum && self.isShowTakePhoto) {
+        if (self.isAllPhotosAlbum && self.configuration.showTakePhotoIcon) {
             
             NSMutableArray *arrM = [NSMutableArray arrayWithArray:self.allPhotoItems];
             [arrM removeObjectAtIndex:0];
@@ -541,7 +532,7 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
         }
     }];
     
-    if ([photoItems.firstObject isShowCameraIcon] == NO && self.isShowTakePhoto) {
+    if ([photoItems.firstObject isShowCameraIcon] == NO && self.configuration.showTakePhotoIcon) {
         
         JKPhotoItem *item1 = [[JKPhotoItem alloc] init];
         item1.isShowCameraIcon = YES;
@@ -585,12 +576,6 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
         item.isSelected = YES;
     }
     
-//    for (JKPhotoItem *it in self.selectedPhotoItems) {
-//        if (![it.assetLocalIdentifier isEqualToString:item.assetLocalIdentifier]) continue;
-//
-//        item.isSelected = YES;
-//    }
-    
     cell.photoItem = item;
     
     [self solveSelectBlockWithCell:cell];
@@ -623,8 +608,8 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
                 return !selected;
             }
             
-            if (weakSelf.maxSelectCount <= 0 ||
-                weakSelf.selectedPhotoItems.count < weakSelf.maxSelectCount) {
+            if (weakSelf.configuration.maxSelectCount <= 0 ||
+                weakSelf.selectedPhotoItems.count < weakSelf.configuration.maxSelectCount) {
                 
                 [weakSelf selectPhotoWithCell:currentCell];
                 
@@ -836,7 +821,7 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
 
 - (void)checkSelectAllButton{
     
-    NSInteger totalCount = self.allPhotoItems.count - ((self.isAllPhotosAlbum && self.isShowTakePhoto) ? 1 : 0);
+    NSInteger totalCount = self.allPhotoItems.count - ((self.isAllPhotosAlbum && self.configuration.showTakePhotoIcon) ? 1 : 0);
     
     NSString *title = (self.selectedPhotoItems.count == totalCount) ? @"取消全选" : @"全选";
     
@@ -869,7 +854,7 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
 
 - (void)showMaxSelectCountTip{
     
-    UIAlertController *alertVc = [UIAlertController alertControllerWithTitle:@"提示" message:[NSString stringWithFormat:@"最多选择%ld张图片哦~~", (unsigned long)self.maxSelectCount] preferredStyle:(UIAlertControllerStyleAlert)];
+    UIAlertController *alertVc = [UIAlertController alertControllerWithTitle:@"提示" message:[NSString stringWithFormat:@"最多选择%ld张图片哦~~", (unsigned long)self.configuration.maxSelectCount] preferredStyle:(UIAlertControllerStyleAlert)];
     
     [alertVc addAction:[UIAlertAction actionWithTitle:@"确定" style:(UIAlertActionStyleDefault) handler:nil]];
     
@@ -1042,32 +1027,30 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
     
     // 旋转动画
     CABasicAnimation *rotationAnimation = [CABasicAnimation animationWithKeyPath:@"transform.rotation.y"];
-//    CAKeyframeAnimation *rotationAnimation = [CAKeyframeAnimation animationWithKeyPath:@"transform.rotation.y"];
     rotationAnimation.toValue = @(M_PI * 2);
     rotationAnimation.repeatCount = 1;
     rotationAnimation.duration = 0.5;
-    rotationAnimation.delegate = self;
     
     [self.selectedCountButton.layer addAnimation:rotationAnimation forKey:nil];
     
-    if (self.maxSelectCount <= 0) {
+    if (self.configuration.maxSelectCount <= 0) {
         
         [self.selectedCountButton setTitle:[NSString stringWithFormat:@"%ld", (unsigned long)self.selectedPhotoItems.count] forState:(UIControlStateNormal)];
         
         return;
     }
     
-    [self.selectedCountButton setTitle:[NSString stringWithFormat:@"%ld/%ld", (unsigned long)self.selectedPhotoItems.count, (unsigned long)self.maxSelectCount] forState:(UIControlStateNormal)];
-}
-
-#pragma mark - CAAnimationDelegate
-- (void)animationDidStop:(CAAnimation *)anim finished:(BOOL)flag{
-    
+    [self.selectedCountButton setTitle:[NSString stringWithFormat:@"%ld/%ld", (unsigned long)self.selectedPhotoItems.count, (unsigned long)self.configuration.maxSelectCount] forState:(UIControlStateNormal)];
 }
 
 #pragma mark - collectionView代理
 
 - (CGSize)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout *)collectionViewLayout sizeForItemAtIndexPath:(NSIndexPath *)indexPath{
+    
+    if (collectionView == self.bottomCollectionView) {
+        
+        return CGSizeMake(60, 70);
+    }
     
     CGFloat WH = (collectionView.frame.size.width - (columnCount - 1)) / columnCount;
     
@@ -1097,12 +1080,11 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
     dict[@"allPhotosCache"] = self.allPhotosIdentifierCache;
     dict[@"selectedItemsCache"] = self.selectedPhotosIdentifierCache;
     dict[@"isAllPhotosAlbum"] = @(self.isAllPhotosAlbum);
-    dict[@"isShowTakePhoto"] = @(self.isShowTakePhoto);
+    dict[@"configuration"] = self.configuration;
     
-    dict[@"maxSelectCount"] = @(self.maxSelectCount);
     dict[@"imageView"] = cell.photoImageView;
     dict[@"collectionView"] = collectionView;
-    dict[@"indexPath"] = (collectionView == self.collectionView && (self.isAllPhotosAlbum && self.isShowTakePhoto)) ? [NSIndexPath indexPathForItem:indexPath.item - 1 inSection:indexPath.section] : indexPath;
+    dict[@"indexPath"] = (collectionView == self.collectionView && (self.isAllPhotosAlbum && self.configuration.showTakePhotoIcon)) ? [NSIndexPath indexPathForItem:indexPath.item - 1 inSection:indexPath.section] : indexPath;
     dict[@"isSelectedCell"] = @([cell isMemberOfClass:[JKPhotoSelectedCollectionViewCell class]]);
     dict[@"isShowSelectedPhotos"] = @(collectionView == self.bottomCollectionView);
     
@@ -1304,8 +1286,8 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
         
         [self.albumListView setReloadCompleteBlock:^{
             
-            if (weakSelf.maxSelectCount > 0 &&
-                weakSelf.selectedPhotoItems.count >= weakSelf.maxSelectCount) {
+            if (weakSelf.configuration.maxSelectCount > 0 &&
+                weakSelf.selectedPhotoItems.count >= weakSelf.configuration.maxSelectCount) {
                 return;
             }
             

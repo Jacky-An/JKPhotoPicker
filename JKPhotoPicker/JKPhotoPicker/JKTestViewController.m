@@ -7,7 +7,6 @@
 //
 
 #import "JKTestViewController.h"
-
 #import "JKPhotoPicker.h"
 
 @interface JKTestViewController () <UIImagePickerControllerDelegate, UINavigationControllerDelegate>
@@ -42,8 +41,13 @@
     
     [alertVc addAction:[UIAlertAction actionWithTitle:@"拍照" style:(UIAlertActionStyleDefault) handler:^(UIAlertAction * _Nonnull action) {
         
-//        [self updateIconWithSourType:(UIImagePickerControllerSourceTypeCamera)];
-        [JKPhotoPickerViewController showWithPresentVc:self maxSelectCount:7 seletedItems:self.selectCompleteView.photoItems shouldPreview:YES shouldSelectAll:NO showTakePhoto:YES dataType:JKPhotoPickerMediaDataTypeImageIncludeGif completeHandler:^(NSArray <JKPhotoItem *> *photoItems, NSArray<PHAsset *> *selectedAssetArray) {
+        [JKPhotoPicker showWithConfiguration:^(JKPhotoConfiguration * _Nonnull configuration) {
+            
+            configuration.seletedItems = self.selectCompleteView.photoItems;
+            configuration.takePhotoFirst = YES;
+            
+        } completeHandler:^(NSArray<JKPhotoItem *> * _Nonnull photoItems, NSArray<PHAsset *> * _Nonnull selectedAssetArray) {
+            
             [self.imageView removeFromSuperview];
             self.imageView = nil;
             self.selectCompleteView.photoItems = photoItems;
@@ -52,7 +56,16 @@
     }]];
     
     [alertVc addAction:[UIAlertAction actionWithTitle:@"从相册选择" style:(UIAlertActionStyleDefault) handler:^(UIAlertAction * _Nonnull action) {
-        [JKPhotoPickerViewController showWithPresentVc:self maxSelectCount:0 seletedItems:nil shouldPreview:NO shouldSelectAll:YES showTakePhoto:NO dataType:JKPhotoPickerMediaDataTypeAll completeHandler:^(NSArray <JKPhotoItem *> *photoItems, NSArray<PHAsset *> *selectedAssetArray) {
+        
+        [JKPhotoPicker showWithConfiguration:^(JKPhotoConfiguration * _Nonnull configuration) {
+            
+            configuration.maxSelectCount = 0;
+            configuration.shouldSelectAll = YES;
+            configuration.showTakePhotoIcon = NO;
+            configuration.selectDataType = JKPhotoPickerMediaDataTypeAll;
+            
+        } completeHandler:^(NSArray<JKPhotoItem *> * _Nonnull photoItems, NSArray<PHAsset *> * _Nonnull selectedAssetArray) {
+            
             [self.imageView removeFromSuperview];
             self.imageView = nil;
             self.selectCompleteView.photoItems = photoItems;

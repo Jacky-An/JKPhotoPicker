@@ -9,25 +9,12 @@
 #import <UIKit/UIKit.h>
 #import "JKPhotoConst.h"
 
-@class JKPhotoItem, PHAsset;
+@class JKPhotoItem, PHAsset, JKPhotoConfiguration;
 
 @interface JKPhotoPickerViewController : UIViewController
 
-/**
- * presentVc         : 由哪个控制器present出来，传nil则由根控制器弹出
- * maxSelectCount    : 最多选择图片数量 默认7
- * seletedItems      : 已选择的item，数组中放的是JKPhotoItem对象
- * dataType          : 要选择的数据类型
- * completeHandler   : 选择完成的回调
- */
-+ (void)showWithPresentVc:(UIViewController *)presentVc
-           maxSelectCount:(NSUInteger)maxSelectCount
-             seletedItems:(NSArray <JKPhotoItem *> *)seletedItems
-            shouldPreview:(BOOL)shouldPreview
-          shouldSelectAll:(BOOL)shouldSelectAll
-            showTakePhoto:(BOOL)showTakePhoto
-                 dataType:(JKPhotoPickerMediaDataType)dataType
-          completeHandler:(void(^)(NSArray <JKPhotoItem *> *photoItems, NSArray<PHAsset *> *selectedAssetArray))completeHandler;
++ (void)showWithConfiguration:(void(^)(JKPhotoConfiguration *configuration))configuration
+              completeHandler:(void(^)(NSArray <JKPhotoItem *> *photoItems, NSArray<PHAsset *> *selectedAssetArray))completeHandler;
 
 /**
  * 使用UIImagePicker

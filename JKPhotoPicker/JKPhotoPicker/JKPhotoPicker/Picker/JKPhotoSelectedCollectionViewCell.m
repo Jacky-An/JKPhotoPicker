@@ -31,10 +31,10 @@
         [deleteButton addTarget:self action:@selector(deleteButtonClick) forControlEvents:(UIControlEventTouchUpInside)];
         
         deleteButton.translatesAutoresizingMaskIntoConstraints = NO;
-        NSArray *deleteButtonCons1 = [NSLayoutConstraint constraintsWithVisualFormat:@"H:[deleteButton(20)]-(0)-|" options:0 metrics:nil views:@{@"deleteButton" : deleteButton}];
+        NSArray *deleteButtonCons1 = [NSLayoutConstraint constraintsWithVisualFormat:@"H:[deleteButton(16)]-(0)-|" options:0 metrics:nil views:@{@"deleteButton" : deleteButton}];
         [self.contentView addConstraints:deleteButtonCons1];
         
-        NSArray *deleteButtonCons2 = [NSLayoutConstraint constraintsWithVisualFormat:@"V:|-(0)-[deleteButton(20)]" options:0 metrics:nil views:@{@"deleteButton" : deleteButton}];
+        NSArray *deleteButtonCons2 = [NSLayoutConstraint constraintsWithVisualFormat:@"V:|-(2)-[deleteButton(16)]" options:0 metrics:nil views:@{@"deleteButton" : deleteButton}];
         [self.contentView addConstraints:deleteButtonCons2];
     }
     return _deleteButton;

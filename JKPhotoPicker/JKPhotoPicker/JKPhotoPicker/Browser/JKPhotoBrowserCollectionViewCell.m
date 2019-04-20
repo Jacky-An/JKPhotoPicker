@@ -183,6 +183,10 @@ CGFloat const dismissDistance = 80;
     
     // 播放gif的webView
     WKWebView *gifWebView = [[WKWebView alloc] init];
+    gifWebView.scrollView.scrollEnabled = NO;
+    if (@available(iOS 11.0, *)) {
+        gifWebView.scrollView.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentNever;
+    }
     gifWebView.userInteractionEnabled = NO;
 //    gifWebView.scalesPageToFit = YES;
     gifWebView.backgroundColor = nil;
@@ -325,6 +329,7 @@ CGFloat const dismissDistance = 80;
         
         PHImageRequestOptions *options = [[PHImageRequestOptions alloc] init];
         options.networkAccessAllowed = YES;
+        options.deliveryMode = PHImageRequestOptionsDeliveryModeFastFormat;
         
         [[PHImageManager defaultManager] requestImageForAsset:self->_photoItem.photoAsset targetSize:PHImageManagerMaximumSize contentMode:PHImageContentModeAspectFit options:options resultHandler:^(UIImage * _Nullable result, NSDictionary * _Nullable info) {
             
@@ -355,6 +360,7 @@ CGFloat const dismissDistance = 80;
                 
                 PHLivePhotoRequestOptions *options = [[PHLivePhotoRequestOptions alloc]init];
                 options.networkAccessAllowed = YES;
+                options.deliveryMode = PHImageRequestOptionsDeliveryModeFastFormat;
                 
                 [[PHImageManager defaultManager] requestLivePhotoForAsset:self->_photoItem.photoAsset targetSize:PHImageManagerMaximumSize contentMode:PHImageContentModeAspectFit options:options resultHandler:^(PHLivePhoto * _Nullable livePhoto, NSDictionary * _Nullable info) {
                     
