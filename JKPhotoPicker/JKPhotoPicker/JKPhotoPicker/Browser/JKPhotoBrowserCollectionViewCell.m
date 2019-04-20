@@ -12,6 +12,7 @@
 #import <PhotosUI/PhotosUI.h>
 #import <WebKit/WebKit.h>
 #import "JKPhotoResourceManager.h"
+#import "JKPhotoBrowserViewController.h"
 
 @interface JKPhotoBrowserCollectionViewCell () <UIScrollViewDelegate, UIGestureRecognizerDelegate>
 {
@@ -289,6 +290,16 @@ CGFloat const dismissDistance = 80;
     //    self.selectIconImageView.highlighted = self.selectIconImageView.highlighted;
 }
 
+- (void)setController:(JKPhotoBrowserViewController *)controller{
+    
+    __weak typeof(self) weakSelf = self;
+    
+    [controller setDraggingBlock:^(BOOL isDragging) {
+        
+        weakSelf.scrollView.scrollEnabled = !isDragging;
+    }];
+}
+
 - (void)setPhotoItem:(JKPhotoItem *)photoItem{
     _photoItem = photoItem;
     
@@ -434,9 +445,11 @@ CGFloat const dismissDistance = 80;
     
     self.currentZoomScale = 1;
     
+    self.scrollView.scrollEnabled = YES;
     self.scrollView.contentOffset = CGPointZero;
     self.scrollView.contentInset = UIEdgeInsetsZero;
     self.scrollView.contentSize = CGSizeZero;
+    self.scrollView.alwaysBounceHorizontal = (!JKPlayerIsDeviceiPad() && !JKPhotoIsLandscape());
     
     // 放大图片实质就是transform形变
     self.photoImageView.transform = CGAffineTransformIdentity;

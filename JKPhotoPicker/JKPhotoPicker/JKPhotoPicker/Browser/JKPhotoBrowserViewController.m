@@ -196,6 +196,20 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
     }
 }
 
+- (UIInterfaceOrientationMask)supportedInterfaceOrientations{
+    
+    return UIInterfaceOrientationMaskPortrait;
+}
+
+- (UIInterfaceOrientation)preferredInterfaceOrientationForPresentation{
+    
+    return UIInterfaceOrientationPortrait;
+}
+
+- (BOOL)prefersHomeIndicatorAutoHidden{
+    return JKPhotoIsLandscape();
+}
+
 - (BOOL)shouldAutorotate{
     return NO;
 }
@@ -688,6 +702,17 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
 }
 
 #pragma mark - scrollView代理
+
+- (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView{
+    
+    !self.draggingBlock ? : self.draggingBlock(YES);
+}
+
+- (void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate{
+    
+    !self.draggingBlock ? : self.draggingBlock(NO);
+}
+
 - (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView{
     
     NSLog(@"可见cell--->%zd", self.collectionView.visibleCells.count);

@@ -8,7 +8,7 @@
 
 #import <UIKit/UIKit.h>
 
-@class JKPhotoItem, PHCachingImageManager, AVPlayerItem, PHLivePhotoView, WKWebView;
+@class JKPhotoItem, PHCachingImageManager, AVPlayerItem, PHLivePhotoView, WKWebView, JKPhotoBrowserViewController;
 
 @interface JKPhotoBrowserCollectionViewCell : UICollectionViewCell
 
@@ -32,6 +32,9 @@
 
 /** collectionView */
 @property (nonatomic, weak) UICollectionView *collectionView;
+
+/** controller */
+@property (nonatomic, weak) JKPhotoBrowserViewController *controller;
 
 /** controllerView */
 @property (nonatomic, weak) UIView *controllerView;
