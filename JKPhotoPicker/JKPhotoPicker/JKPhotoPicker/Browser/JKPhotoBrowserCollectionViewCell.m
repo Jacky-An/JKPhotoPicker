@@ -406,14 +406,14 @@ CGFloat const dismissDistance = 80;
     
     //图片要显示的尺寸
     CGFloat pictureW = self.browserContentView.frame.size.width;
-    CGFloat pictureH = self.browserContentView.frame.size.width * image.size.height / image.size.width;
+    CGFloat pictureH = pictureW * image.size.height / image.size.width;
     
     if (JKPlayerIsDeviceiPad() || JKPhotoIsLandscape()) {
 
         if (pictureH > self.browserContentView.frame.size.height) {
 
             pictureH = self.browserContentView.frame.size.height;
-            pictureW = self.browserContentView.frame.size.height * image.size.width / image.size.height;
+            pictureW = pictureH * image.size.width / image.size.height;
         }
     }
     

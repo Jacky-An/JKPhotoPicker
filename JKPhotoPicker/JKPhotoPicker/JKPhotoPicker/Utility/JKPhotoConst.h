@@ -37,7 +37,7 @@ typedef NS_ENUM(NSUInteger, JKPhotoPickerScrollDirection) {
 #define JKPhotoScreenHeight ([UIScreen mainScreen].bounds.size.height)
 
 /// 当前导航条高度
-#define JKPhotoCurrentNavigationBarHeight (JKPhotoIsLandscape() ? CGRectGetMaxY(self.navigationController.navigationBar.frame) : JKPhotoNavigationBarHeight())
+#define JKPhotoCurrentNavigationBarHeight (CGRectGetMaxY(self.navigationController.navigationBar.frame))
 
 /// 当前导航条高度
 #define JKPhotoCurrentTabBarHeight (JKPhotoIsLandscape() ? self.tabBarController.tabBar.frame.size.height : JKPhotoTabBarHeight())

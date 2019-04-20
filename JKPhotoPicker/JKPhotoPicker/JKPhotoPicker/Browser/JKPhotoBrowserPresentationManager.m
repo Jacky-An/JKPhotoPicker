@@ -182,17 +182,14 @@
     CGFloat pictureX = 0;
     CGFloat pictureY = 0;
     CGFloat pictureW = self.calculateFrameSize.width;
-    CGFloat pictureH = self.calculateFrameSize.width * image.size.height / image.size.width;
+    CGFloat pictureH = pictureW * image.size.height / image.size.width;
     
     if (JKPlayerIsDeviceiPad() || JKPhotoIsLandscape()) {
         
-        pictureH = self.calculateFrameSize.height;
-        pictureW = self.calculateFrameSize.width * image.size.width / image.size.height;
-        
-        if (pictureW > self.calculateFrameSize.width) {
+        if (pictureH > self.calculateFrameSize.height) {
             
-            pictureW = self.calculateFrameSize.width;
-            pictureH = self.calculateFrameSize.width * image.size.height / image.size.width;
+            pictureH = self.calculateFrameSize.height;
+            pictureW = pictureH * image.size.width / image.size.height;
         }
     }
     
