@@ -72,6 +72,9 @@
 /** 当前是否是所有照片相册 */
 @property (nonatomic, assign) BOOL isAllPhotosAlbum;
 
+/** 是否显示拍照 */
+@property (nonatomic, assign) BOOL isShowTakePhoto;
+
 /** shouldPreview */
 @property (nonatomic, assign) BOOL shouldPreview;
 
@@ -97,6 +100,7 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
              seletedItems:(NSArray <JKPhotoItem *> *)seletedItems
             shouldPreview:(BOOL)shouldPreview
           shouldSelectAll:(BOOL)shouldSelectAll
+            showTakePhoto:(BOOL)showTakePhoto
                  dataType:(JKPhotoPickerMediaDataType)dataType
           completeHandler:(void(^)(NSArray <JKPhotoItem *> *photoItems, NSArray<PHAsset *> *selectedAssetArray))completeHandler{
     
@@ -110,7 +114,7 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
         
         if (!isAccessed) { return; }
         
-        [self showWithVc:presentVc maxSelectCount:maxSelectCount seletedItems:seletedItems shouldPreview:shouldPreview shouldSelectAll:shouldSelectAll dataType:dataType completeHandler:completeHandler];
+        [self showWithVc:presentVc maxSelectCount:maxSelectCount seletedItems:seletedItems shouldPreview:shouldPreview shouldSelectAll:shouldSelectAll showTakePhoto:showTakePhoto dataType:dataType completeHandler:completeHandler];
     }];
 }
 
@@ -119,12 +123,14 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
       seletedItems:(NSArray <JKPhotoItem *> *)seletedItems
      shouldPreview:(BOOL)shouldPreview
    shouldSelectAll:(BOOL)shouldSelectAll
+     showTakePhoto:(BOOL)showTakePhoto
           dataType:(JKPhotoPickerMediaDataType)dataType
    completeHandler:(void(^)(NSArray <JKPhotoItem *> *photoItems, NSArray<PHAsset *> *selectedAssetArray))completeHandler{
     
     JKPhotoPickerViewController *vc = [[self alloc] init];
     vc.shouldPreview = shouldPreview;
     vc.shouldSelectAll = shouldSelectAll;
+    vc.isShowTakePhoto = showTakePhoto;
     vc.maxSelectCount = maxSelectCount;
     vc.completeHandler = completeHandler;
     [vc.selectedPhotoItems removeAllObjects];
@@ -310,6 +316,26 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
     
     self.navigationItem.titleView = titleButton;
     self.titleButton = titleButton;
+    
+    NSDictionary *attrDict = @{NSFontAttributeName : [UIFont systemFontOfSize:15]};
+    
+    [self.navigationItem.leftBarButtonItem setTitleTextAttributes:attrDict forState:(UIControlStateNormal)];
+    [self.navigationItem.leftBarButtonItem setTitleTextAttributes:attrDict forState:(UIControlStateDisabled)];
+    [self.navigationItem.leftBarButtonItem setTitleTextAttributes:attrDict forState:(UIControlStateHighlighted)];
+    if (@available(iOS 9.0, *)) {
+        [self.navigationItem.leftBarButtonItem setTitleTextAttributes:attrDict forState:(UIControlStateFocused)];
+    } else {
+        // Fallback on earlier versions
+    }
+    
+    [self.navigationItem.rightBarButtonItem setTitleTextAttributes:attrDict forState:(UIControlStateNormal)];
+    [self.navigationItem.rightBarButtonItem setTitleTextAttributes:attrDict forState:(UIControlStateDisabled)];
+    [self.navigationItem.rightBarButtonItem setTitleTextAttributes:attrDict forState:(UIControlStateHighlighted)];
+    if (@available(iOS 9.0, *)) {
+        [self.navigationItem.rightBarButtonItem setTitleTextAttributes:attrDict forState:(UIControlStateFocused)];
+    } else {
+        // Fallback on earlier versions
+    }
 }
 
 - (void)titleViewClick:(UIButton *)button{
@@ -428,7 +454,7 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
         
         [button setTitle:@"取消全选" forState:(UIControlStateNormal)];
         
-        if (self.isAllPhotosAlbum) {
+        if (self.isAllPhotosAlbum && self.isShowTakePhoto) {
             
             NSMutableArray *arrM = [NSMutableArray arrayWithArray:self.allPhotoItems];
             [arrM removeObjectAtIndex:0];
@@ -487,7 +513,7 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
         }
     }];
     
-    if ([photoItems.firstObject isShowCameraIcon] == NO && self.isAllPhotosAlbum) {
+    if ([photoItems.firstObject isShowCameraIcon] == NO && self.isShowTakePhoto) {
         
         JKPhotoItem *item1 = [[JKPhotoItem alloc] init];
         item1.isShowCameraIcon = YES;
@@ -782,7 +808,7 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
 
 - (void)checkSelectAllButton{
     
-    NSInteger totalCount = self.allPhotoItems.count - (self.isAllPhotosAlbum ? 1 : 0);
+    NSInteger totalCount = self.allPhotoItems.count - ((self.isAllPhotosAlbum && self.isShowTakePhoto) ? 1 : 0);
     
     NSString *title = (self.selectedPhotoItems.count == totalCount) ? @"取消全选" : @"全选";
     
@@ -1025,11 +1051,12 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
     dict[@"allPhotosCache"] = self.allPhotosIdentifierCache;
     dict[@"selectedItemsCache"] = self.selectedPhotosIdentifierCache;
     dict[@"isAllPhotosAlbum"] = @(self.isAllPhotosAlbum);
+    dict[@"isShowTakePhoto"] = @(self.isShowTakePhoto);
     
     dict[@"maxSelectCount"] = @(self.maxSelectCount);
     dict[@"imageView"] = cell.photoImageView;
     dict[@"collectionView"] = collectionView;
-    dict[@"indexPath"] = (collectionView == self.collectionView && self.isAllPhotosAlbum) ? [NSIndexPath indexPathForItem:indexPath.item - 1 inSection:indexPath.section] : indexPath;
+    dict[@"indexPath"] = (collectionView == self.collectionView && (self.isAllPhotosAlbum && self.isShowTakePhoto)) ? [NSIndexPath indexPathForItem:indexPath.item - 1 inSection:indexPath.section] : indexPath;
     dict[@"isSelectedCell"] = @([cell isMemberOfClass:[JKPhotoSelectedCollectionViewCell class]]);
     dict[@"isShowSelectedPhotos"] = @(collectionView == self.bottomCollectionView);
     

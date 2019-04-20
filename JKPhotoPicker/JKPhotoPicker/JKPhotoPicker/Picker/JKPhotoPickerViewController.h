@@ -25,6 +25,7 @@
              seletedItems:(NSArray <JKPhotoItem *> *)seletedItems
             shouldPreview:(BOOL)shouldPreview
           shouldSelectAll:(BOOL)shouldSelectAll
+            showTakePhoto:(BOOL)showTakePhoto
                  dataType:(JKPhotoPickerMediaDataType)dataType
           completeHandler:(void(^)(NSArray <JKPhotoItem *> *photoItems, NSArray<PHAsset *> *selectedAssetArray))completeHandler;
 

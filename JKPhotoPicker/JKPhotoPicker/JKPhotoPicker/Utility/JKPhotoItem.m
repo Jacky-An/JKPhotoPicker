@@ -129,7 +129,7 @@
         
         [[PHImageManager defaultManager] requestImageForAsset:_photoAsset targetSize:CGSizeMake(200, 200) contentMode:PHImageContentModeAspectFit options:nil resultHandler:^(UIImage * _Nullable result, NSDictionary * _Nullable info) {
             
-            _thumImage = result;
+            self->_thumImage = result;
         }];
     }
     return _thumImage;
@@ -147,7 +147,7 @@
         
         [[PHImageManager defaultManager] requestImageForAsset:_photoAsset targetSize:PHImageManagerMaximumSize contentMode:PHImageContentModeAspectFit options:options resultHandler:^(UIImage * _Nullable result, NSDictionary * _Nullable info) {
             
-            _originalImage = result;
+            self->_originalImage = result;
         }];
     }
     return _originalImage;
@@ -179,7 +179,7 @@
         
         [[PHImageManager defaultManager] requestImageForAsset:_albumThumAsset targetSize:CGSizeMake(200, 200) contentMode:PHImageContentModeAspectFit options:nil resultHandler:^(UIImage * _Nullable result, NSDictionary * _Nullable info) {
             
-            _albumThumImage = result;
+            self->_albumThumImage = result;
         }];
     }
     

@@ -303,7 +303,7 @@ CGFloat const dismissDistance = 80;
         PHImageRequestOptions *options = [[PHImageRequestOptions alloc] init];
         options.networkAccessAllowed = YES;
         
-        [[PHImageManager defaultManager] requestImageForAsset:_photoItem.photoAsset targetSize:PHImageManagerMaximumSize contentMode:PHImageContentModeAspectFit options:options resultHandler:^(UIImage * _Nullable result, NSDictionary * _Nullable info) {
+        [[PHImageManager defaultManager] requestImageForAsset:self->_photoItem.photoAsset targetSize:PHImageManagerMaximumSize contentMode:PHImageContentModeAspectFit options:options resultHandler:^(UIImage * _Nullable result, NSDictionary * _Nullable info) {
             
             dispatch_async(dispatch_get_main_queue(), ^{
                
@@ -333,7 +333,7 @@ CGFloat const dismissDistance = 80;
                 PHLivePhotoRequestOptions *options = [[PHLivePhotoRequestOptions alloc]init];
                 options.networkAccessAllowed = YES;
                 
-                [[PHImageManager defaultManager] requestLivePhotoForAsset:_photoItem.photoAsset targetSize:PHImageManagerMaximumSize contentMode:PHImageContentModeAspectFit options:options resultHandler:^(PHLivePhoto * _Nullable livePhoto, NSDictionary * _Nullable info) {
+                [[PHImageManager defaultManager] requestLivePhotoForAsset:self->_photoItem.photoAsset targetSize:PHImageManagerMaximumSize contentMode:PHImageContentModeAspectFit options:options resultHandler:^(PHLivePhoto * _Nullable livePhoto, NSDictionary * _Nullable info) {
                     
                     dispatch_async(dispatch_get_main_queue(), ^{
                         
@@ -362,7 +362,7 @@ CGFloat const dismissDistance = 80;
             PHImageRequestOptions *options = [[PHImageRequestOptions alloc] init];
             options.networkAccessAllowed = YES;
             
-            [[PHImageManager defaultManager] requestImageDataForAsset:_photoItem.photoAsset options:options resultHandler:^(NSData * _Nullable imageData, NSString * _Nullable dataUTI, UIImageOrientation orientation, NSDictionary * _Nullable info) {
+            [[PHImageManager defaultManager] requestImageDataForAsset:self->_photoItem.photoAsset options:options resultHandler:^(NSData * _Nullable imageData, NSString * _Nullable dataUTI, UIImageOrientation orientation, NSDictionary * _Nullable info) {
                 
                 dispatch_async(dispatch_get_main_queue(), ^{
                    

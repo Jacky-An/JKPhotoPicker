@@ -69,6 +69,9 @@
 /** 当前是否是所有照片相册 */
 @property (nonatomic, assign) BOOL isAllPhotosAlbum;
 
+/** 是否显示拍照 */
+@property (nonatomic, assign) BOOL isShowTakePhoto;
+
 /** 缓存管理对象 */
 @property (nonatomic, strong) PHCachingImageManager *cachingImageManager;
 @end
@@ -98,6 +101,7 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
     vc.maxSelectCount       = [dataDict[@"maxSelectCount"] integerValue];
     vc.completionBlock      = completion;
     vc.isAllPhotosAlbum     = [dataDict[@"isAllPhotosAlbum"] boolValue];
+    vc.isShowTakePhoto     = [dataDict[@"isShowTakePhoto"] boolValue];
     vc.fromCollectionView   = dataDict[@"collectionView"];
     vc.isShowSelectedPhotos = [dataDict[@"isShowSelectedPhotos"] boolValue];
     
@@ -126,7 +130,7 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
         
     }else{
         
-        if (vc.allPhotoItemsCount > 1 && vc.isAllPhotosAlbum) {
+        if (vc.allPhotoItemsCount > 1 && (vc.isAllPhotosAlbum && vc.isShowTakePhoto)) {
             
             NSMutableArray *mArr = [vc.allPhotoItems mutableCopy];
             [mArr removeObjectAtIndex:0];
@@ -520,7 +524,7 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
     self.presentationManager.touchImage = currentCell.photoImageView.image;
     self.presentationManager.dismissFrame = dismissFrame;
     
-    self.indexPath = (self.isShowSelectedPhotos || (!self.isAllPhotosAlbum)) ? currentCell.indexPath : [NSIndexPath indexPathForItem:currentCell.indexPath.item + 1 inSection:currentCell.indexPath.section];
+    self.indexPath = (self.isShowSelectedPhotos || (!self.isAllPhotosAlbum) || !self.isShowTakePhoto) ? currentCell.indexPath : [NSIndexPath indexPathForItem:currentCell.indexPath.item + 1 inSection:currentCell.indexPath.section];
     
     JKPhotoCollectionViewCell *fromCell = (JKPhotoCollectionViewCell *)[self.fromCollectionView cellForItemAtIndexPath:self.indexPath];
     self.presentationManager.fromImageView = fromCell.photoImageView;
@@ -607,7 +611,7 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
     
     NSLog(@"可见cell--->%zd", self.collectionView.visibleCells.count);
     
-    self.indexPath = [NSIndexPath indexPathForItem:(!self.isAllPhotosAlbum || self.isShowSelectedPhotos) ? scrollView.contentOffset.x / JKPhotoPickerScreenW : scrollView.contentOffset.x / JKPhotoPickerScreenW + 1 inSection:0];
+    self.indexPath = [NSIndexPath indexPathForItem:(self.isShowSelectedPhotos || (!self.isAllPhotosAlbum) || !self.isShowTakePhoto) ? scrollView.contentOffset.x / JKPhotoPickerScreenW : scrollView.contentOffset.x / JKPhotoPickerScreenW + 1 inSection:0];
 
     JKPhotoCollectionViewCell *fromCell = (JKPhotoCollectionViewCell *)[self.fromCollectionView cellForItemAtIndexPath:self.indexPath];
 
