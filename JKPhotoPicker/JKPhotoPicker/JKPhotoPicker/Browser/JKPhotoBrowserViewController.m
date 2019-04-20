@@ -78,6 +78,9 @@
 
 /** 缓存管理对象 */
 @property (nonatomic, strong) PHCachingImageManager *cachingImageManager;
+
+/** currentScreenWidth */
+@property (nonatomic, assign) CGFloat currentScreenWidth;
 @end
 
 @implementation JKPhotoBrowserViewController
@@ -193,7 +196,15 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
     }
 }
 
+- (BOOL)shouldAutorotate{
+    return NO;
+}
+
 - (BOOL)prefersStatusBarHidden{
+    return YES;
+}
+
+- (BOOL)modalPresentationCapturesStatusBarAppearance{
     return YES;
 }
 
@@ -253,10 +264,49 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
     
 }
 
+#pragma mark
+#pragma mark - 监听屏幕旋转
+
+- (void)deviceOrientationDidChange:(NSNotification *)noti{
+    
+    switch ([UIDevice currentDevice].orientation) {
+        case UIInterfaceOrientationPortrait:
+        case UIInterfaceOrientationPortraitUpsideDown:
+        case UIInterfaceOrientationLandscapeLeft:
+        case UIInterfaceOrientationLandscapeRight:
+            
+            [self solveOrientationChanged];
+            
+            break;
+            
+        default:
+            break;
+    }
+}
+
+- (void)solveOrientationChanged{
+    
+    if (_currentScreenWidth == [UIScreen mainScreen].bounds.size.width) {
+        
+        return;
+    }
+    
+    _currentScreenWidth = [UIScreen mainScreen].bounds.size.width;
+    
+    [self.collectionView reloadData];
+    
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        
+        [self.collectionView scrollToItemAtIndexPath:self.indexPath atScrollPosition:(UICollectionViewScrollPositionNone) animated:NO];
+    });
+}
+
 #pragma mark - 初始化
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(deviceOrientationDidChange:) name:UIApplicationDidChangeStatusBarOrientationNotification object:nil];
     
 //    [self.cachingImageManager startCachingImagesForAssets:[self.dataSourceArr valueForKeyPath:@"photoAsset"] targetSize:PHImageManagerMaximumSize contentMode:(PHImageContentModeAspectFit) options:nil];
     
@@ -265,7 +315,6 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
     [self setupCollectionView];
     
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.2 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-        
         
         [self.collectionView scrollToItemAtIndexPath:self.indexPath atScrollPosition:(UICollectionViewScrollPositionNone) animated:NO];
     });
@@ -658,6 +707,8 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
 }
 
 - (void)dealloc{
+    
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
     
     [[PHImageManager defaultManager] cancelImageRequest:PHInvalidImageRequestID];
     

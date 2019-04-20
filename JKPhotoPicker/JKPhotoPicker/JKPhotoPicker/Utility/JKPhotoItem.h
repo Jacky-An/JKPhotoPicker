@@ -48,6 +48,9 @@
 /** 照片的标识 */
 @property (nonatomic, copy, readonly) NSString *assetLocalIdentifier;
 
+/** 照片的文件名 */
+@property (nonatomic, copy, readonly) NSString *fileName;
+
 
 
 /****************************相册相关****************************/

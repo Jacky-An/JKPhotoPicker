@@ -91,9 +91,9 @@
             break;
     }
     
-    NSString *fileName = [_photoAsset valueForKey:@"filename"];
+    _fileName = [_photoAsset valueForKey:@"filename"];
     
-    if ([[[fileName pathExtension] lowercaseString] isEqualToString:@"gif"]) {
+    if ([[[_fileName pathExtension] lowercaseString] isEqualToString:@"gif"]) {
         
         _dataTypeDescription = @"GIF";
         
@@ -105,7 +105,7 @@
             
             _shouldSelected = YES;
         }
-        NSLog(@"%@", fileName);
+        NSLog(@"%@", _fileName);
     }
     
     if ([JKPhotoItem selectDataType] == JKPhotoPickerMediaDataTypeAll) {
