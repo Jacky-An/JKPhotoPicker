@@ -324,6 +324,8 @@ static NSString *videoCacheDirectoryPath_;
                 !complete ? : complete(path);
             });
         }];
+    } else {
+        
     }
 }
 
@@ -358,6 +360,329 @@ static NSString *videoCacheDirectoryPath_;
         
         [self getVideoDataPathWithItems:tmpArr complete:complete];
     }];
+}
+
+#pragma mark
+#pragma mark - 写入沙盒
+
+/** 将单个PHAsset写入某一目录 */
++ (void)writeAsset:(PHAsset *)asset
+       toDirectory:(NSString *)directory
+          complete:(void(^)(NSString *filePath, NSError *error))complete{
+    
+    if (!asset || !directory) {
+        
+        !complete ? : complete(nil, nil);
+        
+        return;
+    }
+    
+    NSString *fileName = [asset valueForKeyPath:@"filename"];
+    
+    if (!fileName) {
+        
+        NSString *identifier = asset.localIdentifier;
+        
+        if ([identifier containsString:@"/"]) {
+            
+            identifier = [identifier stringByReplacingOccurrencesOfString:@"/" withString:@"_"];
+        }
+        
+        fileName = identifier;
+    }
+    
+    if (!fileName) {
+        
+        NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
+        formatter.dateFormat = @"yyyy-MM-dd HH:mm:ss.SSS";
+        
+        fileName = [NSString stringWithFormat:@"%@.jpg", [formatter stringFromDate:[NSDate new]]];
+    }
+    
+    NSString *filePath = [directory stringByAppendingPathComponent:fileName];
+    
+    filePath = [self checkDuplicationNameWithFilePath:filePath isFolder:NO];
+    
+    NSURL *URL = [NSURL fileURLWithPath:filePath];
+    
+    if (@available(iOS 9.0, *)) {
+        
+        PHAssetResourceRequestOptions *options = [[PHAssetResourceRequestOptions alloc] init];
+        options.networkAccessAllowed = YES;
+        
+        PHAssetResource *resource = [PHAssetResource assetResourcesForAsset:asset].firstObject;
+        
+        [[PHAssetResourceManager defaultManager] writeDataForAssetResource:resource toFile:URL options:options completionHandler:^(NSError * _Nullable error) {
+            
+            dispatch_async(dispatch_get_main_queue(), ^{
+                
+                if (error) {
+                    
+                    !complete ? : complete(filePath, error);
+                    
+                    return;
+                }
+                
+                !complete ? : complete(filePath, nil);
+            });
+        }];
+    }
+}
+
+/** 将多个PHAsset写入某一目录 */
++ (void)writeAssets:(NSArray <PHAsset *> *)assets
+        toDirectory:(NSString *)directory
+           progress:(void(^)(NSInteger completeCout, NSInteger totalCount))progress
+           complete:(void(^)(NSArray <NSString *> *successFilePaths, NSArray <NSString *> *failureFilePaths))complete{
+    
+    if (!assets || !directory) {
+        
+        !complete ? : complete(nil, nil);
+        
+        return;
+    }
+    
+    static NSMutableArray *successArr = nil;
+    static NSMutableArray *failureArr = nil;
+    static NSInteger totalCount = 0;
+    
+    if (!successArr) {
+        
+        successArr = [NSMutableArray array];
+    }
+    
+    if (!failureArr) {
+        
+        failureArr = [NSMutableArray array];
+    }
+    
+    if (!totalCount) {
+        
+        totalCount = assets.count;
+    }
+    
+    if (assets.count <= 0) {
+        
+        dispatch_async(dispatch_get_main_queue(), ^{
+            
+            !complete ? : complete([successArr copy], [failureArr copy]);
+            
+            [successArr removeAllObjects];
+            [failureArr removeAllObjects];
+            
+            successArr = nil;
+            failureArr = nil;
+            totalCount = 0;
+        });
+        
+        return;
+    }
+    
+    dispatch_async(dispatch_get_global_queue(0, 0), ^{
+        
+        NSMutableArray *tmpArr = [NSMutableArray arrayWithArray:assets];
+        
+        [self writeAsset:tmpArr.firstObject toDirectory:directory complete:^(NSString *filePath, NSError *error) {
+            
+            [tmpArr removeObjectAtIndex:0];
+            
+            if (filePath) {
+                
+                if (error) {
+                    
+                    [failureArr addObject:filePath];
+                    
+                } else {
+                    
+                    [successArr addObject:filePath];
+                }
+            }
+            
+            CGFloat finishCount = (successArr.count + failureArr.count) * 1.0 ;
+            
+            !progress ? : progress(finishCount, totalCount);
+            
+            [self writeAssets:tmpArr toDirectory:directory progress:progress complete:complete];
+        }];
+    });
+}
+
+/** 将多个JKPhotoItem写入某一目录 */
++ (void)writePhotoItems:(NSArray <JKPhotoItem *> *)items
+            toDirectory:(NSString *)directory
+               progress:(void(^)(NSInteger completeCout, NSInteger totalCount))progress
+               complete:(void(^)(NSArray <NSString *> *successFilePaths, NSArray <NSString *> *failureFilePaths))complete{
+    
+    if (!items || !directory) {
+        
+        !complete ? : complete(nil, nil);
+        
+        return;
+    }
+    
+    static NSMutableArray *successArr = nil;
+    static NSMutableArray *failureArr = nil;
+    static NSInteger totalCount = 0;
+    
+    if (!successArr) {
+        
+        successArr = [NSMutableArray array];
+    }
+    
+    if (!failureArr) {
+        
+        failureArr = [NSMutableArray array];
+    }
+    
+    if (!totalCount) {
+        
+        totalCount = items.count;
+    }
+    
+    if (items.count <= 0) {
+        
+        dispatch_async(dispatch_get_main_queue(), ^{
+            
+            !complete ? : complete([successArr copy], [failureArr copy]);
+            
+            [successArr removeAllObjects];
+            [failureArr removeAllObjects];
+            
+            successArr = nil;
+            failureArr = nil;
+            totalCount = 0;
+        });
+        
+        return;
+    }
+    
+    dispatch_async(dispatch_get_global_queue(0, 0), ^{
+        
+        NSMutableArray *tmpArr = [NSMutableArray arrayWithArray:items];
+        
+        JKPhotoItem *item = tmpArr.firstObject;
+        
+        [self writeAsset:item.photoAsset toDirectory:directory complete:^(NSString *filePath, NSError *error) {
+            
+            [tmpArr removeObjectAtIndex:0];
+            
+            if (filePath) {
+                
+                if (error) {
+                    
+                    [failureArr addObject:filePath];
+                    
+                } else {
+                    
+                    [successArr addObject:filePath];
+                }
+            }
+            
+            CGFloat finishCount = (successArr.count + failureArr.count) * 1.0 ;
+            
+            !progress ? : progress(finishCount, totalCount);
+            
+            [self writeAssets:tmpArr toDirectory:directory progress:progress complete:complete];
+        }];
+    });
+}
+
+
+#pragma mark
+#pragma mark - 检查重名
+
+/**
+ * 检查重名，并返回合适的文件路径
+ * filePath : 要检查重名的路径
+ * sourceFilePath : 源文件，用于判断是否文件夹，来决定重名后的命名方式
+ * 如果是文件夹，则直接加(1)，文件则在后缀前加(1)
+ */
++ (NSString *)checkDuplicationNameWithFilePath:(NSString *)filePath sourceFilePath:(NSString *)sourceFilePath{
+    
+    BOOL isDirectory = NO;
+    
+    // 检查源文件路径
+    if (![[NSFileManager defaultManager] fileExistsAtPath:sourceFilePath isDirectory:&isDirectory]) {
+        
+        return filePath;
+    }
+    
+    return [self checkDuplicationNameWithFilePath:filePath isFolder:isDirectory];
+}
+
+/**
+ * 检查重名，并返回合适的文件路径
+ * filePath : 要检查重名的路径
+ * isFolder : 是否文件夹，决定重名后的命名方式
+ * 如果是文件夹，则直接加(1)，文件则在后缀前加(1)
+ */
++ (NSString *)checkDuplicationNameWithFilePath:(NSString *)filePath isFolder:(BOOL)isFolder{
+    
+    NSString *destinationPath = [filePath copy];
+    
+    // 检查目标文件路径
+    if (![[NSFileManager defaultManager] fileExistsAtPath:destinationPath]) {
+        
+        return destinationPath;
+    }
+    
+    NSString *jointString1 = @"";
+    NSString *jointString2 = @"";
+    
+    if (isFolder) {
+        
+        jointString1 = destinationPath;
+        
+    } else {
+        
+        // 判断是否重名
+        
+        // 文件后缀
+        NSString *pathExtension = [destinationPath pathExtension];
+        
+        // 文件后缀是空字符串
+        if (!pathExtension || [pathExtension isEqualToString:@""]) {
+            
+            NSString *lastCharacter = [destinationPath substringFromIndex:destinationPath.length - 1];
+            
+            if ([lastCharacter isEqualToString:@"."]) {
+                
+                if (destinationPath.length <= 1) {
+                    
+                    jointString1 = @"";
+                    
+                } else {
+                    
+                    jointString1 = [destinationPath substringToIndex:destinationPath.length - 1];
+                }
+                
+                jointString2 = lastCharacter;
+                
+            } else {
+                
+                jointString1 = destinationPath;
+                jointString2 = @"";
+            }
+            
+        } else {
+            
+            jointString1 = [destinationPath substringToIndex:destinationPath.length - pathExtension.length - 1];
+            
+            jointString2 = [destinationPath substringFromIndex:destinationPath.length - pathExtension.length - 1];
+        }
+        
+    }
+    
+    int index = 0;
+    
+    while ([[NSFileManager defaultManager] fileExistsAtPath:destinationPath]) {
+        
+        index++;
+        
+        destinationPath = [[jointString1 stringByAppendingString:[NSString stringWithFormat:@"(%d)", index]] stringByAppendingString:jointString2];
+    }
+    
+    return destinationPath;
 }
 
 #pragma mark - 清理缓存的视频

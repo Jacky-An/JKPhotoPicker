@@ -49,6 +49,23 @@
 /** 获取多个视频data缓存路径 */
 + (void)getVideoDataPathWithItems:(NSArray <JKPhotoItem *> *)items complete:(void(^)(NSArray <NSString *> *videoPaths))complete;
 
+/** 将单个PHAsset写入某一目录 */
++ (void)writeAsset:(PHAsset *)asset
+       toDirectory:(NSString *)directory
+          complete:(void(^)(NSString *filePath, NSError *error))complete;
+
+/** 将多个PHAsset写入某一目录 */
++ (void)writeAssets:(NSArray <PHAsset *> *)assets
+        toDirectory:(NSString *)directory
+           progress:(void(^)(NSInteger completeCout, NSInteger totalCount))progress
+           complete:(void(^)(NSArray <NSString *> *successFilePaths, NSArray <NSString *> *failureFilePaths))complete;
+
+/** 将多个JKPhotoItem写入某一目录 */
++ (void)writePhotoItems:(NSArray <JKPhotoItem *> *)items
+            toDirectory:(NSString *)directory
+               progress:(void(^)(NSInteger completeCout, NSInteger totalCount))progress
+               complete:(void(^)(NSArray <NSString *> *successFilePaths, NSArray <NSString *> *failureFilePaths))complete;
+
 /** 选择视频的缓存文件夹路径 */
 + (NSString *)videoCacheDirectoryPath;
 
