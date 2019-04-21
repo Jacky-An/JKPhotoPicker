@@ -31,7 +31,9 @@
     
     BOOL beginDraggingZoom;
     CGPoint beginDraggingZoomTranslation;
-    BOOL draggingZoomDeltaX;
+    CGFloat draggingZoomDeltaX;
+    
+    CGFloat draggingZoomTranlationScaleY;
     
     JKPhotoPickerScrollDirection beginScrollDirection;
     JKPhotoPickerScrollDirection endScrollDirection;
@@ -658,6 +660,10 @@ CGFloat const dismissDistance = 80;
         draggingZoomDeltaX = beginDraggingZoomTranslation.x - point.x;
         
         self.scrollView.alwaysBounceHorizontal = YES;
+        
+        scrollView.pinchGestureRecognizer.enabled = NO;
+        
+        draggingZoomTranlationScaleY = self.photoImageView.frame.size.height / MAX(JKPhotoScreenHeight, JKPhotoScreenWidth);
     }
     
     point.x -= draggingZoomDeltaX;
@@ -677,7 +683,17 @@ CGFloat const dismissDistance = 80;
     
     if (!isDragging) { return; }
     
-    scrollView.pinchGestureRecognizer.enabled = NO;
+    if (draggingZoomTranlationScaleY > 3) {
+        
+        scale = (-scrollView.contentOffset.y - scrollView.contentInset.top) / JKPhotoScreenHeight / draggingZoomTranlationScaleY;
+        
+        self.transformScale = (self.currentZoomScale - scale);
+        self.transformScale = self.transformScale < 0.2 ? 0.2 : self.transformScale;
+        
+        self.photoImageView.transform = CGAffineTransformMakeScale(self.transformScale, self.transformScale);
+        
+        return;
+    }
     
     self.transformScale = (self.currentZoomScale - scale);
     self.transformScale = self.transformScale < 0.2 ? 0.2 : self.transformScale;
