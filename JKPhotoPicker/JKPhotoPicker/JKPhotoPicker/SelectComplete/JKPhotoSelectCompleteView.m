@@ -262,7 +262,7 @@ static NSString *videoCacheDirectoryPath_;
     
     if (!videoCacheDirectoryPath_) {
         
-        videoCacheDirectoryPath_ = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES).firstObject stringByAppendingPathComponent:@"JKPhotoPickerVideoCache"];
+        videoCacheDirectoryPath_ = [NSTemporaryDirectory() stringByAppendingPathComponent:@"JKPhotoPickerVideoCache"];
     }
     
     return videoCacheDirectoryPath_;
