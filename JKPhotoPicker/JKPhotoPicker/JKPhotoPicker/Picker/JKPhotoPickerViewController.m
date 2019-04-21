@@ -1269,9 +1269,9 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
 - (void)saveVideoToAlbumWithURL:(NSURL *)URL
               completionHandler:(void(^)(BOOL success, NSError *error))completionHandler{
     
-    if (!URL) { return; }
+    if (!URL) { !completionHandler ? : completionHandler(NO, nil); return; }
     
-    [JKPhotoSelectCompleteView saveMediaToAlbumWithURLArray:@[URL] completionHandler:completionHandler];
+    [JKPhotoSelectCompleteView saveMediaToAlbumWithURLArray:@[URL] isVideo:YES completionHandler:completionHandler];
 }
 
 // Adds a photo to the saved photos album.  The optional completionSelector should have the form:

@@ -86,7 +86,14 @@
 
 /// 将视频/图片等写入相册
 + (void)saveMediaToAlbumWithURLArray:(NSArray <NSURL *> *)URLArray
+                             isVideo:(BOOL)isVideo
                    completionHandler:(void(^)(BOOL success, NSError *error))completionHandler;
+
+/// 将视频/图片等写入指定相册
++ (void)saveMediaToAlbumWithName:(NSString *)albumName
+                        URLArray:(NSArray <NSURL *> *)URLArray
+                         isVideo:(BOOL)isVideo
+               completionHandler:(void(^)(BOOL success, NSError *error))completionHandler;
 
 /**
  * 类方法

@@ -82,11 +82,11 @@ static NSString * const reuseID = @"JKPhotoSelectCompleteCollectionViewCell"; //
 //- (NSArray *)selectedImages{
 //    if (_selectedImages.count != self.selectedPhotoItems.count) {
 //        NSMutableArray *tmpArr = [NSMutableArray array];
-//        
+//
 //        for (JKPhotoItem *itm in self.selectedPhotoItems) {
 //            [tmpArr addObject:itm.originalImage];
 //        }
-//        
+//
 //        _selectedImages = tmpArr;
 //    }
 //    return _selectedImages;
@@ -138,7 +138,7 @@ NSMutableArray *dataArr_;
     [[PHImageManager defaultManager] requestImageForAsset:item.photoAsset targetSize:PHImageManagerMaximumSize contentMode:PHImageContentModeAspectFit options:options resultHandler:^(UIImage * _Nullable result, NSDictionary * _Nullable info) {
         
         dispatch_async(dispatch_get_main_queue(), ^{
-           
+            
             !complete ? : complete(result, info);
         });
     }];
@@ -767,14 +767,121 @@ static NSString *videoCacheDirectoryPath_;
 
 /// 将视频/图片等写入相册
 + (void)saveMediaToAlbumWithURLArray:(NSArray <NSURL *> *)URLArray
+                             isVideo:(BOOL)isVideo
                    completionHandler:(void(^)(BOOL success, NSError *error))completionHandler{
     
-    if (!URLArray || URLArray.count <= 0) { return; }
+    if (!URLArray || URLArray.count <= 0) { !completionHandler ? : completionHandler(NO, nil); return; }
+    
+    [[PHPhotoLibrary sharedPhotoLibrary] performChanges:^{
+        
+        [URLArray enumerateObjectsUsingBlock:^(NSURL * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+            
+            if (isVideo) {
+                
+                [PHAssetChangeRequest creationRequestForAssetFromVideoAtFileURL:obj];
+                
+            } else {
+                
+                [PHAssetChangeRequest creationRequestForAssetFromImageAtFileURL:obj];
+            }
+        }];
+        
+    } completionHandler:^(BOOL success, NSError *error) {
+        
+        NSLog(@"%@", [NSThread currentThread]);
+        
+        if (success) {
+            
+            NSLog(@"保存至相册成功!");
+            
+        } else {
+            
+            NSLog(@"保存至相册失败:%@", error);
+        }
+        
+        dispatch_async(dispatch_get_main_queue(), ^{
+            
+            !completionHandler ? : completionHandler(success, error);
+        });
+    }];
+}
+
+/// 将视频/图片等写入指定相册
++ (void)saveMediaToAlbumWithName:(NSString *)albumName
+                        URLArray:(NSArray <NSURL *> *)URLArray
+                         isVideo:(BOOL)isVideo
+               completionHandler:(void(^)(BOOL success, NSError *error))completionHandler{
+    
+    if (!URLArray || URLArray.count <= 0) { !completionHandler ? : completionHandler(NO, nil); return; }
+    
+    if (![albumName isKindOfClass:[NSString class]]) {
+        
+        [self saveMediaToAlbumWithURLArray:URLArray isVideo:isVideo completionHandler:completionHandler];
+        
+        return;
+    }
+    
+    NSString *name = [albumName stringByTrimmingCharactersInSet:
+                 [NSCharacterSet whitespaceAndNewlineCharacterSet]];
+    
+    if ([name stringByTrimmingCharactersInSet:
+         [NSCharacterSet whitespaceAndNewlineCharacterSet]].length <= 0) {
+        
+        [self saveMediaToAlbumWithURLArray:URLArray isVideo:isVideo completionHandler:completionHandler];
+        
+        return;
+    }
     
     // 首先获取相册的集合
-    PHFetchResult *collectonResuts = [PHCollectionList fetchTopLevelUserCollectionsWithOptions:nil];
+    PHFetchResult *smartAlbumsFetchResult = [PHAssetCollection fetchTopLevelUserCollectionsWithOptions:nil];
     
-    PHAssetCollection *assetCollection = collectonResuts.firstObject;
+    PHAssetCollection *assetCollection = nil;
+    
+    for (PHAssetCollection *sub in smartAlbumsFetchResult) {
+        
+        if ([sub.localizedTitle isEqualToString:name]) {
+            
+            assetCollection = sub;
+            
+            break;
+        }
+    }
+    
+    if (!assetCollection) {
+        
+        NSError *error = nil;
+        
+        // 代码执行到这里，说明还没有自定义相册
+        __block NSString *createdCollectionId = nil;
+        
+        // 创建一个新的相册
+        [[PHPhotoLibrary sharedPhotoLibrary] performChangesAndWait:^{
+            
+            createdCollectionId = [PHAssetCollectionChangeRequest creationRequestForAssetCollectionWithTitle:name].placeholderForCreatedAssetCollection.localIdentifier;
+            
+        } error:&error];
+        
+        if (error) {
+            
+            NSLog(@"创建相册失败!");
+            
+            !completionHandler ? : completionHandler(NO, error);
+            
+            return;
+        }
+        
+        // 创建完毕后再取出相册
+        assetCollection = [PHAssetCollection fetchAssetCollectionsWithLocalIdentifiers:@[createdCollectionId] options:nil].firstObject;
+    }
+    
+    if (!assetCollection) {
+        
+        NSLog(@"创建相册失败!");
+        
+        !completionHandler ? : completionHandler(NO, nil);
+        
+        return;
+    }
     
     [[PHPhotoLibrary sharedPhotoLibrary] performChanges:^{
         
@@ -783,7 +890,16 @@ static NSString *videoCacheDirectoryPath_;
         [URLArray enumerateObjectsUsingBlock:^(NSURL * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
             
             // 请求创建一个Asset
-            PHAssetChangeRequest *assetRequest = [PHAssetChangeRequest creationRequestForAssetFromVideoAtFileURL:obj];
+            PHAssetChangeRequest *assetRequest = nil;
+            
+            if (isVideo) {
+                
+                assetRequest = [PHAssetChangeRequest creationRequestForAssetFromVideoAtFileURL:obj];
+                
+            } else {
+                
+                assetRequest = [PHAssetChangeRequest creationRequestForAssetFromImageAtFileURL:obj];
+            }
             
             // 为Asset创建一个占位符，放到相册编辑请求中
             PHObjectPlaceholder *placeHolder = [assetRequest placeholderForCreatedAsset];
@@ -803,11 +919,11 @@ static NSString *videoCacheDirectoryPath_;
         
         if (success) {
             
-            NSLog(@"保存视频成功!");
+            NSLog(@"保存至相册成功!");
             
         } else {
             
-            NSLog(@"保存视频失败:%@", error);
+            NSLog(@"保存至相册失败:%@", error);
         }
         
         dispatch_async(dispatch_get_main_queue(), ^{
@@ -840,7 +956,7 @@ static NSString *videoCacheDirectoryPath_;
 
 - (void)setupCollectionView{
     UICollectionViewFlowLayout *flowLayout = [[UICollectionViewFlowLayout alloc] init];
-//    flowLayout.itemSize = (self.itemSize.width <= 0 || self.itemSize.height <= 0) ? CGSizeMake((self.frame.size.width - 3) / 4, (self.frame.size.width - 3) / 4 + 10) : self.itemSize;
+    //    flowLayout.itemSize = (self.itemSize.width <= 0 || self.itemSize.height <= 0) ? CGSizeMake((self.frame.size.width - 3) / 4, (self.frame.size.width - 3) / 4 + 10) : self.itemSize;
     flowLayout.minimumLineSpacing = 1;
     flowLayout.minimumInteritemSpacing = 1;
     _flowLayout = flowLayout;
