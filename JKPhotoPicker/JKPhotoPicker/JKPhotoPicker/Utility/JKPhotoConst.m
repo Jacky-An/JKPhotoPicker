@@ -23,7 +23,7 @@ BOOL JKPhotoIsDeviceX (void) {
         
         if (@available(iOS 11.0, *)) {
             
-            if (!JKPlayerIsDeviceiPad()) {
+            if (!JKPhotoIsDeviceiPad()) {
                 
                 JKPhotoIsDeviceX_ = [UIApplication sharedApplication].delegate.window.safeAreaInsets.bottom > 0;
             }
@@ -34,20 +34,20 @@ BOOL JKPhotoIsDeviceX (void) {
 }
 
 /// 是否iPad
-BOOL JKPlayerIsDeviceiPad (void){
+BOOL JKPhotoIsDeviceiPad (void){
     
-    static BOOL JKPlayerIsDeviceiPad_ = NO;
+    static BOOL JKPhotoIsDeviceiPad_ = NO;
     
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         
         if (@available(iOS 11.0, *)) {
             
-            JKPlayerIsDeviceiPad_ = [[UIDevice currentDevice].model isEqualToString:@"iPad"];
+            JKPhotoIsDeviceiPad_ = [[UIDevice currentDevice].model isEqualToString:@"iPad"];
         }
     });
     
-    return JKPlayerIsDeviceiPad_;
+    return JKPhotoIsDeviceiPad_;
 }
 
 /// 当前是否横屏

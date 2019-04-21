@@ -729,7 +729,7 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
 
 - (void)dealloc{
     
-    if (!JKPhotoIsLandscape() || JKPlayerIsDeviceiPad()) {
+    if (!JKPhotoIsLandscape() || JKPhotoIsDeviceiPad()) {
         
         JKPhotoStatusBarView().alpha = 1;
     }

@@ -414,7 +414,7 @@ CGFloat const dismissDistance = 80;
     CGFloat pictureW = self.browserContentView.frame.size.width;
     CGFloat pictureH = pictureW * image.size.height / image.size.width;
     
-    if (JKPlayerIsDeviceiPad() || JKPhotoIsLandscape()) {
+    if (JKPhotoIsDeviceiPad() || JKPhotoIsLandscape()) {
 
         if (pictureH > self.browserContentView.frame.size.height) {
 

@@ -43,6 +43,8 @@
         
         [JKPhotoPicker showWithConfiguration:^(JKPhotoConfiguration * _Nonnull configuration) {
             
+            configuration.selectDataType = JKPhotoPickerMediaDataTypeAll;
+            
             configuration.seletedItems = self.selectCompleteView.photoItems;
             configuration.takePhotoFirst = YES;
             

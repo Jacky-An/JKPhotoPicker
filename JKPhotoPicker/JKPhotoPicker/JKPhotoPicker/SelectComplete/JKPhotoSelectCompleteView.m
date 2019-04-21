@@ -433,22 +433,28 @@ static NSString *videoCacheDirectoryPath_;
 + (void)writeAssets:(NSArray <PHAsset *> *)assets
         toDirectory:(NSString *)directory
            progress:(void(^)(NSInteger completeCout, NSInteger totalCount))progress
-           complete:(void(^)(NSArray <NSString *> *successFilePaths, NSArray <NSString *> *failureFilePaths))complete{
+           complete:(void(^)(NSArray <NSString *> *successFilePaths, NSArray <PHAsset *> *successAssets, NSArray <NSString *> *failureFilePaths))complete{
     
     if (!assets || !directory) {
         
-        !complete ? : complete(nil, nil);
+        !complete ? : complete(nil, nil, nil);
         
         return;
     }
     
     static NSMutableArray *successArr = nil;
+    static NSMutableArray *successAssetArr = nil;
     static NSMutableArray *failureArr = nil;
     static NSInteger totalCount = 0;
     
     if (!successArr) {
         
         successArr = [NSMutableArray array];
+    }
+    
+    if (!successAssetArr) {
+        
+        successAssetArr = [NSMutableArray array];
     }
     
     if (!failureArr) {
@@ -465,7 +471,7 @@ static NSString *videoCacheDirectoryPath_;
         
         dispatch_async(dispatch_get_main_queue(), ^{
             
-            !complete ? : complete([successArr copy], [failureArr copy]);
+            !complete ? : complete([successArr copy], [successAssetArr copy], [failureArr copy]);
             
             [successArr removeAllObjects];
             [failureArr removeAllObjects];
@@ -484,8 +490,6 @@ static NSString *videoCacheDirectoryPath_;
         
         [self writeAsset:tmpArr.firstObject toDirectory:directory complete:^(NSString *filePath, NSError *error) {
             
-            [tmpArr removeObjectAtIndex:0];
-            
             if (filePath) {
                 
                 if (error) {
@@ -495,8 +499,11 @@ static NSString *videoCacheDirectoryPath_;
                 } else {
                     
                     [successArr addObject:filePath];
+                    [successAssetArr addObject:tmpArr.firstObject];
                 }
             }
+            
+            [tmpArr removeObjectAtIndex:0];
             
             CGFloat finishCount = (successArr.count + failureArr.count) * 1.0 ;
             
@@ -511,22 +518,28 @@ static NSString *videoCacheDirectoryPath_;
 + (void)writePhotoItems:(NSArray <JKPhotoItem *> *)items
             toDirectory:(NSString *)directory
                progress:(void(^)(NSInteger completeCout, NSInteger totalCount))progress
-               complete:(void(^)(NSArray <NSString *> *successFilePaths, NSArray <NSString *> *failureFilePaths))complete{
+               complete:(void(^)(NSArray <NSString *> *successFilePaths, NSArray <JKPhotoItem *> *successItemss, NSArray <NSString *> *failureFilePaths))complete{
     
     if (!items || !directory) {
         
-        !complete ? : complete(nil, nil);
+        !complete ? : complete(nil, nil, nil);
         
         return;
     }
     
     static NSMutableArray *successArr = nil;
+    static NSMutableArray *successItemArr = nil;
     static NSMutableArray *failureArr = nil;
     static NSInteger totalCount = 0;
     
     if (!successArr) {
         
         successArr = [NSMutableArray array];
+    }
+    
+    if (!successItemArr) {
+        
+        successItemArr = [NSMutableArray array];
     }
     
     if (!failureArr) {
@@ -543,13 +556,16 @@ static NSString *videoCacheDirectoryPath_;
         
         dispatch_async(dispatch_get_main_queue(), ^{
             
-            !complete ? : complete([successArr copy], [failureArr copy]);
+            !complete ? : complete([successArr copy], [successItemArr copy], [failureArr copy]);
             
             [successArr removeAllObjects];
+            [successItemArr removeAllObjects];
             [failureArr removeAllObjects];
             
             successArr = nil;
+            successItemArr = nil;
             failureArr = nil;
+            
             totalCount = 0;
         });
         
@@ -564,8 +580,6 @@ static NSString *videoCacheDirectoryPath_;
         
         [self writeAsset:item.photoAsset toDirectory:directory complete:^(NSString *filePath, NSError *error) {
             
-            [tmpArr removeObjectAtIndex:0];
-            
             if (filePath) {
                 
                 if (error) {
@@ -575,8 +589,11 @@ static NSString *videoCacheDirectoryPath_;
                 } else {
                     
                     [successArr addObject:filePath];
+                    [successItemArr addObject:item];
                 }
             }
+            
+            [tmpArr removeObjectAtIndex:0];
             
             CGFloat finishCount = (successArr.count + failureArr.count) * 1.0 ;
             
@@ -692,6 +709,110 @@ static NSString *videoCacheDirectoryPath_;
     BOOL success = [[NSFileManager defaultManager] removeItemAtPath:[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES).firstObject stringByAppendingPathComponent:@"JKPhotoPickerVideoCache"] error:nil];
     
     return success;
+}
+
+#pragma mark
+#pragma mark - 删除相册或照片
+
+/// 删除照片
++ (void)deleteAssets:(NSArray<PHAsset *> *)assets completeHandler:(void(^)(BOOL success, NSError *error))completeHandler{
+    
+    if (!assets || assets.count <= 0) {
+        
+        !completeHandler ? : completeHandler(NO, nil);
+        
+        return;
+    }
+    
+    [[PHPhotoLibrary sharedPhotoLibrary] performChanges:^{
+        
+        [PHAssetChangeRequest deleteAssets:assets];
+        
+    } completionHandler:^(BOOL success, NSError * _Nullable error) {
+        
+        dispatch_async(dispatch_get_main_queue(), ^{
+            
+            !completeHandler ? : completeHandler(success, error);
+        });
+    }];
+}
+
+/// 删除相册
++ (void)deleteAssetCollections:(NSArray<PHAssetCollection *> *)assetCollections completeHandler:(void(^)(BOOL success, NSError *error))completeHandler{
+    
+    if (!assetCollections || assetCollections.count <= 0) {
+        
+        !completeHandler ? : completeHandler(NO, nil);
+        
+        return;
+    }
+    
+    [[PHPhotoLibrary sharedPhotoLibrary] performChanges:^{
+        
+        [PHAssetCollectionChangeRequest deleteAssetCollections:assetCollections];
+        
+    } completionHandler:^(BOOL success, NSError * _Nullable error) {
+        
+        dispatch_async(dispatch_get_main_queue(), ^{
+            
+            !completeHandler ? : completeHandler(success, error);
+        });
+    }];
+}
+
+#pragma mark
+#pragma mark - 写入相册
+
+/// 将视频/图片等写入相册
++ (void)saveMediaToAlbumWithURLArray:(NSArray <NSURL *> *)URLArray
+                   completionHandler:(void(^)(BOOL success, NSError *error))completionHandler{
+    
+    if (!URLArray || URLArray.count <= 0) { return; }
+    
+    // 首先获取相册的集合
+    PHFetchResult *collectonResuts = [PHCollectionList fetchTopLevelUserCollectionsWithOptions:nil];
+    
+    PHAssetCollection *assetCollection = collectonResuts.firstObject;
+    
+    [[PHPhotoLibrary sharedPhotoLibrary] performChanges:^{
+        
+        NSMutableArray *arrM = [NSMutableArray array];
+        
+        [URLArray enumerateObjectsUsingBlock:^(NSURL * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+            
+            // 请求创建一个Asset
+            PHAssetChangeRequest *assetRequest = [PHAssetChangeRequest creationRequestForAssetFromVideoAtFileURL:obj];
+            
+            // 为Asset创建一个占位符，放到相册编辑请求中
+            PHObjectPlaceholder *placeHolder = [assetRequest placeholderForCreatedAsset];
+            
+            [arrM addObject:placeHolder];
+        }];
+        
+        // 请求编辑相册
+        PHAssetCollectionChangeRequest *collectonRequest = [PHAssetCollectionChangeRequest changeRequestForAssetCollection:assetCollection];
+        
+        // 相册中添加媒体
+        [collectonRequest addAssets:arrM];
+        
+    } completionHandler:^(BOOL success, NSError *error) {
+        
+        NSLog(@"%@", [NSThread currentThread]);
+        
+        if (success) {
+            
+            NSLog(@"保存视频成功!");
+            
+        } else {
+            
+            NSLog(@"保存视频失败:%@", error);
+        }
+        
+        dispatch_async(dispatch_get_main_queue(), ^{
+            
+            !completionHandler ? : completionHandler(success, error);
+        });
+    }];
 }
 
 #pragma mark - 初始化

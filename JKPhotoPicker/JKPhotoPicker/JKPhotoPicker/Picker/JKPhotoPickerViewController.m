@@ -20,6 +20,7 @@
 #import <AssetsLibrary/AssetsLibrary.h>
 #import "JKPhotoResourceManager.h"
 #import "JKPhotoConfiguration.h"
+#import "JKPhotoSelectCompleteView.h"
 
 @interface JKPhotoPickerViewController () <UICollectionViewDataSource, UICollectionViewDelegate, UINavigationControllerDelegate, UIImagePickerControllerDelegate, PHPhotoLibraryChangeObserver, UICollectionViewDelegateFlowLayout>
 {
@@ -75,6 +76,9 @@
 
 /** configuration */
 @property (nonatomic, strong) JKPhotoConfiguration *configuration;
+
+/** currentAlbumItem */
+@property (nonatomic, strong) JKPhotoItem *currentAlbumItem;
 @end
 
 @implementation JKPhotoPickerViewController
@@ -516,6 +520,7 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
 
 #pragma mark - 加载数据
 - (void)loadPhotoWithAlbumItem:(JKPhotoItem *)photoItem isReload:(BOOL)isReload{
+    _currentAlbumItem = photoItem;
     
     [self.allPhotosIdentifierCache removeAllObjects];
     
@@ -1216,19 +1221,11 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
         // 获取视频文件的url
         NSURL *mediaURL = [info objectForKey:UIImagePickerControllerMediaURL];
         
-        // 创建ALAssetsLibrary对象并将视频保存到媒体库
-        ALAssetsLibrary *assetsLibrary = [[ALAssetsLibrary alloc] init];
-        
-        [assetsLibrary writeVideoAtPathToSavedPhotosAlbum:mediaURL completionBlock:^(NSURL *assetURL, NSError *error) {
-            if (!error) {
-                
-                NSLog(@"captured video saved with no error.");
+        [self saveVideoToAlbumWithURL:mediaURL completionHandler:^(BOOL success, NSError *error) {
+           
+            if (success) {
                 
                 [self reloadAfterTakePhoto];
-                
-            }else{
-                
-                NSLog(@"error occured while saving the video:%@", error);
             }
         }];
         
@@ -1267,6 +1264,14 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
     }
     
     [picker dismissViewControllerAnimated:YES completion:nil];
+}
+
+- (void)saveVideoToAlbumWithURL:(NSURL *)URL
+              completionHandler:(void(^)(BOOL success, NSError *error))completionHandler{
+    
+    if (!URL) { return; }
+    
+    [JKPhotoSelectCompleteView saveMediaToAlbumWithURLArray:@[URL] completionHandler:completionHandler];
 }
 
 // Adds a photo to the saved photos album.  The optional completionSelector should have the form:

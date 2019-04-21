@@ -58,19 +58,35 @@
 + (void)writeAssets:(NSArray <PHAsset *> *)assets
         toDirectory:(NSString *)directory
            progress:(void(^)(NSInteger completeCout, NSInteger totalCount))progress
-           complete:(void(^)(NSArray <NSString *> *successFilePaths, NSArray <NSString *> *failureFilePaths))complete;
+           complete:(void(^)(NSArray <NSString *> *successFilePaths, NSArray <PHAsset *> *successAssets, NSArray <NSString *> *failureFilePaths))complete;
 
 /** 将多个JKPhotoItem写入某一目录 */
 + (void)writePhotoItems:(NSArray <JKPhotoItem *> *)items
             toDirectory:(NSString *)directory
                progress:(void(^)(NSInteger completeCout, NSInteger totalCount))progress
-               complete:(void(^)(NSArray <NSString *> *successFilePaths, NSArray <NSString *> *failureFilePaths))complete;
+               complete:(void(^)(NSArray <NSString *> *successFilePaths, NSArray <JKPhotoItem *> *successItemss, NSArray <NSString *> *failureFilePaths))complete;
 
 /** 选择视频的缓存文件夹路径 */
 + (NSString *)videoCacheDirectoryPath;
 
 /** 清理缓存的视频，直接清除缓存文件夹 */
 + (BOOL)clearVideoCache;
+
+#pragma mark
+#pragma mark - 删除相册或照片
+
+/// 删除照片
++ (void)deleteAssets:(NSArray<PHAsset *> *)assets completeHandler:(void(^)(BOOL success, NSError *error))completeHandler;
+
+/// 删除相册
++ (void)deleteAssetCollections:(NSArray<PHAssetCollection *> *)assetCollections completeHandler:(void(^)(BOOL success, NSError *error))completeHandler;
+
+#pragma mark
+#pragma mark - 写入相册
+
+/// 将视频/图片等写入相册
++ (void)saveMediaToAlbumWithURLArray:(NSArray <NSURL *> *)URLArray
+                   completionHandler:(void(^)(BOOL success, NSError *error))completionHandler;
 
 /**
  * 类方法

@@ -58,7 +58,7 @@ typedef NS_ENUM(NSUInteger, JKPhotoPickerScrollDirection) {
 BOOL JKPhotoIsDeviceX (void);
 
 /// 是否iPad
-BOOL JKPlayerIsDeviceiPad (void);
+BOOL JKPhotoIsDeviceiPad (void);
 
 /// 当前是否横屏
 BOOL JKPhotoIsLandscape (void);

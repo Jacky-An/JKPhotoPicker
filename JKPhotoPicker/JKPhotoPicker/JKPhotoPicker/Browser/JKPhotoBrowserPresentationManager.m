@@ -184,7 +184,7 @@
     CGFloat pictureW = self.calculateFrameSize.width;
     CGFloat pictureH = pictureW * image.size.height / image.size.width;
     
-    if (JKPlayerIsDeviceiPad() || JKPhotoIsLandscape()) {
+    if (JKPhotoIsDeviceiPad() || JKPhotoIsLandscape()) {
         
         if (pictureH > self.calculateFrameSize.height) {
             
