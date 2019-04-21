@@ -195,18 +195,25 @@
 			children = (
 				50873C52226B08360003FD90 /* JKPhotoConst.h */,
 				50873C53226B08360003FD90 /* JKPhotoConst.m */,
-				505AD63F1E1A5B3E0037BF3B /* JKPhotoItem.h */,
-				505AD6401E1A5B3E0037BF3B /* JKPhotoItem.m */,
 				505AD6411E1A5B3E0037BF3B /* JKPhotoManager.h */,
 				505AD6421E1A5B3E0037BF3B /* JKPhotoManager.m */,
 				505AD64B1E1A79070037BF3B /* JKPhotoTapGestureRecognizer.h */,
 				505AD64C1E1A79070037BF3B /* JKPhotoTapGestureRecognizer.m */,
 				505AD6431E1A5B3E0037BF3B /* JKPhotoTitleButton.h */,
 				505AD6441E1A5B3E0037BF3B /* JKPhotoTitleButton.m */,
+			);
+			path = Utility;
+			sourceTree = "<group>";
+		};
+		507BABBB226C063A00BFAA8A /* Model */ = {
+			isa = PBXGroup;
+			children = (
+				505AD63F1E1A5B3E0037BF3B /* JKPhotoItem.h */,
+				505AD6401E1A5B3E0037BF3B /* JKPhotoItem.m */,
 				501B4C67226B6AB4003039AB /* JKPhotoConfiguration.h */,
 				501B4C68226B6AB4003039AB /* JKPhotoConfiguration.m */,
 			);
-			path = Utility;
+			path = Model;
 			sourceTree = "<group>";
 		};
 		50873C4E226B00CC0003FD90 /* Resource */ = {
@@ -291,6 +298,7 @@
 				501B4C65226B6A5E003039AB /* JKPhotoPicker.m */,
 				505AD6191E1A5A470037BF3B /* Album */,
 				505AD61A1E1A5A470037BF3B /* Browser */,
+				507BABBB226C063A00BFAA8A /* Model */,
 				505AD61B1E1A5A470037BF3B /* Picker */,
 				50873C4E226B00CC0003FD90 /* Resource */,
 				505AD61C1E1A5A470037BF3B /* SelectComplete */,
