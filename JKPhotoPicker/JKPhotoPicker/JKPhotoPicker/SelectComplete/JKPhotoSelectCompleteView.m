@@ -474,9 +474,11 @@ static NSString *videoCacheDirectoryPath_;
             !complete ? : complete([successArr copy], [successAssetArr copy], [failureArr copy]);
             
             [successArr removeAllObjects];
+            [successAssetArr removeAllObjects];
             [failureArr removeAllObjects];
             
             successArr = nil;
+            successAssetArr = nil;
             failureArr = nil;
             totalCount = 0;
         });
