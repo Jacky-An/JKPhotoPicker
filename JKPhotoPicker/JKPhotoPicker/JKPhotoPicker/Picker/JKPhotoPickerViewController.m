@@ -1359,6 +1359,8 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
     
     [[PHPhotoLibrary sharedPhotoLibrary] unregisterChangeObserver:self];
     
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+    
     NSLog(@"%d, %s",__LINE__, __func__);
 }
 
