@@ -79,6 +79,9 @@
 
 /** currentAlbumItem */
 @property (nonatomic, strong) JKPhotoItem *currentAlbumItem;
+
+/** currentScreenWidth */
+@property (nonatomic, assign) CGFloat currentScreenWidth;
 @end
 
 @implementation JKPhotoPickerViewController
@@ -276,6 +279,38 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
         
         [self.albumListView performSelector:@selector(reloadAlbum) withObject:nil afterDelay:1];
     }
+}
+
+#pragma mark
+#pragma mark - 监听屏幕旋转
+
+- (void)deviceOrientationDidChange:(NSNotification *)noti{
+    
+    switch ([UIDevice currentDevice].orientation) {
+        case UIInterfaceOrientationPortrait:
+        case UIInterfaceOrientationPortraitUpsideDown:
+        case UIInterfaceOrientationLandscapeLeft:
+        case UIInterfaceOrientationLandscapeRight:
+            
+            [self solveOrientationChanged];
+            
+            break;
+            
+        default:
+            break;
+    }
+}
+
+- (void)solveOrientationChanged{
+    
+    if (_currentScreenWidth == [UIScreen mainScreen].bounds.size.width) {
+        
+        return;
+    }
+    
+    _currentScreenWidth = [UIScreen mainScreen].bounds.size.width;
+    
+    [self.collectionView reloadData];
 }
 
 #pragma mark - 初始化
@@ -655,7 +690,7 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
             [self presentViewController:alertVc animated:YES completion:nil];
         }
             break;
-            case JKPhotoPickerMediaDataTypePhotoLive:
+        case JKPhotoPickerMediaDataTypePhotoLive:
         {
             
             UIAlertController *alertVc = [UIAlertController alertControllerWithTitle:@"提示" message:@"暂不支持livePhoto拍摄" preferredStyle:(UIAlertControllerStyleAlert)];
@@ -1146,51 +1181,51 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
         [self changeSelectedCount];
         
         /*
-        dispatch_async(dispatch_get_global_queue(0, 0), ^{
-            
-            NSMutableArray *indexArr = [NSMutableArray array];
-            
-            for (JKPhotoItem *itm in self.selectedPhotos) {
-                
-                if (itm.isSelected) { continue; }
-                
-                [indexArr addObject:[NSIndexPath indexPathForItem:[self.allPhotoItems indexOfObject:itm] inSection:0]];
-            }
-            
-            [self.selectedPhotos removeAllObjects];
-            
-            for (JKPhotoItem *itm in seletedPhotos) {
-                
-                [self.selectedPhotos addObject:itm];
-                
-                [indexArr addObject:[NSIndexPath indexPathForItem:[self.allPhotoItems indexOfObject:itm] inSection:0]];
-            }
-            
-            dispatch_async(dispatch_get_main_queue(), ^{
-                
-                [self.collectionView performBatchUpdates:^{
-                    
-                    [self.collectionView reloadItemsAtIndexPaths:indexArr];
-                    
-                } completion:^(BOOL finished) {
-                    
-                }];
-                
-                [self.bottomCollectionView performBatchUpdates:^{
-                    
-                    [self.bottomCollectionView reloadSections:[NSIndexSet indexSetWithIndex:0]];
-                    
-                } completion:^(BOOL finished) {
-                    
-                    if (self.selectedPhotos.count > 0) {
-                        
-                        [self.bottomCollectionView scrollToItemAtIndexPath:[NSIndexPath indexPathForItem:self.selectedPhotos.count - 1 inSection:0] atScrollPosition:(UICollectionViewScrollPositionCenteredHorizontally) animated:YES];
-                    }
-                }];
-                
-                [self changeSelectedCount];
-            });
-        }); */
+         dispatch_async(dispatch_get_global_queue(0, 0), ^{
+         
+         NSMutableArray *indexArr = [NSMutableArray array];
+         
+         for (JKPhotoItem *itm in self.selectedPhotos) {
+         
+         if (itm.isSelected) { continue; }
+         
+         [indexArr addObject:[NSIndexPath indexPathForItem:[self.allPhotoItems indexOfObject:itm] inSection:0]];
+         }
+         
+         [self.selectedPhotos removeAllObjects];
+         
+         for (JKPhotoItem *itm in seletedPhotos) {
+         
+         [self.selectedPhotos addObject:itm];
+         
+         [indexArr addObject:[NSIndexPath indexPathForItem:[self.allPhotoItems indexOfObject:itm] inSection:0]];
+         }
+         
+         dispatch_async(dispatch_get_main_queue(), ^{
+         
+         [self.collectionView performBatchUpdates:^{
+         
+         [self.collectionView reloadItemsAtIndexPaths:indexArr];
+         
+         } completion:^(BOOL finished) {
+         
+         }];
+         
+         [self.bottomCollectionView performBatchUpdates:^{
+         
+         [self.bottomCollectionView reloadSections:[NSIndexSet indexSetWithIndex:0]];
+         
+         } completion:^(BOOL finished) {
+         
+         if (self.selectedPhotos.count > 0) {
+         
+         [self.bottomCollectionView scrollToItemAtIndexPath:[NSIndexPath indexPathForItem:self.selectedPhotos.count - 1 inSection:0] atScrollPosition:(UICollectionViewScrollPositionCenteredHorizontally) animated:YES];
+         }
+         }];
+         
+         [self changeSelectedCount];
+         });
+         }); */
     }];
     
     self.isPhotoBrowserPresented = YES;
@@ -1222,7 +1257,7 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
         NSURL *mediaURL = [info objectForKey:UIImagePickerControllerMediaURL];
         
         [self saveVideoToAlbumWithURL:mediaURL completionHandler:^(BOOL success, NSError *error) {
-           
+            
             if (success) {
                 
                 [self reloadAfterTakePhoto];
