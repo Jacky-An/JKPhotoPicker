@@ -199,7 +199,7 @@ CGFloat const dismissDistance = 80;
         gifWebView.scrollView.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentNever;
     }
     gifWebView.userInteractionEnabled = NO;
-//    gifWebView.scalesPageToFit = YES;
+    //    gifWebView.scalesPageToFit = YES;
     gifWebView.backgroundColor = nil;
     gifWebView.opaque = NO;
     gifWebView.hidden = YES;
@@ -222,7 +222,7 @@ CGFloat const dismissDistance = 80;
             [self.gifWebView loadData:gifData MIMEType:@"image/gif" characterEncodingName:@"UTF-8" baseURL:[NSURL new]];
         }
     });
-//    [self.gifWebView loadData:gifData MIMEType:@"image/gif" textEncodingName:@"UTF-8" baseURL:[NSURL new]];
+    //    [self.gifWebView loadData:gifData MIMEType:@"image/gif" textEncodingName:@"UTF-8" baseURL:[NSURL new]];
 }
 
 #pragma mark - 点击播放视频
@@ -232,7 +232,7 @@ CGFloat const dismissDistance = 80;
     [[PHImageManager defaultManager] requestPlayerItemForVideo:self.photoItem.photoAsset options:nil resultHandler:^(AVPlayerItem * _Nullable playerItem, NSDictionary * _Nullable info) {
         
         dispatch_async(dispatch_get_main_queue(), ^{
-           
+            
             !self.playVideoBlock ? : self.playVideoBlock(playerItem);
         });
     }];
@@ -261,7 +261,7 @@ CGFloat const dismissDistance = 80;
         return;
     }
     
-//    CGPoint scrollPoint = [self.scrollView convertPoint:touchPoint fromView:self.contentView];
+    //    CGPoint scrollPoint = [self.scrollView convertPoint:touchPoint fromView:self.contentView];
     
     // 双击放大
     [self.scrollView zoomToRect:CGRectMake(point.x - 5, point.y - 5, 10, 10) animated:YES];
@@ -342,10 +342,16 @@ CGFloat const dismissDistance = 80;
         options.networkAccessAllowed = YES;
         options.deliveryMode = PHImageRequestOptionsDeliveryModeOpportunistic;
         
-        [[PHImageManager defaultManager] requestImageForAsset:self->_photoItem.photoAsset targetSize:PHImageManagerMaximumSize contentMode:PHImageContentModeAspectFit options:options resultHandler:^(UIImage * _Nullable result, NSDictionary * _Nullable info) {
+        self.imageRequestID = [[PHImageManager defaultManager] requestImageForAsset:self->_photoItem.photoAsset targetSize:PHImageManagerMaximumSize contentMode:PHImageContentModeAspectFit options:options resultHandler:^(UIImage * _Nullable result, NSDictionary * _Nullable info) {
+            
+            PHImageRequestID ID = [[info objectForKey:PHImageResultRequestIDKey] intValue];
+            
+            if (ID != self.imageRequestID) {
+                return;
+            }
             
             dispatch_async(dispatch_get_main_queue(), ^{
-               
+                
                 !self.imageLoadFinishBlock ? : self.imageLoadFinishBlock(self);
                 
                 if ([info[PHImageResultIsInCloudKey] boolValue]) {
@@ -373,7 +379,13 @@ CGFloat const dismissDistance = 80;
                 options.networkAccessAllowed = YES;
                 options.deliveryMode = PHImageRequestOptionsDeliveryModeOpportunistic;
                 
-                [[PHImageManager defaultManager] requestLivePhotoForAsset:self->_photoItem.photoAsset targetSize:PHImageManagerMaximumSize contentMode:PHImageContentModeAspectFit options:options resultHandler:^(PHLivePhoto * _Nullable livePhoto, NSDictionary * _Nullable info) {
+                self.livePhotoRequestID = [[PHImageManager defaultManager] requestLivePhotoForAsset:self->_photoItem.photoAsset targetSize:PHImageManagerMaximumSize contentMode:PHImageContentModeAspectFit options:options resultHandler:^(PHLivePhoto * _Nullable livePhoto, NSDictionary * _Nullable info) {
+                    
+                    PHImageRequestID ID = [[info objectForKey:PHImageResultRequestIDKey] intValue];
+                    
+                    if (ID != self.imageRequestID) {
+                        return;
+                    }
                     
                     dispatch_async(dispatch_get_main_queue(), ^{
                         
@@ -402,10 +414,16 @@ CGFloat const dismissDistance = 80;
             PHImageRequestOptions *options = [[PHImageRequestOptions alloc] init];
             options.networkAccessAllowed = YES;
             
-            [[PHImageManager defaultManager] requestImageDataForAsset:self->_photoItem.photoAsset options:options resultHandler:^(NSData * _Nullable imageData, NSString * _Nullable dataUTI, UIImageOrientation orientation, NSDictionary * _Nullable info) {
+            self.gifRequestID = [[PHImageManager defaultManager] requestImageDataForAsset:self->_photoItem.photoAsset options:options resultHandler:^(NSData * _Nullable imageData, NSString * _Nullable dataUTI, UIImageOrientation orientation, NSDictionary * _Nullable info) {
+                
+                PHImageRequestID ID = [[info objectForKey:PHImageResultRequestIDKey] intValue];
+                
+                if (ID != self.imageRequestID) {
+                    return;
+                }
                 
                 dispatch_async(dispatch_get_main_queue(), ^{
-                   
+                    
                     if (imageData != nil) {
                         
                         [self loadGifData:imageData];
@@ -426,9 +444,9 @@ CGFloat const dismissDistance = 80;
     CGFloat pictureH = pictureW * image.size.height / image.size.width;
     
     if (JKPhotoIsDeviceiPad() || JKPhotoIsLandscape()) {
-
+        
         if (pictureH > self.browserContentView.frame.size.height) {
-
+            
             pictureH = self.browserContentView.frame.size.height;
             pictureW = pictureH * image.size.width / image.size.height;
         }
@@ -459,7 +477,7 @@ CGFloat const dismissDistance = 80;
     [self calculateInset];
     
     originalHeight = pictureH;
-                      
+    
     [self.scrollView setContentOffset:CGPointMake(-self.scrollView.contentInset.left, -self.scrollView.contentInset.top) animated:NO];
     
     self.scrollView.alwaysBounceHorizontal = self.imageContainerView.frame.size.width >= self.scrollView.frame.size.width;
@@ -536,7 +554,7 @@ CGFloat const dismissDistance = 80;
     }
     
     [UIView animateWithDuration:0.25 animations:^{
-       
+        
         self.playVideoButton.alpha = 0;
     }];
 }
@@ -674,14 +692,16 @@ CGFloat const dismissDistance = 80;
         
         beginDraggingZoom = YES;
         
-        draggingZoomDeltaX = 0;//point.x;
+        draggingZoomDeltaX = point.x - beginDraggingZoomTranslation.x;
         
         scrollView.pinchGestureRecognizer.enabled = NO;
         
         draggingZoomTranlationScaleY = self.photoImageView.frame.size.height / MAX(JKPhotoScreenHeight, JKPhotoScreenWidth);
+        
+        self.scrollView.alwaysBounceHorizontal = YES;
     }
     
-    point.x = -(scrollView.contentOffset.x + scrollView.contentInset.left);// -= draggingZoomDeltaX;
+    point.x -=draggingZoomDeltaX;//-(scrollView.contentOffset.x + scrollView.contentInset.left);// -= draggingZoomDeltaX;
     
     point.y -= (beginDraggingOffset.y + scrollView.contentInset.top);
     
@@ -713,7 +733,7 @@ CGFloat const dismissDistance = 80;
     self.transformScale = (1 - scale);
     self.transformScale = self.transformScale < 0.2 ? 0.2 : self.transformScale;
     
-    CGAffineTransform transform = CGAffineTransformMakeTranslation(0, point.y * 0.15);
+    CGAffineTransform transform = CGAffineTransformMakeTranslation(point.x * 0.5, point.y * 0.15);
     
     self.photoImageView.transform = CGAffineTransformScale(transform, self.transformScale, self.transformScale);
 }

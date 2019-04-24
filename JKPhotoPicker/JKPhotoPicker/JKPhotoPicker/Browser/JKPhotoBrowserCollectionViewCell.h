@@ -53,4 +53,13 @@
 
 /** 监听点击播放视频的block */
 @property (nonatomic, copy) void (^playVideoBlock)(AVPlayerItem *item);
+
+/** imageRequestID */
+@property (nonatomic, assign) int imageRequestID;
+
+/** livePhotoRequestID */
+@property (nonatomic, assign) int livePhotoRequestID;
+
+/** gifRequestID */
+@property (nonatomic, assign) int gifRequestID;
 @end
