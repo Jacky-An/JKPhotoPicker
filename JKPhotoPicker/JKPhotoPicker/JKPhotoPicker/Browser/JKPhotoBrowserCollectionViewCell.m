@@ -38,6 +38,9 @@
     JKPhotoPickerScrollDirection beginScrollDirection;
     JKPhotoPickerScrollDirection endScrollDirection;
 }
+/** imageContainerView */
+@property (nonatomic, weak) UIView *imageContainerView;
+
 /** 照片选中按钮 */
 @property (nonatomic, weak) UIButton *selectButton;
 
@@ -81,6 +84,7 @@ CGFloat const dismissDistance = 80;
 }
 
 - (void)initialization{
+    
     self.currentZoomScale = 1;
     
     // 当前屏幕宽高比
@@ -124,12 +128,17 @@ CGFloat const dismissDistance = 80;
         // [tbView performSelector:@selector(setContentInsetAdjustmentBehavior:) withObject:@(2)];
     }
     
+    UIView *imageContainerView = [[UIView alloc] init];
+    [self.scrollView insertSubview:imageContainerView atIndex:0];
+    _imageContainerView = imageContainerView;
+    
     // 照片
     UIImageView *photoImageView = [[UIImageView alloc] init];
+    photoImageView.backgroundColor = [UIColor whiteColor];
     photoImageView.userInteractionEnabled = YES;
     photoImageView.contentMode = UIViewContentModeScaleAspectFit;
     photoImageView.clipsToBounds = YES;
-    [self.scrollView insertSubview:photoImageView atIndex:0];
+    [self.imageContainerView insertSubview:photoImageView atIndex:0];
     _photoImageView = photoImageView;
     
     UITapGestureRecognizer *doubleTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(doubleTap:)];
@@ -240,9 +249,9 @@ CGFloat const dismissDistance = 80;
     
     CGPoint touchPoint = [tap locationInView:self.contentView];
     
-    CGPoint point = [self.photoImageView convertPoint:touchPoint fromView:self.contentView];
+    CGPoint point = [self.imageContainerView convertPoint:touchPoint fromView:self.contentView];
     
-    if (![self.photoImageView pointInside:point withEvent:nil]) {
+    if (![self.imageContainerView pointInside:point withEvent:nil]) {
         return;
     }
     
@@ -331,7 +340,7 @@ CGFloat const dismissDistance = 80;
         
         PHImageRequestOptions *options = [[PHImageRequestOptions alloc] init];
         options.networkAccessAllowed = YES;
-        options.deliveryMode = PHImageRequestOptionsDeliveryModeFastFormat;
+        options.deliveryMode = PHImageRequestOptionsDeliveryModeOpportunistic;
         
         [[PHImageManager defaultManager] requestImageForAsset:self->_photoItem.photoAsset targetSize:PHImageManagerMaximumSize contentMode:PHImageContentModeAspectFit options:options resultHandler:^(UIImage * _Nullable result, NSDictionary * _Nullable info) {
             
@@ -362,7 +371,7 @@ CGFloat const dismissDistance = 80;
                 
                 PHLivePhotoRequestOptions *options = [[PHLivePhotoRequestOptions alloc]init];
                 options.networkAccessAllowed = YES;
-                options.deliveryMode = PHImageRequestOptionsDeliveryModeFastFormat;
+                options.deliveryMode = PHImageRequestOptionsDeliveryModeOpportunistic;
                 
                 [[PHImageManager defaultManager] requestLivePhotoForAsset:self->_photoItem.photoAsset targetSize:PHImageManagerMaximumSize contentMode:PHImageContentModeAspectFit options:options resultHandler:^(PHLivePhoto * _Nullable livePhoto, NSDictionary * _Nullable info) {
                     
@@ -425,6 +434,7 @@ CGFloat const dismissDistance = 80;
         }
     }
     
+    self.imageContainerView.frame = CGRectMake(0, 0, pictureW, pictureH);
     self.photoImageView.frame = CGRectMake(0, 0, pictureW, pictureH);
     
     if (pictureW < self.browserContentView.frame.size.width) {
@@ -451,6 +461,8 @@ CGFloat const dismissDistance = 80;
     originalHeight = pictureH;
                       
     [self.scrollView setContentOffset:CGPointMake(-self.scrollView.contentInset.left, -self.scrollView.contentInset.top) animated:NO];
+    
+    self.scrollView.alwaysBounceHorizontal = self.imageContainerView.frame.size.width >= self.scrollView.frame.size.width;
 }
 
 - (void)resetView{
@@ -463,8 +475,8 @@ CGFloat const dismissDistance = 80;
     self.scrollView.contentSize = CGSizeZero;
     
     // 放大图片实质就是transform形变
-    self.photoImageView.transform = CGAffineTransformIdentity;
-    self.photoImageView.frame = JKPhotoScreenBounds;
+    self.imageContainerView.transform = CGAffineTransformIdentity;
+    self.imageContainerView.frame = JKPhotoScreenBounds;
     self.photoImageView.image = nil;
     
     [self.indicatorView stopAnimating];
@@ -543,8 +555,6 @@ CGFloat const dismissDistance = 80;
     
     beginDraggingZoom = NO;
     
-    self.scrollView.alwaysBounceHorizontal = NO;
-    
     if (self.isZooming) { return; }
     
     if (scrollView.contentOffset.y + scrollView.contentInset.top < -dismissDistance && (beginScrollDirection == endScrollDirection)) {
@@ -562,7 +572,7 @@ CGFloat const dismissDistance = 80;
         [UIView animateWithDuration:0.25 delay:0 options:(UIViewAnimationOptionAllowUserInteraction) animations:^{
             [UIView setAnimationCurve:(7)];//CGAffineTransformTranslate(self.photoImageView.transform, 0, 0);
             
-            self.photoImageView.transform = transform;//CGAffineTransformTranslate(transform, 0, 0);
+            self.photoImageView.transform = CGAffineTransformIdentity;//transform;//CGAffineTransformTranslate(transform, 0, 0);
             self.controllerView.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:1];
             
         } completion:^(BOOL finished) {
@@ -610,7 +620,7 @@ CGFloat const dismissDistance = 80;
 
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView{
     
-    //NSLog(@"contentOffset --> %@", NSStringFromCGPoint(scrollView.contentOffset));
+    NSLog(@"contentOffset --> %@", NSStringFromCGPoint(scrollView.contentOffset));
     
     if (isDragging) {
         
@@ -643,7 +653,14 @@ CGFloat const dismissDistance = 80;
         lastOffsetY = currentOffsetY;
     }
     
+    if (scrollView.pinchGestureRecognizer.state == UIGestureRecognizerStateBegan ||
+        scrollView.pinchGestureRecognizer.state == UIGestureRecognizerStateChanged) {
+        
+        return;
+    }
+    
     if (scrollView.contentOffset.y + scrollView.contentInset.top >= 0) {
+        
         return;
     }
     
@@ -657,16 +674,14 @@ CGFloat const dismissDistance = 80;
         
         beginDraggingZoom = YES;
         
-        draggingZoomDeltaX = beginDraggingZoomTranslation.x - point.x;
-        
-        self.scrollView.alwaysBounceHorizontal = YES;
+        draggingZoomDeltaX = 0;//point.x;
         
         scrollView.pinchGestureRecognizer.enabled = NO;
         
         draggingZoomTranlationScaleY = self.photoImageView.frame.size.height / MAX(JKPhotoScreenHeight, JKPhotoScreenWidth);
     }
     
-    point.x -= draggingZoomDeltaX;
+    point.x = -(scrollView.contentOffset.x + scrollView.contentInset.left);// -= draggingZoomDeltaX;
     
     point.y -= (beginDraggingOffset.y + scrollView.contentInset.top);
     
@@ -687,7 +702,7 @@ CGFloat const dismissDistance = 80;
         
         scale = (-scrollView.contentOffset.y - scrollView.contentInset.top) / JKPhotoScreenHeight / draggingZoomTranlationScaleY;
         
-        self.transformScale = (self.currentZoomScale - scale);
+        self.transformScale = (1 - scale);
         self.transformScale = self.transformScale < 0.2 ? 0.2 : self.transformScale;
         
         self.photoImageView.transform = CGAffineTransformMakeScale(self.transformScale, self.transformScale);
@@ -695,10 +710,10 @@ CGFloat const dismissDistance = 80;
         return;
     }
     
-    self.transformScale = (self.currentZoomScale - scale);
+    self.transformScale = (1 - scale);
     self.transformScale = self.transformScale < 0.2 ? 0.2 : self.transformScale;
     
-    CGAffineTransform transform = CGAffineTransformMakeTranslation(point.x * 0.5, point.y * 0.15);
+    CGAffineTransform transform = CGAffineTransformMakeTranslation(0, point.y * 0.15);
     
     self.photoImageView.transform = CGAffineTransformScale(transform, self.transformScale, self.transformScale);
 }
@@ -720,7 +735,7 @@ CGFloat const dismissDistance = 80;
 }
 
 - (UIView *)viewForZoomingInScrollView:(UIScrollView *)scrollView{
-    return self.photoImageView;
+    return self.imageContainerView;
 }
 
 - (void)scrollViewDidZoom:(UIScrollView *)scrollView{
@@ -730,24 +745,12 @@ CGFloat const dismissDistance = 80;
 - (void)calculateInset{
     
     // 计算内边距，注意只能使用frame
-    CGFloat offsetX = (self.browserContentView.frame.size.width - self.photoImageView.frame.size.width) * 0.5;
-    CGFloat offsetY = (self.browserContentView.frame.size.height - self.photoImageView.frame.size.height) * 0.5;
+    CGFloat offsetX = (self.browserContentView.frame.size.width - self.imageContainerView.frame.size.width) * 0.5;
+    CGFloat offsetY = (self.browserContentView.frame.size.height - self.imageContainerView.frame.size.height) * 0.5;
     
     // 当小于0的时候，放大的图片将无法滚动，因为内边距为负数时限制了它可以滚动的范围
     offsetX = (offsetX < 0) ? 0 : offsetX;
     offsetY = (offsetY < 0) ? 0 : offsetY;
-    
-    BOOL flag = (JKPhotoIsDeviceX() && self.photoImageView.frame.size.height >= (JKPhotoScreenHeight - 44 - 44));
-    
-    if (JKPhotoIsLandscape()) {
-        
-        flag = NO;
-    }
-    
-    if (flag) {
-        
-        offsetY = 44;
-    }
     
     [self.scrollView setContentInset:UIEdgeInsetsMake(offsetY, offsetX, offsetY, offsetX)];
 }

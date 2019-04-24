@@ -193,11 +193,9 @@
         }
     }
     
-    BOOL flag = JKPhotoIsDeviceX() && !JKPhotoIsLandscape();
-    
-    if (pictureH >= (self.calculateFrameSize.height - (flag ? (44 + 44) : 0))) {
+    if (pictureH >= self.calculateFrameSize.height) {
         
-        pictureY = flag ? 44 : 0;
+        pictureY = 0;
         
     } else { // 图片不高于屏幕
         
@@ -220,6 +218,7 @@
     
     
     UIView *imageView = [[UIView alloc] init];
+    imageView.backgroundColor = [UIColor whiteColor];
     imageView.layer.contentsGravity = kCAGravityResizeAspectFill;
 //    UIImageView *imageView = [[UIImageView alloc] init];
 //    imageView.contentMode = UIViewContentModeScaleAspectFill;
