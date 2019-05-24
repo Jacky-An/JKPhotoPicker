@@ -383,7 +383,7 @@ CGFloat const dismissDistance = 80;
                     
                     PHImageRequestID ID = [[info objectForKey:PHImageResultRequestIDKey] intValue];
                     
-                    if (ID != self.imageRequestID) {
+                    if (ID != self.livePhotoRequestID) {
                         return;
                     }
                     
@@ -418,7 +418,7 @@ CGFloat const dismissDistance = 80;
                 
                 PHImageRequestID ID = [[info objectForKey:PHImageResultRequestIDKey] intValue];
                 
-                if (ID != self.imageRequestID) {
+                if (ID != self.gifRequestID) {
                     return;
                 }
                 
