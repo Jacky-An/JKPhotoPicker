@@ -241,7 +241,10 @@ CGFloat const dismissDistance = 80;
 #pragma mark - 单击和双击手势
 - (void)singleTap:(UITapGestureRecognizer *)tap{
     
-    [self selfDismiss];
+    if (tap.state == UIGestureRecognizerStateEnded) {
+        
+        [self selfDismiss];
+    }
 }
 
 - (void)doubleTap:(UITapGestureRecognizer *)tap{
@@ -381,11 +384,12 @@ CGFloat const dismissDistance = 80;
                 
                 self.livePhotoRequestID = [[PHImageManager defaultManager] requestLivePhotoForAsset:self->_photoItem.photoAsset targetSize:PHImageManagerMaximumSize contentMode:PHImageContentModeAspectFit options:options resultHandler:^(PHLivePhoto * _Nullable livePhoto, NSDictionary * _Nullable info) {
                     
-                    PHImageRequestID ID = [[info objectForKey:PHImageResultRequestIDKey] intValue];
-                    
-                    if (ID != self.livePhotoRequestID) {
-                        return;
-                    }
+                    /*
+                     PHImageRequestID ID = [[info objectForKey:PHImageResultRequestIDKey] intValue];
+                     
+                     if (ID != self.livePhotoRequestID) {
+                     return;
+                     } //*/
                     
                     dispatch_async(dispatch_get_main_queue(), ^{
                         

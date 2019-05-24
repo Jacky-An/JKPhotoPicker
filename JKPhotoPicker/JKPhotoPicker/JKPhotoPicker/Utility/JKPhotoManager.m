@@ -251,12 +251,14 @@
     NSCache *allCache = [[NSCache alloc] init];
     NSDictionary *seletedCache = optionDict[@"seletedCache"];
     
+    BOOL showTakePhotoIcon = [optionDict[@"showTakePhotoIcon"] boolValue];
+    
     NSMutableArray *seletedNewItems = [NSMutableArray array];
     NSMutableDictionary *seletedNewCache = [NSMutableDictionary dictionary];
     
     NSMutableArray *dataArray = [NSMutableArray array];
     
-    __block NSInteger i = seletedCache == nil ? -1 : 0;
+    __block NSInteger i = ((showTakePhotoIcon && seletedCache != nil) ? 0 : -1);
     
     [fetchResult enumerateObjectsWithOptions:(NSEnumerationReverse) usingBlock:^(PHAsset * _Nonnull asset, NSUInteger idx, BOOL * _Nonnull stop) {
         

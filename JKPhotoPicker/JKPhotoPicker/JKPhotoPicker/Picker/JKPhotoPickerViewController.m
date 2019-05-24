@@ -562,7 +562,7 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
     
     BOOL isLoadAllPhotos = [photoItem.albumLocalIdentifier isEqualToString:_albumListView.cameraRollItem.albumLocalIdentifier];
     
-    NSMutableArray *photoItems = [JKPhotoManager getPhotoAssetsWithFetchResult:photoItem.albumFetchResult optionDict:(isLoadAllPhotos ? @{@"seletedCache" : self.selectedPhotosIdentifierCache} : nil) complete:^(NSDictionary *resultDict) {
+    NSMutableArray *photoItems = [JKPhotoManager getPhotoAssetsWithFetchResult:photoItem.albumFetchResult optionDict:(isLoadAllPhotos ? @{@"seletedCache" : self.selectedPhotosIdentifierCache, @"showTakePhotoIcon" : @(self.configuration.showTakePhotoIcon)} : @{@"showTakePhotoIcon" : @(self.configuration.showTakePhotoIcon)}) complete:^(NSDictionary *resultDict) {
         
         self.allPhotosIdentifierCache = resultDict[@"allCache"];
         
@@ -573,7 +573,9 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
         }
     }];
     
-    if ([photoItems.firstObject isShowCameraIcon] == NO && self.configuration.showTakePhotoIcon) {
+    if ([photoItems.firstObject isShowCameraIcon] == NO &&
+        self.configuration.showTakePhotoIcon &&
+        isLoadAllPhotos) {
         
         JKPhotoItem *item1 = [[JKPhotoItem alloc] init];
         item1.isShowCameraIcon = YES;
