@@ -246,7 +246,7 @@ static CGFloat const rowHeight = 70;
     
     CGFloat Y = self.hidden ? -[UIScreen mainScreen].bounds.size.height * 0.5 - 15 : 0;
     
-    self.contentView.frame = CGRectMake(0, Y, self.frame.size.width, (rowHeight * self.albums.count + JKPhotoCurrentNavigationBarHeight > [UIScreen mainScreen].bounds.size.height * 0.5) ? [UIScreen mainScreen].bounds.size.height * 0.5 + 15 : rowHeight * self.albums.count + JKPhotoCurrentNavigationBarHeight + 15);
+    self.contentView.frame = CGRectMake(0, Y, self.frame.size.width, (rowHeight * self.albums.count + JKPhotoCurrentNavigationBarHeight > [UIScreen mainScreen].bounds.size.height * 0.5) ? [UIScreen mainScreen].bounds.size.height * 0.5 : rowHeight * self.albums.count + JKPhotoCurrentNavigationBarHeight);
     
     self.tableView.frame = CGRectMake(0, JKPhotoCurrentNavigationBarHeight, self.contentView.frame.size.width, self.contentView.frame.size.height - JKPhotoCurrentNavigationBarHeight);
 }
@@ -257,11 +257,13 @@ static CGFloat const rowHeight = 70;
     
     [self.albums removeAllObjects];
     
+    NSInteger index = 0;
+    
     for (PHAssetCollection *assetCollection in arr) {
         
         PHFetchResult *result = [JKPhotoManager getFetchResultWithAssetCollection:assetCollection];
         
-        if (result.count <= 0) continue;
+        if (index > 0 && result.count <= 0) continue;
         
         JKPhotoItem *item = [[JKPhotoItem alloc] init];
         item.albumAssetCollection = assetCollection;
@@ -269,6 +271,8 @@ static CGFloat const rowHeight = 70;
         item.albumImagesCount = result.count;
         item.albumThumAsset = result.lastObject;
         [self.albums addObject:item];
+        
+        index++;
     }
     
     _cameraRollItem = self.albums.firstObject;
