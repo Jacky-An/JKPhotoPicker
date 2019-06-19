@@ -134,7 +134,7 @@ CGFloat const dismissDistance = 80;
     
     // 照片
     UIImageView *photoImageView = [[UIImageView alloc] init];
-    photoImageView.backgroundColor = [UIColor whiteColor];
+    photoImageView.backgroundColor = [UIColor blackColor];
     photoImageView.userInteractionEnabled = YES;
     photoImageView.contentMode = UIViewContentModeScaleAspectFit;
     photoImageView.clipsToBounds = YES;

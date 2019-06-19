@@ -201,15 +201,21 @@
     options.networkAccessAllowed = YES;
     options.resizeMode = PHImageRequestOptionsResizeModeFast;
     
-    self.requestID = [[PHImageManager defaultManager] requestImageForAsset:_photoItem.photoAsset targetSize:CGSizeMake(200, 200) contentMode:PHImageContentModeAspectFill options:nil resultHandler:^(UIImage * _Nullable result, NSDictionary * _Nullable info) {
+    dispatch_async(dispatch_get_global_queue(0, 0), ^{
         
-        PHImageRequestID requestID = [[info objectForKey:PHImageResultRequestIDKey] intValue];
-        
-        if (requestID == self.requestID) {
+        self.requestID = [[PHImageManager defaultManager] requestImageForAsset:photoItem.photoAsset targetSize:CGSizeMake(200, 200) contentMode:PHImageContentModeAspectFill options:nil resultHandler:^(UIImage * _Nullable result, NSDictionary * _Nullable info) {
             
-            self.photoImageView.image = result;
-        }
-    }];
+            PHImageRequestID requestID = [[info objectForKey:PHImageResultRequestIDKey] intValue];
+            
+            if (requestID == self.requestID) {
+                
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    
+                    self.photoImageView.image = result;
+                });
+            }
+        }];
+    });
     
     // 这样会很卡，而且内存警告直接崩，还不清晰
     //    self.photoImageView.image = _photoItem.thumImage;
