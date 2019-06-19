@@ -106,16 +106,19 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
     vc.presentationManager.fromCollectionView = dataDict[@"collectionView"];
     vc.presentationManager.presentFrame       = presentFrame;
     
+    UIWindow *keyWindow = [UIApplication sharedApplication].delegate.window;
+    
     UIEdgeInsets safeAreaInsets = UIEdgeInsetsZero;
     
     if (@available(iOS 11.0, *)) {
         
-        safeAreaInsets = [UIApplication sharedApplication].delegate.window.safeAreaInsets;
+        safeAreaInsets = keyWindow.safeAreaInsets;
     }
     
-    CGFloat width = (JKPhotoIsLandscape() && JKPhotoIsDeviceX()) ? JKPhotoScreenWidth - safeAreaInsets.left - safeAreaInsets.right : JKPhotoScreenWidth;
+    CGFloat width = keyWindow.frame.size.width - safeAreaInsets.left - safeAreaInsets.right;
+    CGFloat height = keyWindow.frame.size.height;
     
-    vc.presentationManager.calculateFrameSize = CGSizeMake(width, JKPhotoScreenHeight);
+    vc.presentationManager.calculateFrameSize = CGSizeMake(width, height);
     
     vc.indexPath            = dataDict[@"indexPath"];
     vc.configuration        = dataDict[@"configuration"];
@@ -139,7 +142,7 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
     NSArray *selectedAssets = dataDict[@"selectedAssets"];
     [vc.selectedAssetArray addObjectsFromArray:selectedAssets];
     
-//    [vc.dismissReloadIndexPaths addObjectsFromArray:[vc.selectedPhotoItems valueForKeyPath:@"currentIndexPath"]];
+    //    [vc.dismissReloadIndexPaths addObjectsFromArray:[vc.selectedPhotoItems valueForKeyPath:@"currentIndexPath"]];
     
     [vc addReloadIndexPaths];
     
@@ -164,7 +167,7 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
     vc.dataSourceArrCount = vc.dataSourceArr.count;
     
     // 映射标识和item
-//    [vc setupIdentifierCache];
+    //    [vc setupIdentifierCache];
     
     [viewController presentViewController:vc animated:YES completion:nil];
 }
@@ -307,6 +310,22 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
     });
 }
 
+- (void)viewWillTransitionToSize:(CGSize)size withTransitionCoordinator:(id<UIViewControllerTransitionCoordinator>)coordinator{
+    
+    if (!CGSizeEqualToSize(size, self.view.frame.size)) {
+        
+        [self.collectionView reloadData];
+        
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.25 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            
+            if (self.indexPath) {
+                
+                [self.collectionView scrollToItemAtIndexPath:self.indexPath atScrollPosition:(UICollectionViewScrollPositionCenteredHorizontally) animated:NO];
+            }
+        });
+    }
+}
+
 #pragma mark - 初始化
 
 - (void)viewDidLoad {
@@ -318,7 +337,7 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(deviceOrientationDidChange:) name:UIApplicationDidChangeStatusBarOrientationNotification object:nil];
     
-//    [self.cachingImageManager startCachingImagesForAssets:[self.dataSourceArr valueForKeyPath:@"photoAsset"] targetSize:PHImageManagerMaximumSize contentMode:(PHImageContentModeAspectFit) options:nil];
+    //    [self.cachingImageManager startCachingImagesForAssets:[self.dataSourceArr valueForKeyPath:@"photoAsset"] targetSize:PHImageManagerMaximumSize contentMode:(PHImageContentModeAspectFit) options:nil];
     
     self.view.backgroundColor = [UIColor blackColor];
     
@@ -388,23 +407,23 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
     JKPhotoItem *item = self.dataSourceArr[indexPath.item];
     
     /*
-    if (indexPath.item > 0 && indexPath.item < self.dataSourceArrCount - 1) {
-        
-        JKPhotoItem *itemPre = self.dataSourceArr[indexPath.item - 1];
-        
-        JKPhotoItem *itemNext = self.dataSourceArr[indexPath.item + 1];
-        
-        [self.cachingImageManager startCachingImagesForAssets:@[itemPre.photoAsset, itemNext.photoAsset] targetSize:PHImageManagerMaximumSize contentMode:PHImageContentModeAspectFit options:nil];
-    } */
+     if (indexPath.item > 0 && indexPath.item < self.dataSourceArrCount - 1) {
+     
+     JKPhotoItem *itemPre = self.dataSourceArr[indexPath.item - 1];
+     
+     JKPhotoItem *itemNext = self.dataSourceArr[indexPath.item + 1];
+     
+     [self.cachingImageManager startCachingImagesForAssets:@[itemPre.photoAsset, itemNext.photoAsset] targetSize:PHImageManagerMaximumSize contentMode:PHImageContentModeAspectFit options:nil];
+     } */
     
-//    item.isSelected = NO;
+    //    item.isSelected = NO;
     
-//    for (JKPhotoItem *it in self.selectedPhotoItems) {
-//
-//        if (![it.assetLocalIdentifier isEqualToString:item.assetLocalIdentifier]) continue;
-//
-//        item.isSelected = YES;
-//    }
+    //    for (JKPhotoItem *it in self.selectedPhotoItems) {
+    //
+    //        if (![it.assetLocalIdentifier isEqualToString:item.assetLocalIdentifier]) continue;
+    //
+    //        item.isSelected = YES;
+    //    }
     
     if (indexPath.item == self.indexPath.item) {
         
@@ -461,20 +480,20 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
     }
     
 #pragma mark - 删除选中的照片
-//    if (!cell.deleteButtonClickBlock) {
-//        [cell setDeleteButtonClickBlock:^(JKPhotoCollectionViewCell *currentCell) {
-//            currentCell.photoItem.isSelected = NO;
-//            [weakSelf.selectedPhotoItems removeObject:currentCell.photoItem];
-//            [weakSelf.bottomCollectionView reloadData];
-//            [weakSelf.collectionView reloadData];
-//            [weakSelf changeSelectedCount];
-//        }];
-//    }
+    //    if (!cell.deleteButtonClickBlock) {
+    //        [cell setDeleteButtonClickBlock:^(JKPhotoCollectionViewCell *currentCell) {
+    //            currentCell.photoItem.isSelected = NO;
+    //            [weakSelf.selectedPhotoItems removeObject:currentCell.photoItem];
+    //            [weakSelf.bottomCollectionView reloadData];
+    //            [weakSelf.collectionView reloadData];
+    //            [weakSelf changeSelectedCount];
+    //        }];
+    //    }
     
     if (!cell.playVideoBlock) {
         
         [cell setPlayVideoBlock:^(AVPlayerItem *item) {
-           
+            
             [weakSelf playVideoWithItem:item];
         }];
     }
@@ -497,13 +516,13 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
             [self.dismissReloadIndexPaths addObject:itm.currentIndexPath];
         }
         
-//        JKPhotoItem *itm = [self.allPhotosIdentifierCache objectForKey:currentCell.photoItem.assetLocalIdentifier];
-//
-//        if (itm != nil) {
-//
-//            NSIndexPath *indexPath = [NSIndexPath indexPathForItem:[self.allPhotoItems indexOfObject:itm] inSection:0];
-//            [self.dismissReloadIndexPaths addObject:indexPath];
-//        }
+        //        JKPhotoItem *itm = [self.allPhotosIdentifierCache objectForKey:currentCell.photoItem.assetLocalIdentifier];
+        //
+        //        if (itm != nil) {
+        //
+        //            NSIndexPath *indexPath = [NSIndexPath indexPathForItem:[self.allPhotoItems indexOfObject:itm] inSection:0];
+        //            [self.dismissReloadIndexPaths addObject:indexPath];
+        //        }
     }
     
     [self.selectedPhotosIdentifierCache setObject:currentCell.photoItem forKey:currentCell.photoItem.assetLocalIdentifier];
@@ -638,15 +657,15 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
 
 - (void)changeSelectedCount{
     // 旋转动画
-//    CABasicAnimation *rotationAnimation = [CABasicAnimation animationWithKeyPath:@"transform.rotation.y"];
-//    //    CAKeyframeAnimation *rotationAnimation = [CAKeyframeAnimation animationWithKeyPath:@"transform.rotation.y"];
-//    rotationAnimation.toValue = @(M_PI * 2);
-//    rotationAnimation.repeatCount = 1;
-//    rotationAnimation.duration = 0.5;
-//    
-//    [self.selectedCountButton.layer addAnimation:rotationAnimation forKey:nil];
-//    
-//    [self.selectedCountButton setTitle:[NSString stringWithFormat:@"%ld/%ld", (unsigned long)self.selectedPhotos.count, (unsigned long)self.maxSelectCount] forState:(UIControlStateNormal)];
+    //    CABasicAnimation *rotationAnimation = [CABasicAnimation animationWithKeyPath:@"transform.rotation.y"];
+    //    //    CAKeyframeAnimation *rotationAnimation = [CAKeyframeAnimation animationWithKeyPath:@"transform.rotation.y"];
+    //    rotationAnimation.toValue = @(M_PI * 2);
+    //    rotationAnimation.repeatCount = 1;
+    //    rotationAnimation.duration = 0.5;
+    //
+    //    [self.selectedCountButton.layer addAnimation:rotationAnimation forKey:nil];
+    //
+    //    [self.selectedCountButton setTitle:[NSString stringWithFormat:@"%ld/%ld", (unsigned long)self.selectedPhotos.count, (unsigned long)self.maxSelectCount] forState:(UIControlStateNormal)];
 }
 
 #pragma mark - 播放视频
@@ -714,9 +733,9 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
     NSLog(@"可见cell--->%zd", self.collectionView.visibleCells.count);
     
     self.indexPath = [NSIndexPath indexPathForItem:(self.isShowSelectedPhotos || (!self.isAllPhotosAlbum) || !self.configuration.showTakePhotoIcon) ? scrollView.contentOffset.x / JKPhotoScreenWidth : scrollView.contentOffset.x / JKPhotoScreenWidth + 1 inSection:0];
-
+    
     JKPhotoCollectionViewCell *fromCell = (JKPhotoCollectionViewCell *)[self.fromCollectionView cellForItemAtIndexPath:self.indexPath];
-
+    
     CGRect presentFrame = (fromCell.frame.size.width != fromCell.photoImageView.frame.size.width) ? [[UIApplication sharedApplication].delegate.window convertRect:fromCell.photoImageView.frame fromView:fromCell.photoImageView.superview] : [[UIApplication sharedApplication].delegate.window convertRect:fromCell.frame fromView:fromCell.superview];
     
     self.presentationManager.presentFrame = presentFrame;
@@ -738,7 +757,7 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
     
     [[PHImageManager defaultManager] cancelImageRequest:PHInvalidImageRequestID];
     
-//    [self.cachingImageManager stopCachingImagesForAllAssets];
+    //    [self.cachingImageManager stopCachingImagesForAllAssets];
     
     NSLog(@"%d, %s",__LINE__, __func__);
 }

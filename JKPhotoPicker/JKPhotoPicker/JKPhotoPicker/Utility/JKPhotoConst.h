@@ -36,6 +36,13 @@ typedef NS_ENUM(NSUInteger, JKPhotoPickerScrollDirection) {
 /** 屏幕高度 */
 #define JKPhotoScreenHeight ([UIScreen mainScreen].bounds.size.height)
 
+/** 屏幕bounds */
+#define JKPhotoKeyWindowBounds ([UIApplication sharedApplication].delegate.window.bounds)
+/** 屏幕宽度 */
+#define JKPhotoKeyWindowWidth ([UIApplication sharedApplication].delegate.window.frame.size.width)
+/** 屏幕高度 */
+#define JKPhotoKeyWindowHeight ([UIApplication sharedApplication].delegate.window.frame.size.height)
+
 /// 当前导航条高度
 #define JKPhotoCurrentNavigationBarHeight (CGRectGetMaxY(self.navigationController.navigationBar.frame))
 

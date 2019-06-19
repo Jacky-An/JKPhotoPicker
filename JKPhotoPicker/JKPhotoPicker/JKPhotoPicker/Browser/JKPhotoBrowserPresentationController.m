@@ -43,7 +43,8 @@
      */
     
     // 设置presentedView的frame
-    self.presentedView.frame = [UIScreen mainScreen].bounds;
+    self.presentedView.frame = [UIApplication sharedApplication].delegate.window.bounds;
+    
     self.presentedView.userInteractionEnabled = YES;
     
 //    [self.dismissButton addTarget:self action:@selector(dismissButtonClick) forControlEvents:(UIControlEventTouchUpInside)];

@@ -29,6 +29,9 @@
 
 /** 数据类型 */
 @property (nonatomic, weak) UILabel *dataTypeLabel;
+
+/** requestID */
+@property (nonatomic, assign) PHImageRequestID requestID;
 @end
 
 @implementation JKPhotoCollectionViewCell
@@ -76,7 +79,7 @@
     UIImageView *photoImageView = [[UIImageView alloc] init];
     photoImageView.contentMode = UIViewContentModeScaleAspectFill;
     photoImageView.clipsToBounds = YES;
-//    photoImageView.backgroundColor = JKRandomColor;
+    //    photoImageView.backgroundColor = JKRandomColor;
     [self.contentView insertSubview:photoImageView atIndex:0];
     self.photoImageView = photoImageView;
     
@@ -166,7 +169,7 @@
 - (void)setSelected:(BOOL)selected{
     [super setSelected:selected];
     
-//    self.selectIconImageView.highlighted = self.selectIconImageView.highlighted;
+    //    self.selectIconImageView.highlighted = self.selectIconImageView.highlighted;
 }
 
 - (void)setPhotoItem:(JKPhotoItem *)photoItem{
@@ -194,13 +197,22 @@
     self.selectIconImageView.hidden = !self.selectCoverView.hidden;
     self.selectButton.hidden = !self.selectCoverView.hidden;
     
-    [[PHImageManager defaultManager] requestImageForAsset:_photoItem.photoAsset targetSize:CGSizeMake(200, 200) contentMode:PHImageContentModeAspectFit options:nil resultHandler:^(UIImage * _Nullable result, NSDictionary * _Nullable info) {
+    PHImageRequestOptions *options = [[PHImageRequestOptions alloc] init];
+    options.networkAccessAllowed = YES;
+    options.resizeMode = PHImageRequestOptionsResizeModeFast;
+    
+    self.requestID = [[PHImageManager defaultManager] requestImageForAsset:_photoItem.photoAsset targetSize:CGSizeMake(200, 200) contentMode:PHImageContentModeAspectFill options:nil resultHandler:^(UIImage * _Nullable result, NSDictionary * _Nullable info) {
         
-        self.photoImageView.image = result;
+        PHImageRequestID requestID = [[info objectForKey:PHImageResultRequestIDKey] intValue];
+        
+        if (requestID == self.requestID) {
+            
+            self.photoImageView.image = result;
+        }
     }];
     
     // 这样会很卡，而且内存警告直接崩，还不清晰
-//    self.photoImageView.image = _photoItem.thumImage;
+    //    self.photoImageView.image = _photoItem.thumImage;
 }
 
 #pragma mark - 点击事件
@@ -231,6 +243,6 @@
 }
 
 - (void)dealloc{
-//    NSLog(@"%d, %s",__LINE__, __func__);
+    //    NSLog(@"%d, %s",__LINE__, __func__);
 }
 @end

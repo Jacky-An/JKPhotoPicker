@@ -112,20 +112,20 @@
     [[transitionContext containerView] setBackgroundColor:[UIColor blackColor]];
     
     // 3.执行动画
-//    toView.transform = CGAffineTransformMakeScale(1, 0);
+    //    toView.transform = CGAffineTransformMakeScale(1, 0);
     toView.hidden = YES;
     
     // 默认动画是从中间慢慢放大的，这是因为图层默认的锚点是(0.5，0.5)
-//    toView.layer.anchorPoint = CGPointMake(0.5, 0);
+    //    toView.layer.anchorPoint = CGPointMake(0.5, 0);
     
     UIView *imageView = [[UIView alloc] init];
     imageView.userInteractionEnabled = NO;
     imageView.layer.contentsGravity = kCAGravityResizeAspect;
     
-//    UIImageView *imageView = [[UIImageView alloc] init];
-//    imageView.contentMode = UIViewContentModeScaleAspectFit;
+    //    UIImageView *imageView = [[UIImageView alloc] init];
+    //    imageView.contentMode = UIViewContentModeScaleAspectFit;
     imageView.clipsToBounds = YES;
-//    imageView.image = self.touchImage;
+    //    imageView.image = self.touchImage;
     
     imageView.layer.contents = (__bridge id)self.touchImage.CGImage;
     
@@ -135,10 +135,10 @@
     self.animationImageView = imageView;
     
     toView.userInteractionEnabled = NO;
-//    self.fromImageView.hidden = YES;
+    //    self.fromImageView.hidden = YES;
     
     [UIView animateWithDuration:[self transitionDuration:transitionContext] animations:^{
-//        toView.transform = CGAffineTransformIdentity;
+        //        toView.transform = CGAffineTransformIdentity;
         imageView.frame = [self calculateImageViewSizeWithImage:self.touchImage];
         
     } completion:^(BOOL finished) {
@@ -161,8 +161,8 @@
             toView.userInteractionEnabled = YES;
         });
         
-//        [toView performSelector:@selector(setUserInteractionEnabled:) withObject:@(YES) afterDelay:0.3];
-//        [imageView performSelector:@selector(removeFromSuperview) withObject:nil afterDelay:0.2];
+        //        [toView performSelector:@selector(setUserInteractionEnabled:) withObject:@(YES) afterDelay:0.3];
+        //        [imageView performSelector:@selector(removeFromSuperview) withObject:nil afterDelay:0.2];
     }];
 }
 
@@ -202,7 +202,7 @@
         pictureY = (self.calculateFrameSize.height - pictureH) * 0.5;
     }
     
-    pictureX = (JKPhotoScreenWidth - pictureW) * 0.5;
+    pictureX = (JKPhotoKeyWindowWidth - pictureW) * 0.5;
     
     return CGRectMake(pictureX, pictureY, pictureW, pictureH);
 }
@@ -213,17 +213,17 @@
     if (fromView == nil) return;
     
     // 默认动画是从中间慢慢放大的，这是因为图层默认的锚点是(0.5，0.5)
-//    fromView.layer.anchorPoint = CGPointMake(0.5, 0);
-//    self.fromImageView.hidden = YES;
+    //    fromView.layer.anchorPoint = CGPointMake(0.5, 0);
+    //    self.fromImageView.hidden = YES;
     
     
     UIView *imageView = [[UIView alloc] init];
     imageView.backgroundColor = [UIColor whiteColor];
     imageView.layer.contentsGravity = kCAGravityResizeAspectFill;
-//    UIImageView *imageView = [[UIImageView alloc] init];
-//    imageView.contentMode = UIViewContentModeScaleAspectFill;
+    //    UIImageView *imageView = [[UIImageView alloc] init];
+    //    imageView.contentMode = UIViewContentModeScaleAspectFill;
     imageView.clipsToBounds = YES;
-//    imageView.image = self.touchImage;
+    //    imageView.image = self.touchImage;
     
     imageView.layer.contents = (__bridge id)self.touchImage.CGImage;
     
@@ -232,7 +232,7 @@
     
     self.touchImageView.hidden = YES;
     
-//    fromView.hidden = YES;
+    //    fromView.hidden = YES;
     [[transitionContext containerView] setBackgroundColor:[UIColor clearColor]];
     
     [UIView animateWithDuration:[self transitionDuration:transitionContext] animations:^{
@@ -253,7 +253,7 @@
         
         // 注意：自定义转场动画，在执行完动画之后一定要告诉系统动画执行完毕了！！
         [transitionContext completeTransition:YES];
-//        self.fromImageView.hidden = NO;
+        //        self.fromImageView.hidden = NO;
     }];
 }
 
@@ -276,7 +276,7 @@
     
     if (self.whiteView == nil) { return; }
     
-    CGRect rect = CGRectMake(0, JKPhotoCurrentNavigationBarHeight, JKPhotoScreenWidth, JKPhotoScreenHeight - JKPhotoCurrentNavigationBarHeight - (70 + JKPhotoCurrentHomeIndicatorHeight()));
+    CGRect rect = CGRectMake(0, JKPhotoCurrentNavigationBarHeight, JKPhotoKeyWindowWidth, JKPhotoKeyWindowHeight - JKPhotoCurrentNavigationBarHeight - (70 + JKPhotoCurrentHomeIndicatorHeight()));
     
     CGRect bottomOrCompleteRect = [[UIApplication sharedApplication].delegate.window convertRect:self.fromCollectionView.frame fromView:self.fromCollectionView.superview];
     
@@ -315,7 +315,7 @@
             
             CGFloat Y = _presentCellFrame.origin.y < JKPhotoCurrentNavigationBarHeight ? JKPhotoCurrentNavigationBarHeight : _presentCellFrame.origin.y;
             
-            CGFloat bottomY = JKPhotoScreenHeight - (JKPhotoIsDeviceX() ? 104 : 70);
+            CGFloat bottomY = JKPhotoKeyWindowHeight - (JKPhotoIsDeviceX() ? 104 : 70);
             
             CGFloat H = (Y > bottomY ? CGRectGetMaxY(_presentCellFrame) : (CGRectGetMaxY(_presentCellFrame) > bottomY ? bottomY : CGRectGetMaxY(_presentCellFrame))) - Y;
             

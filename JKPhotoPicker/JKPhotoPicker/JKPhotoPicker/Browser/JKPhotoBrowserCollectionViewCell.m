@@ -370,6 +370,7 @@ CGFloat const dismissDistance = 80;
                 
                 // block内是主线程
                 self.photoImageView.image = result;
+                
                 [self calculateImageViewSizeWithImage:result];
             });
         }];
