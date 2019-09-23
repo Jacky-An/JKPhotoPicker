@@ -328,12 +328,18 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
 
 #pragma mark - 初始化
 
+- (BOOL)modalPresentationCapturesStatusBarAppearance{
+    return YES;
+}
+
+- (BOOL)prefersStatusBarHidden{
+    return YES;
+}
+
 - (void)viewDidLoad {
     [super viewDidLoad];
     
     self.automaticallyAdjustsScrollViewInsets = NO;
-    
-    JKPhotoStatusBarView().alpha = 0;
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(deviceOrientationDidChange:) name:UIApplicationDidChangeStatusBarOrientationNotification object:nil];
     
@@ -747,11 +753,6 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
 }
 
 - (void)dealloc{
-    
-    if (!JKPhotoIsLandscape() || JKPhotoIsDeviceiPad()) {
-        
-        JKPhotoStatusBarView().alpha = 1;
-    }
     
     [[NSNotificationCenter defaultCenter] removeObserver:self];
     

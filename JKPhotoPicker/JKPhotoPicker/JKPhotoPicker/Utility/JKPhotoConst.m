@@ -86,7 +86,15 @@ CGFloat JKPhotoCurrentHomeIndicatorHeight (void) {
 /// 使用KVC获取当前的状态栏的view
 UIView * JKPhotoStatusBarView (void) {
     
-    UIView *statusBar = [[[UIApplication sharedApplication] valueForKey:@"statusBarWindow"] valueForKey:@"statusBar"];
+    UIView *statusBar = nil;
+    
+    if (@available(iOS 13.0, *)) {
+        
+        
+    } else {
+        
+        statusBar = [[[UIApplication sharedApplication] valueForKey:@"statusBarWindow"] valueForKey:@"statusBar"];
+    }
     
     return statusBar;
 }

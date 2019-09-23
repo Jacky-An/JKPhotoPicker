@@ -6,7 +6,7 @@
 //  Copyright © 2016年 安永博. All rights reserved.
 //
 
-#import <Foundation/Foundation.h>
+#import <UIKit/UIKit.h>
 
 #import <Photos/Photos.h>
 

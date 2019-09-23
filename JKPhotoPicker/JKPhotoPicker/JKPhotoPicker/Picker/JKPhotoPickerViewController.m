@@ -154,6 +154,8 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
     
     UINavigationController *nav = [[UINavigationController alloc] initWithRootViewController:vc];
     
+    nav.modalPresentationStyle = UIModalPresentationFullScreen;
+    
     [config.presentViewController presentViewController:nav animated:YES completion:^{
         
         if (config.takePhotoFirst) {
