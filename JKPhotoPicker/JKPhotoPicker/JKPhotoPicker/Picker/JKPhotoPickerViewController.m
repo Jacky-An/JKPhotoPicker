@@ -322,7 +322,7 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
     columnCount = JKPhotoScreenWidth > 414 ? 6 : 4;
     
     self.automaticallyAdjustsScrollViewInsets = NO;
-    self.view.backgroundColor = [UIColor whiteColor];
+    self.view.backgroundColor = JKPhotoAdaptColor([UIColor whiteColor], [UIColor blackColor]);
     
     _isAllPhotosAlbum = YES;
     
@@ -347,7 +347,7 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
     
     JKPhotoTitleButton *titleButton = [JKPhotoTitleButton buttonWithType:(UIButtonTypeCustom)];
     titleButton.frame = CGRectMake(0, 0, 200, 40);
-    [titleButton setTitleColor:[UIColor colorWithRed:51.0/255.0 green:51.0/255.0 blue:51.0/255.0 alpha:1] forState:(UIControlStateNormal)];
+    [titleButton setTitleColor:JKPhotoAdaptColor([UIColor colorWithRed:51.0/255.0 green:51.0/255.0 blue:51.0/255.0 alpha:1], [UIColor colorWithRed:204.0/255.0 green:204.0/255.0 blue:204.0/255.0 alpha:1]) forState:(UIControlStateNormal)];
     
     [titleButton setImage:[JKPhotoResourceManager jk_imageNamed:@"arrow_down@2x"] forState:(UIControlStateNormal)];
     [titleButton setImage:[JKPhotoResourceManager jk_imageNamed:@"arrow_up@2x"] forState:(UIControlStateSelected)];
@@ -453,7 +453,7 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
     
     UIView *bottomContentView = [[UIView alloc] init];
     bottomContentView.frame = CGRectMake(0, CGRectGetMaxY(collectionView.frame), self.view.frame.size.width, 70 + JKPhotoCurrentHomeIndicatorHeight());
-    bottomContentView.backgroundColor = [UIColor colorWithRed:250.0 / 255.0 green:250.0 / 255.0 blue:250.0 / 255.0 alpha:1];
+    bottomContentView.backgroundColor = JKPhotoAdaptColor([UIColor colorWithRed:250.0 / 255.0 green:250.0 / 255.0 blue:250.0 / 255.0 alpha:1], [UIColor colorWithRed:5.0 / 255.0 green:5.0 / 255.0 blue:5.0 / 255.0 alpha:1]);
     [self.view addSubview:bottomContentView];
     _bottomContentView = bottomContentView;
     
@@ -575,8 +575,7 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
         }
     }];
     
-    if ([photoItems.firstObject isShowCameraIcon] == NO &&
-        self.configuration.showTakePhotoIcon &&
+    if ([photoItems.firstObject isShowCameraIcon] == NO && self.configuration.showTakePhotoIcon &&
         isLoadAllPhotos) {
         
         JKPhotoItem *item1 = [[JKPhotoItem alloc] init];
@@ -801,7 +800,6 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
 }
 
 + (void)showWithConfig:(void(^)(UIImagePickerController *imagPicker))config presentVc:(UIViewController *)presentVc sourceType:(UIImagePickerControllerSourceType)sourceType allowsEditing:(BOOL)allowsEditing completeHandler:(void(^)(UIImage *image))completeHandler{
-    
     
     UIImagePickerController *imagePicker = [[UIImagePickerController alloc] init];
     imagePicker.sourceType = sourceType;

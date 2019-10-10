@@ -45,13 +45,13 @@
     
     UILabel *albumTitleLabel = [[UILabel alloc] init];
     albumTitleLabel.font = [UIFont systemFontOfSize:16];
-    albumTitleLabel.textColor = [[UIColor blackColor] colorWithAlphaComponent:0.9];
+    albumTitleLabel.textColor = JKPhotoAdaptColor([UIColor blackColor], [UIColor whiteColor]);
     [self.contentView addSubview:albumTitleLabel];
     self.albumTitleLabel = albumTitleLabel;
     
     UILabel *albumPhotoCountLabel = [[UILabel alloc] init];
     albumPhotoCountLabel.font = [UIFont systemFontOfSize:13];
-    albumPhotoCountLabel.textColor = [[UIColor blackColor] colorWithAlphaComponent:0.6];
+    albumPhotoCountLabel.textColor = JKPhotoAdaptColor([[UIColor blackColor] colorWithAlphaComponent:0.6], [[UIColor whiteColor] colorWithAlphaComponent:0.6]);
     [self.contentView addSubview:albumPhotoCountLabel];
     self.albumPhotoCountLabel = albumPhotoCountLabel;
 }

@@ -91,3 +91,6 @@ UIView * JKPhotoStatusBarView (void);
 
 /// 让手机振动一下
 void JKPhotoCibrateDevice (void);
+
+/// 颜色适配
+UIColor * JKPhotoAdaptColor (UIColor *lightColor, UIColor *darkColor);

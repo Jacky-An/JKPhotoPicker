@@ -43,7 +43,7 @@ BOOL JKPhotoIsDeviceiPad (void){
         
         if (@available(iOS 11.0, *)) {
             
-            JKPhotoIsDeviceiPad_ = [[UIDevice currentDevice].model isEqualToString:@"iPad"];
+            JKPhotoIsDeviceiPad_ = (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad);
         }
     });
     
@@ -113,4 +113,27 @@ void JKPhotoCibrateDevice (void) {
     //AudioServicesPlaySystemSound(1521);
     
     //AudioServicesPlaySystemSound(kSystemSoundID_Vibrate);
+}
+
+/// 颜色适配
+UIColor * JKPhotoAdaptColor (UIColor *lightColor, UIColor *darkColor) {
+    
+    if (@available(iOS 13.0, *)) {
+        
+        UIColor *color = [UIColor colorWithDynamicProvider:^UIColor * _Nonnull(UITraitCollection * _Nonnull traitCollection) {
+            
+            if ([traitCollection userInterfaceStyle] == UIUserInterfaceStyleLight) {
+                
+                return lightColor;
+            }
+
+            return darkColor;
+        }];
+        
+        return color;
+        
+    } else {
+        
+        return lightColor;
+    }
 }

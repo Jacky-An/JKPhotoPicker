@@ -53,7 +53,7 @@ static CGFloat const rowHeight = 70;
 - (UIView *)contentView{
     if (!_contentView) {
         UIView *contentView = [[UIView alloc] init];
-        contentView.backgroundColor = [UIColor colorWithRed:239.0 / 255.0 green:239.0 / 255.0 blue:239.0 / 255.0 alpha:1];
+        contentView.backgroundColor = JKPhotoAdaptColor([UIColor colorWithRed:239.0 / 255.0 green:239.0 / 255.0 blue:239.0 / 255.0 alpha:1], [UIColor colorWithRed:16.0 / 255.0 green:16.0 / 255.0 blue:16.0 / 255.0 alpha:1]);
         [self addSubview:contentView];
         _contentView = contentView;
     }
@@ -152,7 +152,7 @@ static CGFloat const rowHeight = 70;
 }
 
 //- (void)userDidTakeScreenshot{
-//    
+//
 //    [self performSelector:@selector(reloadAlbum) withObject:nil afterDelay:0.8];
 //}
 
