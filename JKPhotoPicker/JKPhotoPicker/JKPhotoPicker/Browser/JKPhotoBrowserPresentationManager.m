@@ -276,7 +276,7 @@
     
     if (self.whiteView == nil) { return; }
     
-    CGRect rect = CGRectMake(0, JKPhotoCurrentNavigationBarHeight, JKPhotoKeyWindowWidth, JKPhotoKeyWindowHeight - JKPhotoCurrentNavigationBarHeight - (70 + JKPhotoCurrentHomeIndicatorHeight()));
+    CGRect rect = CGRectMake(0, JKPhotoNavigationBarHeight(), JKPhotoKeyWindowWidth, JKPhotoKeyWindowHeight - JKPhotoNavigationBarHeight() - (70 + JKPhotoCurrentHomeIndicatorHeight()));
     
     CGRect bottomOrCompleteRect = [[UIApplication sharedApplication].delegate.window convertRect:self.fromCollectionView.frame fromView:self.fromCollectionView.superview];
     
@@ -313,7 +313,7 @@
             
         }else{
             
-            CGFloat Y = _presentCellFrame.origin.y < JKPhotoCurrentNavigationBarHeight ? JKPhotoCurrentNavigationBarHeight : _presentCellFrame.origin.y;
+            CGFloat Y = _presentCellFrame.origin.y < JKPhotoNavigationBarHeight() ? JKPhotoNavigationBarHeight() : _presentCellFrame.origin.y;
             
             CGFloat bottomY = JKPhotoKeyWindowHeight - (JKPhotoIsDeviceX() ? 104 : 70);
             

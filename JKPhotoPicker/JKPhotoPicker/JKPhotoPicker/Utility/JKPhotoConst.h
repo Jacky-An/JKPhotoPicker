@@ -44,9 +44,6 @@ typedef NS_ENUM(NSUInteger, JKPhotoPickerScrollDirection) {
 #define JKPhotoKeyWindowHeight ([UIApplication sharedApplication].delegate.window.frame.size.height)
 
 /// 当前导航条高度
-#define JKPhotoCurrentNavigationBarHeight (CGRectGetMaxY(self.navigationController.navigationBar.frame))
-
-/// 当前导航条高度
 #define JKPhotoCurrentTabBarHeight (JKPhotoIsLandscape() ? self.tabBarController.tabBar.frame.size.height : JKPhotoTabBarHeight())
 
 // 快速设置颜色

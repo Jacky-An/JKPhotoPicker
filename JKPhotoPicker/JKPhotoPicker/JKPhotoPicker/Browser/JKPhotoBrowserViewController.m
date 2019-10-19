@@ -636,7 +636,7 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
     
     //    CGRect fromCollectionViewFrame = [self.fromCollectionView.superview convertRect:self.fromCollectionView.frame toView:[UIApplication sharedApplication].delegate.window];
     
-    CGRect rect = CGRectMake(0, JKPhotoCurrentNavigationBarHeight, JKPhotoScreenWidth, JKPhotoScreenHeight - JKPhotoCurrentNavigationBarHeight - (70 + JKPhotoCurrentHomeIndicatorHeight()));
+    CGRect rect = CGRectMake(0, JKPhotoNavigationBarHeight(), JKPhotoScreenWidth, JKPhotoScreenHeight - JKPhotoNavigationBarHeight() - (70 + JKPhotoCurrentHomeIndicatorHeight()));
     
     CGRect bottomOrCompleteRect = [[UIApplication sharedApplication].delegate.window convertRect:self.fromCollectionView.frame fromView:self.fromCollectionView.superview];
     

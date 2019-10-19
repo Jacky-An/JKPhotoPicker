@@ -140,7 +140,7 @@ static CGFloat const rowHeight = 70;
     
     UIButton *navBgButton = [UIButton buttonWithType:(UIButtonTypeCustom)];
     navBgButton.hidden = YES;
-    navBgButton.frame = CGRectMake(0, 0, [UIScreen mainScreen].bounds.size.width, JKPhotoCurrentNavigationBarHeight);
+    navBgButton.frame = CGRectMake(0, 0, [UIScreen mainScreen].bounds.size.width, JKPhotoNavigationBarHeight());
     [[UIApplication sharedApplication].delegate.window addSubview:navBgButton];
     self.navBgButton = navBgButton;
     
@@ -246,9 +246,9 @@ static CGFloat const rowHeight = 70;
     
     CGFloat Y = self.hidden ? -[UIScreen mainScreen].bounds.size.height * 0.5 - 15 : 0;
     
-    self.contentView.frame = CGRectMake(0, Y, self.frame.size.width, (rowHeight * self.albums.count + JKPhotoCurrentNavigationBarHeight > [UIScreen mainScreen].bounds.size.height * 0.5) ? [UIScreen mainScreen].bounds.size.height * 0.5 : rowHeight * self.albums.count + JKPhotoCurrentNavigationBarHeight);
+    self.contentView.frame = CGRectMake(0, Y, self.frame.size.width, (rowHeight * self.albums.count + JKPhotoNavigationBarHeight() > [UIScreen mainScreen].bounds.size.height * 0.5) ? [UIScreen mainScreen].bounds.size.height * 0.5 : rowHeight * self.albums.count + JKPhotoNavigationBarHeight());
     
-    self.tableView.frame = CGRectMake(0, JKPhotoCurrentNavigationBarHeight, self.contentView.frame.size.width, self.contentView.frame.size.height - JKPhotoCurrentNavigationBarHeight);
+    self.tableView.frame = CGRectMake(0, JKPhotoNavigationBarHeight(), self.contentView.frame.size.width, self.contentView.frame.size.height - JKPhotoNavigationBarHeight());
 }
 
 - (void)loadAlbumData{

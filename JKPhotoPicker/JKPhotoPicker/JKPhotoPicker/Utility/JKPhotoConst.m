@@ -65,7 +65,14 @@ CGFloat JKPhotoStatusBarHeight (void) {
 /// 导航条高度
 CGFloat JKPhotoNavigationBarHeight (void) {
     
-    return JKPhotoIsDeviceX() ? 88.f : 64.f;
+    if (JKPhotoIsDeviceiPad()) { // ipad
+        
+        return JKPhotoIsLandscape() ? 70.f : 64.f;
+        
+    } else { // iPhone
+        
+        return JKPhotoIsLandscape() ? 44.f : (JKPhotoIsDeviceX() ? 88.f : 64.f);
+    }
 }
 
 /// tabBar高度

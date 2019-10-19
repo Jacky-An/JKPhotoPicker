@@ -412,7 +412,7 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
         safeAreaInsets = self.view.safeAreaInsets;
     }
     
-    self.collectionView.frame = CGRectMake(safeAreaInsets.left, JKPhotoCurrentNavigationBarHeight, self.view.frame.size.width - safeAreaInsets.left - safeAreaInsets.right, self.view.frame.size.height - JKPhotoCurrentNavigationBarHeight - JKPhotoCurrentHomeIndicatorHeight() - 70);
+    self.collectionView.frame = CGRectMake(safeAreaInsets.left, JKPhotoNavigationBarHeight(), self.view.frame.size.width - safeAreaInsets.left - safeAreaInsets.right, self.view.frame.size.height - JKPhotoNavigationBarHeight() - JKPhotoCurrentHomeIndicatorHeight() - 70);
     
     self.bottomContentView.frame = CGRectMake(0, CGRectGetMaxY(self.collectionView.frame), self.view.frame.size.width, 70 + JKPhotoCurrentHomeIndicatorHeight());
     
