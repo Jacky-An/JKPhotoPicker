@@ -284,10 +284,16 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
                             replacedItem.photoAsset = asset;
                             replacedItem.currentIndexPath = [NSIndexPath indexPathForItem:realIndex inSection:0];
                             
-                            
                             [indexPathArray addObject:[NSIndexPath indexPathForItem:realIndex inSection:0]];
                             
                             [self.allPhotoItems replaceObjectAtIndex:realIndex withObject:replacedItem];
+                            
+                            if ([self.selectedAssetArray containsObject:item.photoAsset]) {
+                                
+                                NSInteger realIndex = [self.selectedAssetArray indexOfObject:item.photoAsset];
+                                
+                                [self.selectedAssetArray replaceObjectAtIndex:realIndex withObject:replacedItem.photoAsset];
+                            }
                             
                             if (replacedItem.assetLocalIdentifier) {
 
@@ -352,6 +358,11 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
                     if (!removedItem.assetLocalIdentifier) { return; }
                     
                     JKPhotoItem *item = [self.selectedPhotosIdentifierCache objectForKey:removedItem.assetLocalIdentifier];
+                    
+                    if ([self.selectedAssetArray containsObject:item.photoAsset]) {
+                        
+                        [self.selectedAssetArray removeObject:item.photoAsset];
+                    }
                     
                     if (item && [self.selectedPhotoItems containsObject:item]) {
                         
