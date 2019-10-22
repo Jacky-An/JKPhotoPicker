@@ -55,26 +55,6 @@
 
 /****************************相册相关****************************/
 
-/** 相册 */
-@property (nonatomic, strong) PHAssetCollection *albumAssetCollection;
-
-/** 相册的结果集 */
-@property (nonatomic, strong) PHFetchResult *albumFetchResult;
-
-/** 相册的标识 */
-@property (nonatomic, copy, readonly) NSString *albumLocalIdentifier;
-
-/* 相册的缩略图asset */
-@property (nonatomic, strong) PHAsset *albumThumAsset;
-
-/** 相册缩略图 */
-@property (nonatomic, strong, readonly) UIImage *albumThumImage;
-
-/** 相册标题 */
-@property (nonatomic, copy, readonly) NSString *albumTitle;
-
-/** 相册图片数量 */
-@property (nonatomic, assign) NSInteger albumImagesCount;
 
 
 

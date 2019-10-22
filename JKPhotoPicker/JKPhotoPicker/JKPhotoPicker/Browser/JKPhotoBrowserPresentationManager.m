@@ -99,7 +99,7 @@
         [whiteView addSubview:v1];
         
         UIButton *deleteButton = [UIButton buttonWithType:(UIButtonTypeCustom)];
-        deleteButton.frame = CGRectMake(self.presentFrame.size.width - 15, -10, 20, 20);
+        deleteButton.frame = CGRectMake(self.presentFrame.size.width - 11, -8, 16, 16);
         [v1 addSubview:deleteButton];
         
         [deleteButton setBackgroundImage:[JKPhotoResourceManager jk_imageNamed:@"delete_icon@3x"] forState:(UIControlStateNormal)];

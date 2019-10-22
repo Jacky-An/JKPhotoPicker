@@ -88,7 +88,7 @@
 
 static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用ID
 
-+ (void)showWithViewController:(UIViewController *)viewController dataDict:(NSDictionary *)dataDict completion:(void(^)(NSArray <JKPhotoItem *> *seletedPhotos, NSArray<PHAsset *> *selectedAssetArray, NSArray <NSIndexPath *> *indexPaths, NSMutableDictionary *selectedPhotosIdentifierCache))completion{
++ (JKPhotoBrowserViewController *)showWithViewController:(UIViewController *)viewController dataDict:(NSDictionary *)dataDict completion:(void(^)(NSArray <JKPhotoItem *> *seletedPhotos, NSArray<PHAsset *> *selectedAssetArray, NSArray <NSIndexPath *> *indexPaths, NSMutableDictionary *selectedPhotosIdentifierCache))completion{
     
     JKPhotoBrowserViewController *vc = [[self alloc] init];
     
@@ -170,6 +170,8 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
     //    [vc setupIdentifierCache];
     
     [viewController presentViewController:vc animated:YES completion:nil];
+    
+    return vc;
 }
 
 - (void)addReloadIndexPaths{

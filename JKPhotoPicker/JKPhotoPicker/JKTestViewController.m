@@ -61,6 +61,23 @@
         
         [JKPhotoPicker showWithConfiguration:^(JKPhotoConfiguration * _Nonnull configuration) {
             
+            configuration.selectDataType = JKPhotoPickerMediaDataTypeAll;
+            
+            configuration.seletedItems = self.selectCompleteView.photoItems;
+            
+        } completeHandler:^(NSArray<JKPhotoItem *> * _Nonnull photoItems, NSArray<PHAsset *> * _Nonnull selectedAssetArray) {
+            
+            [self.imageView removeFromSuperview];
+            self.imageView = nil;
+            self.selectCompleteView.photoItems = photoItems;
+            self.selectCompleteView.assets = selectedAssetArray;
+        }];
+    }]];
+    
+    [alertVc addAction:[UIAlertAction actionWithTitle:@"相册可全选" style:(UIAlertActionStyleDefault) handler:^(UIAlertAction * _Nonnull action) {
+        
+        [JKPhotoPicker showWithConfiguration:^(JKPhotoConfiguration * _Nonnull configuration) {
+            
             configuration.maxSelectCount = 0;
             configuration.shouldSelectAll = YES;
             configuration.showTakePhotoIcon = NO;

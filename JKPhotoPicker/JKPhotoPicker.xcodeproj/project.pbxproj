@@ -11,7 +11,7 @@
 		501B4C69226B6AB4003039AB /* JKPhotoConfiguration.m in Sources */ = {isa = PBXBuildFile; fileRef = 501B4C68226B6AB4003039AB /* JKPhotoConfiguration.m */; };
 		5028B4711E1546A000892131 /* JKTestViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 5028B4701E1546A000892131 /* JKTestViewController.m */; };
 		505AD6221E1A5AAC0037BF3B /* JKPhotoAlbumListTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 505AD61F1E1A5AAC0037BF3B /* JKPhotoAlbumListTableViewCell.m */; };
-		505AD6231E1A5AAC0037BF3B /* JKPhotoAlbumListView.m in Sources */ = {isa = PBXBuildFile; fileRef = 505AD6211E1A5AAC0037BF3B /* JKPhotoAlbumListView.m */; };
+		505AD6231E1A5AAC0037BF3B /* JKPhotoAlbumListTableView.m in Sources */ = {isa = PBXBuildFile; fileRef = 505AD6211E1A5AAC0037BF3B /* JKPhotoAlbumListTableView.m */; };
 		505AD62C1E1A5ADE0037BF3B /* JKPhotoBrowserCollectionViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 505AD6251E1A5ADE0037BF3B /* JKPhotoBrowserCollectionViewCell.m */; };
 		505AD62D1E1A5ADE0037BF3B /* JKPhotoBrowserPresentationController.m in Sources */ = {isa = PBXBuildFile; fileRef = 505AD6271E1A5ADE0037BF3B /* JKPhotoBrowserPresentationController.m */; };
 		505AD62E1E1A5ADE0037BF3B /* JKPhotoBrowserPresentationManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 505AD6291E1A5ADE0037BF3B /* JKPhotoBrowserPresentationManager.m */; };
@@ -36,6 +36,8 @@
 		50B23CE51E09256200D9926B /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 50B23CE31E09256200D9926B /* LaunchScreen.storyboard */; };
 		50B23CF01E09256200D9926B /* JKPhotoPickerTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 50B23CEF1E09256200D9926B /* JKPhotoPickerTests.m */; };
 		50B23CFB1E09256200D9926B /* JKPhotoPickerUITests.m in Sources */ = {isa = PBXBuildFile; fileRef = 50B23CFA1E09256200D9926B /* JKPhotoPickerUITests.m */; };
+		50B577F2235EE235007B5B40 /* JKPhotoPickerEngine.m in Sources */ = {isa = PBXBuildFile; fileRef = 50B577F1235EE235007B5B40 /* JKPhotoPickerEngine.m */; };
+		50B577F5235EF3AF007B5B40 /* JKPhotoAlbumItem.m in Sources */ = {isa = PBXBuildFile; fileRef = 50B577F4235EF3AF007B5B40 /* JKPhotoAlbumItem.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -64,8 +66,8 @@
 		5028B4701E1546A000892131 /* JKTestViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JKTestViewController.m; sourceTree = "<group>"; };
 		505AD61E1E1A5AAC0037BF3B /* JKPhotoAlbumListTableViewCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JKPhotoAlbumListTableViewCell.h; sourceTree = "<group>"; };
 		505AD61F1E1A5AAC0037BF3B /* JKPhotoAlbumListTableViewCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JKPhotoAlbumListTableViewCell.m; sourceTree = "<group>"; };
-		505AD6201E1A5AAC0037BF3B /* JKPhotoAlbumListView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JKPhotoAlbumListView.h; sourceTree = "<group>"; };
-		505AD6211E1A5AAC0037BF3B /* JKPhotoAlbumListView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JKPhotoAlbumListView.m; sourceTree = "<group>"; };
+		505AD6201E1A5AAC0037BF3B /* JKPhotoAlbumListTableView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JKPhotoAlbumListTableView.h; sourceTree = "<group>"; };
+		505AD6211E1A5AAC0037BF3B /* JKPhotoAlbumListTableView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JKPhotoAlbumListTableView.m; sourceTree = "<group>"; };
 		505AD6241E1A5ADE0037BF3B /* JKPhotoBrowserCollectionViewCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JKPhotoBrowserCollectionViewCell.h; sourceTree = "<group>"; };
 		505AD6251E1A5ADE0037BF3B /* JKPhotoBrowserCollectionViewCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JKPhotoBrowserCollectionViewCell.m; sourceTree = "<group>"; };
 		505AD6261E1A5ADE0037BF3B /* JKPhotoBrowserPresentationController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JKPhotoBrowserPresentationController.h; sourceTree = "<group>"; };
@@ -113,6 +115,10 @@
 		50B23CF61E09256200D9926B /* JKPhotoPickerUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = JKPhotoPickerUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		50B23CFA1E09256200D9926B /* JKPhotoPickerUITests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = JKPhotoPickerUITests.m; sourceTree = "<group>"; };
 		50B23CFC1E09256200D9926B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		50B577F0235EE235007B5B40 /* JKPhotoPickerEngine.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = JKPhotoPickerEngine.h; sourceTree = "<group>"; };
+		50B577F1235EE235007B5B40 /* JKPhotoPickerEngine.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = JKPhotoPickerEngine.m; sourceTree = "<group>"; };
+		50B577F3235EF3AF007B5B40 /* JKPhotoAlbumItem.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = JKPhotoAlbumItem.h; sourceTree = "<group>"; };
+		50B577F4235EF3AF007B5B40 /* JKPhotoAlbumItem.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = JKPhotoAlbumItem.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -143,10 +149,10 @@
 		505AD6191E1A5A470037BF3B /* Album */ = {
 			isa = PBXGroup;
 			children = (
+				505AD6201E1A5AAC0037BF3B /* JKPhotoAlbumListTableView.h */,
+				505AD6211E1A5AAC0037BF3B /* JKPhotoAlbumListTableView.m */,
 				505AD61E1E1A5AAC0037BF3B /* JKPhotoAlbumListTableViewCell.h */,
 				505AD61F1E1A5AAC0037BF3B /* JKPhotoAlbumListTableViewCell.m */,
-				505AD6201E1A5AAC0037BF3B /* JKPhotoAlbumListView.h */,
-				505AD6211E1A5AAC0037BF3B /* JKPhotoAlbumListView.m */,
 			);
 			path = Album;
 			sourceTree = "<group>";
@@ -195,6 +201,8 @@
 			children = (
 				50873C52226B08360003FD90 /* JKPhotoConst.h */,
 				50873C53226B08360003FD90 /* JKPhotoConst.m */,
+				50B577F0235EE235007B5B40 /* JKPhotoPickerEngine.h */,
+				50B577F1235EE235007B5B40 /* JKPhotoPickerEngine.m */,
 				505AD6411E1A5B3E0037BF3B /* JKPhotoManager.h */,
 				505AD6421E1A5B3E0037BF3B /* JKPhotoManager.m */,
 				505AD64B1E1A79070037BF3B /* JKPhotoTapGestureRecognizer.h */,
@@ -208,10 +216,12 @@
 		507BABBB226C063A00BFAA8A /* Model */ = {
 			isa = PBXGroup;
 			children = (
-				505AD63F1E1A5B3E0037BF3B /* JKPhotoItem.h */,
-				505AD6401E1A5B3E0037BF3B /* JKPhotoItem.m */,
+				50B577F3235EF3AF007B5B40 /* JKPhotoAlbumItem.h */,
+				50B577F4235EF3AF007B5B40 /* JKPhotoAlbumItem.m */,
 				501B4C67226B6AB4003039AB /* JKPhotoConfiguration.h */,
 				501B4C68226B6AB4003039AB /* JKPhotoConfiguration.m */,
+				505AD63F1E1A5B3E0037BF3B /* JKPhotoItem.h */,
+				505AD6401E1A5B3E0037BF3B /* JKPhotoItem.m */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -451,7 +461,7 @@
 				505AD6461E1A5B3E0037BF3B /* JKPhotoManager.m in Sources */,
 				505AD64D1E1A79070037BF3B /* JKPhotoTapGestureRecognizer.m in Sources */,
 				501B4C69226B6AB4003039AB /* JKPhotoConfiguration.m in Sources */,
-				505AD6231E1A5AAC0037BF3B /* JKPhotoAlbumListView.m in Sources */,
+				505AD6231E1A5AAC0037BF3B /* JKPhotoAlbumListTableView.m in Sources */,
 				505AD62F1E1A5ADE0037BF3B /* JKPhotoBrowserViewController.m in Sources */,
 				50873C54226B08360003FD90 /* JKPhotoConst.m in Sources */,
 				505AD62C1E1A5ADE0037BF3B /* JKPhotoBrowserCollectionViewCell.m in Sources */,
@@ -463,6 +473,8 @@
 				505AD63E1E1A5B320037BF3B /* JKPhotoSelectCompleteView.m in Sources */,
 				505AD6361E1A5B0F0037BF3B /* JKPhotoCollectionViewCell.m in Sources */,
 				50B23CDA1E09256200D9926B /* AppDelegate.m in Sources */,
+				50B577F2235EE235007B5B40 /* JKPhotoPickerEngine.m in Sources */,
+				50B577F5235EF3AF007B5B40 /* JKPhotoAlbumItem.m in Sources */,
 				50B23CD71E09256200D9926B /* main.m in Sources */,
 				50873C51226B00E80003FD90 /* JKPhotoResourceManager.m in Sources */,
 				505AD62E1E1A5ADE0037BF3B /* JKPhotoBrowserPresentationManager.m in Sources */,

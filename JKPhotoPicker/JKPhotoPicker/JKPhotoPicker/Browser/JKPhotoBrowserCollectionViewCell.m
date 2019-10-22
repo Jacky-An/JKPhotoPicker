@@ -349,9 +349,7 @@ CGFloat const dismissDistance = 80;
             
             PHImageRequestID ID = [[info objectForKey:PHImageResultRequestIDKey] intValue];
             
-            if (ID != self.imageRequestID) {
-                return;
-            }
+            if (ID != self.imageRequestID) { return; }
             
             dispatch_async(dispatch_get_main_queue(), ^{
                 

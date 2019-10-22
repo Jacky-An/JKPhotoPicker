@@ -8,12 +8,10 @@
 
 #import <UIKit/UIKit.h>
 
-@class PHAssetCollection, JKPhotoItem;
+@class PHAssetCollection, JKPhotoAlbumItem;
 
 @interface JKPhotoAlbumListTableViewCell : UITableViewCell
-/** 模型 */
-@property (nonatomic, strong) JKPhotoItem *photoItem;
 
 /** 模型 */
-//@property (nonatomic, strong) PHAssetCollection *assetCollection;
+@property (nonatomic, strong) JKPhotoAlbumItem *albumItem;
 @end

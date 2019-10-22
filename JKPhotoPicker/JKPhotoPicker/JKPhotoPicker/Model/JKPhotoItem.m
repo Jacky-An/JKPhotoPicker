@@ -7,7 +7,8 @@
 //
 
 #import "JKPhotoItem.h"
-#import "JKPhotoManager.h"
+#import "JKPhotoPickerEngine.h"
+#import <Photos/Photos.h>
 #import <MobileCoreServices/MobileCoreServices.h>
 
 @interface JKPhotoItem ()
@@ -152,39 +153,6 @@
         }];
     }
     return _originalImage;
-}
-
-- (void)setAlbumAssetCollection:(PHAssetCollection *)albumAssetCollection{
-    _albumAssetCollection = albumAssetCollection;
-    
-    _albumLocalIdentifier = _albumAssetCollection.localIdentifier;
-    
-    _albumTitle = _albumAssetCollection.localizedTitle;
-    if ([_albumTitle isEqualToString:@"Favorites"]) {
-        _albumTitle = @"个人收藏";
-    }else if ([_albumTitle isEqualToString:@"Recently Added"]) {
-        _albumTitle = @"最近添加";
-    }else if ([_albumTitle isEqualToString:@"Screenshots"]) {
-        _albumTitle = @"屏幕快照";
-    }else if ([_albumTitle isEqualToString:@"Camera Roll"]) {
-        _albumTitle = @"相机胶卷";
-    }else if ([_albumTitle isEqualToString:@"All Photos"]) {
-        _albumTitle = @"所有照片";
-    }
-    
-    NSLog(@"localizedTitle == %@ \nlocalizedLocationNames == %@ \nlocalIdentifier == %@", _albumAssetCollection.localizedTitle, _albumAssetCollection.localizedLocationNames, _albumAssetCollection.localIdentifier);
-}
-
-- (UIImage *)albumThumImage{
-    if (!_albumThumImage) {
-        
-        [[PHImageManager defaultManager] requestImageForAsset:_albumThumAsset targetSize:CGSizeMake(200, 200) contentMode:PHImageContentModeAspectFit options:nil resultHandler:^(UIImage * _Nullable result, NSDictionary * _Nullable info) {
-            
-            self->_albumThumImage = result;
-        }];
-    }
-    
-    return _albumThumImage;
 }
 
 - (NSString *)videoPath{
