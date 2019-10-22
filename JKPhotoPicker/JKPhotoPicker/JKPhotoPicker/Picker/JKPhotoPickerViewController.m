@@ -646,7 +646,11 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
     
     self.selectedCountButton.frame = CGRectMake(CGRectGetMaxX(self.collectionView.frame) - 60, 10, 50, 50);
     
-    self.bottomCollectionView.frame = CGRectMake(safeAreaInsets.left, 0, self.selectedCountButton.frame.origin.x - 10 - safeAreaInsets.left, 70);
+    _selectAllButton.frame = CGRectMake(safeAreaInsets.left, 10, 70, 50);
+    
+    CGFloat X = (_selectAllButton ? CGRectGetMaxX(_selectAllButton.frame) : safeAreaInsets.left);
+    
+    self.bottomCollectionView.frame = CGRectMake(X, 0, self.selectedCountButton.frame.origin.x - 10 - X, 70);
     
     self.albumListTableView.frame = CGRectMake(self.albumListTableView.frame.origin.x, self.albumListTableView.frame.origin.y, self.collectionView.frame.size.width, self.albumListTableView.frame.size.height);
 }
@@ -688,28 +692,31 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
     if (self.configuration.shouldSelectAll) {
         
         UIButton *selectAllButton = [UIButton buttonWithType:(UIButtonTypeSystem)];
-        selectAllButton.frame = CGRectMake(15, 10, 100, 50);
-        selectAllButton.contentHorizontalAlignment = UIControlContentHorizontalAlignmentLeft;
+        selectAllButton.titleLabel.font = [UIFont systemFontOfSize:14];
+        //selectAllButton.contentHorizontalAlignment = UIControlContentHorizontalAlignmentLeft;
         [selectAllButton setTitle:@"全选" forState:(UIControlStateNormal)];
+        
+        //selectAllButton.backgroundColor = JKPhotoAdaptColor([UIColor whiteColor], [UIColor blackColor]);
         
         [selectAllButton addTarget:self action:@selector(selectAllButtonClick:) forControlEvents:(UIControlEventTouchUpInside)];
         
         [bottomContentView addSubview:selectAllButton];
         _selectAllButton = selectAllButton;
-        
-    } else if (self.configuration.shouldBottomPreview) {
+    }
+    
+    if (self.configuration.shouldBottomPreview) {
         
         // 底部的collectionView
         UICollectionViewFlowLayout *flowLayout2 = [[UICollectionViewFlowLayout alloc] init];
         flowLayout2.scrollDirection = UICollectionViewScrollDirectionHorizontal;
         
-        UICollectionView *bottomCollectionView = [[UICollectionView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width - 70, 70) collectionViewLayout:flowLayout2];
+        UICollectionView *bottomCollectionView = [[UICollectionView alloc] initWithFrame:CGRectMake((_selectAllButton ? CGRectGetMaxX(_selectAllButton.frame) : 0), 0, self.view.frame.size.width - 70, 70) collectionViewLayout:flowLayout2];
         bottomCollectionView.backgroundColor = [UIColor clearColor];
         bottomCollectionView.alwaysBounceHorizontal = YES;
         bottomCollectionView.showsHorizontalScrollIndicator = NO;
         bottomCollectionView.dataSource = self;
         bottomCollectionView.delegate = self;
-        bottomCollectionView.contentInset = UIEdgeInsetsMake(0, 5, 0, 0);
+        bottomCollectionView.contentInset = UIEdgeInsetsMake(0, (_selectAllButton ? -5 : 5), 0, 0);
         [bottomContentView addSubview:bottomCollectionView];
         _bottomCollectionView = bottomCollectionView;
         
@@ -780,8 +787,21 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
     
     [self changeSelectedCount];
     
-    [self.collectionView reloadData];
-    [self.bottomCollectionView reloadData];
+    [self.collectionView performBatchUpdates:^{
+       
+        [self.collectionView reloadSections:[NSIndexSet indexSetWithIndex:0]];
+        
+    } completion:^(BOOL finished) {
+        
+    }];
+    
+    [self.bottomCollectionView performBatchUpdates:^{
+       
+        [self.bottomCollectionView reloadSections:[NSIndexSet indexSetWithIndex:0]];
+        
+    } completion:^(BOOL finished) {
+        
+    }];
 }
 
 #pragma mark - 加载数据
