@@ -220,24 +220,27 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
             
             NSIndexSet *removed = [changes removedIndexes];
             
+            /*
             [removed enumerateIndexesUsingBlock:^(NSUInteger idx, BOOL * _Nonnull stop) {
                 
                 NSLog(@"removed-->%zd", idx);
-            }];
+            }]; //*/
             
             NSIndexSet *inserted = [changes insertedIndexes];
             
+            /*
             [inserted enumerateIndexesUsingBlock:^(NSUInteger idx, BOOL * _Nonnull stop) {
                 
                 NSLog(@"inserted-->%zd", idx);
-            }];
+            }]; //*/
             
             NSIndexSet *changed = [changes changedIndexes];
             
+            /*
             [changed enumerateIndexesUsingBlock:^(NSUInteger idx, BOOL * _Nonnull stop) {
                 
                 NSLog(@"changed-->%zd", idx);
-            }];
+            }]; //*/
             
             NSArray *reversedArray = nil;
             
@@ -831,6 +834,7 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
             
             self.selectedPhotoItems = [resultDict[@"seletedItems"] mutableCopy];
             self.selectedPhotosIdentifierCache = resultDict[@"seletedCache"];
+            self.selectedAssetArray = [resultDict[@"seletedAssets"] mutableCopy];
         }
     }];
     

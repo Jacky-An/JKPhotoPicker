@@ -117,6 +117,7 @@
     BOOL showTakePhotoIcon = [optionDict[@"showTakePhotoIcon"] boolValue];
     
     NSMutableArray *seletedNewItems = [NSMutableArray array];
+    NSMutableArray *seletedNewAssets = [NSMutableArray array];
     NSMutableDictionary *seletedNewCache = [NSMutableDictionary dictionary];
     
     NSMutableArray *dataArray = [NSMutableArray array];
@@ -139,6 +140,7 @@
         if ([seletedCache objectForKey:item.assetLocalIdentifier] != nil) {
             
             [seletedNewItems addObject:item];
+            [seletedNewAssets addObject:item.photoAsset];
             [seletedNewCache setObject:item forKey:item.assetLocalIdentifier];
         }
         
@@ -150,6 +152,7 @@
     dictM[@"allPhotos"] = dataArray;
     dictM[@"allCache"] = allCache;
     dictM[@"seletedItems"] = seletedNewItems;
+    dictM[@"seletedAssets"] = seletedNewAssets;
     dictM[@"seletedCache"] = seletedNewCache;
     
     !complete ? : complete(dictM);
