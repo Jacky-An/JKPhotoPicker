@@ -110,21 +110,21 @@
     UILabel *dataTypeLabel = [[UILabel alloc] init];
     dataTypeLabel.textColor = [UIColor whiteColor];
     dataTypeLabel.font = [UIFont systemFontOfSize:11];
-    dataTypeLabel.textAlignment = NSTextAlignmentRight;
-    [selectCoverView addSubview:dataTypeLabel];
+    dataTypeLabel.textAlignment = NSTextAlignmentLeft;
+    [self.contentView addSubview:dataTypeLabel];
     _dataTypeLabel = dataTypeLabel;
     
     dataTypeLabel.shadowColor = [UIColor blackColor];
     dataTypeLabel.shadowOffset = CGSizeMake(0, 0.5);
     
     dataTypeLabel.translatesAutoresizingMaskIntoConstraints = NO;
-    NSLayoutConstraint *dataTypeLabelLeftCons = [NSLayoutConstraint constraintWithItem:dataTypeLabel attribute:(NSLayoutAttributeLeft) relatedBy:(NSLayoutRelationEqual) toItem:selectCoverView attribute:(NSLayoutAttributeLeft) multiplier:1 constant:0];
+    NSLayoutConstraint *dataTypeLabelLeftCons = [NSLayoutConstraint constraintWithItem:dataTypeLabel attribute:(NSLayoutAttributeLeft) relatedBy:(NSLayoutRelationEqual) toItem:self.contentView attribute:(NSLayoutAttributeLeft) multiplier:1 constant:0];
     [self.contentView addConstraint:dataTypeLabelLeftCons];
     
-    NSLayoutConstraint *dataTypeLabelRightCons = [NSLayoutConstraint constraintWithItem:dataTypeLabel attribute:(NSLayoutAttributeRight) relatedBy:(NSLayoutRelationEqual) toItem:selectCoverView attribute:(NSLayoutAttributeRight) multiplier:1 constant:0];
-    [self.contentView addConstraint:dataTypeLabelRightCons];
+    //NSLayoutConstraint *dataTypeLabelRightCons = [NSLayoutConstraint constraintWithItem:dataTypeLabel attribute:(NSLayoutAttributeRight) relatedBy:(NSLayoutRelationEqual) toItem:self.contentView attribute:(NSLayoutAttributeRight) multiplier:1 constant:0];
+    //[self.contentView addConstraint:dataTypeLabelRightCons];
     
-    NSLayoutConstraint *dataTypeLabelBottomCons = [NSLayoutConstraint constraintWithItem:dataTypeLabel attribute:(NSLayoutAttributeBottom) relatedBy:(NSLayoutRelationEqual) toItem:selectCoverView attribute:(NSLayoutAttributeBottom) multiplier:1 constant:0];
+    NSLayoutConstraint *dataTypeLabelBottomCons = [NSLayoutConstraint constraintWithItem:dataTypeLabel attribute:(NSLayoutAttributeBottom) relatedBy:(NSLayoutRelationEqual) toItem:self.contentView attribute:(NSLayoutAttributeBottom) multiplier:1 constant:0];
     [self.contentView addConstraint:dataTypeLabelBottomCons];
     
     NSLayoutConstraint *dataTypeLabelHCons = [NSLayoutConstraint constraintWithItem:dataTypeLabel attribute:(NSLayoutAttributeHeight) relatedBy:(NSLayoutRelationEqual) toItem:nil attribute:(NSLayoutAttributeNotAnAttribute) multiplier:1 constant:_dataTypeLabel.font.lineHeight];

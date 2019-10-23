@@ -61,12 +61,13 @@
             _dataType = JKPhotoPickerMediaDataTypeStaticImage;
             _shouldSelected = [JKPhotoItem selectDataType] == _dataType || ([JKPhotoItem selectDataType] == JKPhotoPickerMediaDataTypeImageIncludeGif);
             
-            _dataTypeDescription = @"image";
+            _dataTypeDescription = @"";
             
             if (@available(iOS 9.1, *)) {
+                
                 if (_photoAsset.mediaSubtypes == PHAssetMediaSubtypePhotoLive) {
                     
-                    _dataTypeDescription = @"live photo";
+                    _dataTypeDescription = @"LivePhoto";
                     
                     _dataType = JKPhotoPickerMediaDataTypePhotoLive;
                     _shouldSelected = [JKPhotoItem selectDataType] == _dataType;
@@ -80,7 +81,7 @@
             _dataType = JKPhotoPickerMediaDataTypeVideo;
             _shouldSelected = [JKPhotoItem selectDataType] == _dataType;
             
-            _dataTypeDescription = @"video";
+            _dataTypeDescription = @"Video";
             
             break;
             
