@@ -358,20 +358,14 @@ static CGFloat const JKPhotoAlbumListTableViewRowHeight = 70;
         tableView.tableHeaderView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, [UIScreen mainScreen].bounds.size.width, CGFLOAT_MIN)];
         tableView.tableFooterView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, [UIScreen mainScreen].bounds.size.width, CGFLOAT_MIN)];
         
-        SEL selector = NSSelectorFromString(@"setContentInsetAdjustmentBehavior:");
+        if (@available(iOS 11.0, *)) {
+            
+            tableView.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentNever;
+        }
         
         if (@available(iOS 13.0, *)) {
             
-            [tableView setAutomaticallyAdjustsScrollIndicatorInsets:NO];
-        }
-        
-        if ([tableView respondsToSelector:selector]) {
-            
-            IMP imp = [tableView methodForSelector:selector];
-            void (*func)(id, SEL, NSInteger) = (void *)imp;
-            func(tableView, selector, 2);
-            
-            // [tbView performSelector:@selector(setContentInsetAdjustmentBehavior:) withObject:@(2)];
+            tableView.automaticallyAdjustsScrollIndicatorInsets = NO;
         }
         
         // 注册cell

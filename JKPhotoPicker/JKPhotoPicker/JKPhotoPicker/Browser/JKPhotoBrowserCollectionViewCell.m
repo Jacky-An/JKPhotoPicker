@@ -117,15 +117,14 @@ CGFloat const dismissDistance = 80;
     [self.contentView insertSubview:scrollView atIndex:0];
     _scrollView = scrollView;
     
-    SEL selector = NSSelectorFromString(@"setContentInsetAdjustmentBehavior:");
+    if (@available(iOS 11.0, *)) {
+        
+        scrollView.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentNever;
+    }
     
-    if ([scrollView respondsToSelector:selector]) {
+    if (@available(iOS 13.0, *)) {
         
-        IMP imp = [scrollView methodForSelector:selector];
-        void (*func)(id, SEL, NSInteger) = (void *)imp;
-        func(scrollView, selector, 2);
-        
-        // [tbView performSelector:@selector(setContentInsetAdjustmentBehavior:) withObject:@(2)];
+        scrollView.automaticallyAdjustsScrollIndicatorInsets = NO;
     }
     
     UIView *imageContainerView = [[UIView alloc] init];
@@ -195,9 +194,17 @@ CGFloat const dismissDistance = 80;
     // 播放gif的webView
     WKWebView *gifWebView = [[WKWebView alloc] init];
     gifWebView.scrollView.scrollEnabled = NO;
+    
     if (@available(iOS 11.0, *)) {
+        
         gifWebView.scrollView.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentNever;
     }
+    
+    if (@available(iOS 13.0, *)) {
+        
+        gifWebView.scrollView.automaticallyAdjustsScrollIndicatorInsets = NO;
+    }
+    
     gifWebView.userInteractionEnabled = NO;
     //    gifWebView.scalesPageToFit = YES;
     gifWebView.backgroundColor = nil;

@@ -683,15 +683,14 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
     [self.view insertSubview:collectionView atIndex:0];
     self.collectionView = collectionView;
     
-    SEL selector = NSSelectorFromString(@"setContentInsetAdjustmentBehavior:");
+    if (@available(iOS 11.0, *)) {
+        
+        collectionView.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentNever;
+    }
     
-    if ([collectionView respondsToSelector:selector]) {
+    if (@available(iOS 13.0, *)) {
         
-        IMP imp = [collectionView methodForSelector:selector];
-        void (*func)(id, SEL, NSInteger) = (void *)imp;
-        func(collectionView, selector, 2);
-        
-        // [tbView performSelector:@selector(setContentInsetAdjustmentBehavior:) withObject:@(2)];
+        collectionView.automaticallyAdjustsScrollIndicatorInsets = NO;
     }
     
     // 注册cell
