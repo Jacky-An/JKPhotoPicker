@@ -399,6 +399,12 @@ static NSString *videoCacheDirectoryPath_;
         fileName = [NSString stringWithFormat:@"%@.jpg", [formatter stringFromDate:[NSDate new]]];
     }
     
+    NSString *pathExtension = [[fileName pathExtension] lowercaseString];
+    
+    fileName = [fileName stringByDeletingPathExtension];
+    
+    fileName = [fileName stringByAppendingPathExtension:pathExtension];
+    
     NSString *filePath = [directory stringByAppendingPathComponent:fileName];
     
     filePath = [self checkDuplicationNameWithFilePath:filePath isFolder:NO];
