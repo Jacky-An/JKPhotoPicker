@@ -37,6 +37,9 @@
     
     JKPhotoPickerScrollDirection beginScrollDirection;
     JKPhotoPickerScrollDirection endScrollDirection;
+    
+    CGFloat initialDistanceX;
+    CGFloat initialDistanceY;
 }
 /** imageContainerView */
 @property (nonatomic, weak) UIView *imageContainerView;
@@ -548,6 +551,11 @@ CGFloat const dismissDistance = 80;
 
 - (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView{
     
+    CGPoint location = [self.scrollView.panGestureRecognizer locationInView:self.scrollView];
+    
+    initialDistanceY = location.y - self.photoImageView.frame.origin.y;
+    initialDistanceX = location.x - self.photoImageView.frame.origin.x;
+    
     self.collectionView.scrollEnabled = NO;
     
     beginDraggingZoomTranslation = [scrollView.panGestureRecognizer translationInView:scrollView.panGestureRecognizer.view.superview];
@@ -600,15 +608,12 @@ CGFloat const dismissDistance = 80;
         
     } else {
         
-        CGAffineTransform transform = CGAffineTransformMakeScale(self.currentZoomScale, self.currentZoomScale);
-        
-        transform = CGAffineTransformTranslate(transform, 0, 0);
-        
         [UIView animateWithDuration:0.25 delay:0 options:(UIViewAnimationOptionAllowUserInteraction) animations:^{
             [UIView setAnimationCurve:(7)];//CGAffineTransformTranslate(self.photoImageView.transform, 0, 0);
             
             self.photoImageView.transform = CGAffineTransformIdentity;//transform;//CGAffineTransformTranslate(transform, 0, 0);
             self.controllerView.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:1];
+            self.photoImageView.frame = CGRectMake(self.photoImageView.frame.origin.x, 0, self.photoImageView.frame.size.width, self.photoImageView.frame.size.height);
             
         } completion:^(BOOL finished) {
             
@@ -694,7 +699,7 @@ CGFloat const dismissDistance = 80;
         return;
     }
     
-    if (scrollView.contentOffset.y + scrollView.contentInset.top >= 0) {
+    if (scrollView.contentOffset.y + scrollView.contentInset.top >= 10) {
         
         return;
     }
@@ -722,7 +727,7 @@ CGFloat const dismissDistance = 80;
     
     point.y -= (beginDraggingOffset.y + scrollView.contentInset.top);
     
-    CGFloat scale = point.y / (JKPhotoScreenHeight * 0.8);
+    CGFloat scale = MAX(0, point.y) / JKPhotoScreenHeight;
     
     self.bgAlpha = 1 - scale;
     
@@ -750,9 +755,21 @@ CGFloat const dismissDistance = 80;
     self.transformScale = (1 - scale);
     self.transformScale = self.transformScale < 0.2 ? 0.2 : self.transformScale;
     
-    CGAffineTransform transform = CGAffineTransformMakeTranslation(point.x * 0.5, point.y * 0.15);
+    self.photoImageView.transform = CGAffineTransformMakeScale(self.transformScale, self.transformScale);
     
-    self.photoImageView.transform = CGAffineTransformScale(transform, self.transformScale, self.transformScale);
+    CGPoint location = [self.scrollView.panGestureRecognizer locationInView:self.scrollView];
+    
+    CGFloat currentDistanceX = initialDistanceX * self.transformScale;
+    CGFloat currentDistanceY = initialDistanceY * self.transformScale;
+    
+    CGRect frame = self.photoImageView.frame;
+    
+    frame.origin.x = (location.x - currentDistanceX) / self.currentZoomScale;
+    frame.origin.y = (location.y - currentDistanceY) / self.currentZoomScale;
+    
+    self.photoImageView.frame = frame;
+    
+    NSLog(@"location --> %@", NSStringFromCGPoint(location));
 }
 
 - (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView{
