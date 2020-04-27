@@ -38,8 +38,12 @@
     JKPhotoPickerScrollDirection beginScrollDirection;
     JKPhotoPickerScrollDirection endScrollDirection;
     
+    CGFloat initialX;
+    CGFloat calculateX;
     CGFloat initialDistanceX;
     CGFloat initialDistanceY;
+    
+    BOOL shouldResetFrame;
 }
 /** imageContainerView */
 @property (nonatomic, weak) UIView *imageContainerView;
@@ -497,7 +501,7 @@ CGFloat const dismissDistance = 80;
     
     [self.scrollView setContentOffset:CGPointMake(-self.scrollView.contentInset.left, -self.scrollView.contentInset.top) animated:NO];
     
-    self.scrollView.alwaysBounceHorizontal = self.imageContainerView.frame.size.width >= self.scrollView.frame.size.width;
+    //self.scrollView.alwaysBounceHorizontal = self.imageContainerView.frame.size.width >= self.scrollView.frame.size.width;
 }
 
 - (void)resetView{
@@ -555,6 +559,7 @@ CGFloat const dismissDistance = 80;
     
     initialDistanceY = location.y - self.photoImageView.frame.origin.y;
     initialDistanceX = location.x - self.photoImageView.frame.origin.x;
+    initialX = self.photoImageView.frame.origin.x;
     
     self.collectionView.scrollEnabled = NO;
     
@@ -613,7 +618,7 @@ CGFloat const dismissDistance = 80;
             
             self.photoImageView.transform = CGAffineTransformIdentity;//transform;//CGAffineTransformTranslate(transform, 0, 0);
             self.controllerView.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:1];
-            self.photoImageView.frame = CGRectMake(self.photoImageView.frame.origin.x, 0, self.photoImageView.frame.size.width, self.photoImageView.frame.size.height);
+            self.photoImageView.frame = CGRectMake(self->initialX, 0, self.photoImageView.frame.size.width, self.photoImageView.frame.size.height);
             
         } completion:^(BOOL finished) {
             
@@ -699,9 +704,32 @@ CGFloat const dismissDistance = 80;
         return;
     }
     
-    if (scrollView.contentOffset.y + scrollView.contentInset.top >= 10) {
+    CGPoint location = [self.scrollView.panGestureRecognizer locationInView:self.scrollView];
+    
+    if (scrollView.contentOffset.y + scrollView.contentInset.top >= 0) {
+        
+        if (shouldResetFrame) {
+            
+//            CGRect frame = self.photoImageView.frame;
+//            frame.origin.y = 0;
+//            frame.origin.x = calculateX;
+//            self.photoImageView.frame = frame;
+
+            initialDistanceY = location.y - self.photoImageView.frame.origin.y;
+            initialDistanceX = location.x - self.photoImageView.frame.origin.x;
+            calculateX = self.photoImageView.frame.origin.x;
+            
+            shouldResetFrame = NO;
+        }
         
         return;
+    }
+    
+    if (!shouldResetFrame) {
+        
+        shouldResetFrame = YES;
+        
+        beginDraggingZoom = NO;
     }
     
     if (self.isZooming || isGonnaDismiss || self.isDoubleTap || !isDragging) {
@@ -720,7 +748,11 @@ CGFloat const dismissDistance = 80;
         
         draggingZoomTranlationScaleY = self.photoImageView.frame.size.height / MAX(JKPhotoScreenHeight, JKPhotoScreenWidth);
         
-        self.scrollView.alwaysBounceHorizontal = YES;
+        //self.scrollView.alwaysBounceHorizontal = YES;
+        
+        initialDistanceY = location.y - self.photoImageView.frame.origin.y;
+        initialDistanceX = location.x - self.photoImageView.frame.origin.x;
+        calculateX = self.photoImageView.frame.origin.x;
     }
     
     point.x -=draggingZoomDeltaX;//-(scrollView.contentOffset.x + scrollView.contentInset.left);// -= draggingZoomDeltaX;
@@ -756,8 +788,6 @@ CGFloat const dismissDistance = 80;
     self.transformScale = self.transformScale < 0.2 ? 0.2 : self.transformScale;
     
     self.photoImageView.transform = CGAffineTransformMakeScale(self.transformScale, self.transformScale);
-    
-    CGPoint location = [self.scrollView.panGestureRecognizer locationInView:self.scrollView];
     
     CGFloat currentDistanceX = initialDistanceX * self.transformScale;
     CGFloat currentDistanceY = initialDistanceY * self.transformScale;
