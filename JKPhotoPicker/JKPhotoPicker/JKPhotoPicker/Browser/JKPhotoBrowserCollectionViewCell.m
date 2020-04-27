@@ -97,7 +97,7 @@ CGFloat const dismissDistance = 80;
     
     _defaultZoomScale = 1.001;
     
-    self.currentZoomScale = self.defaultZoomScale;
+    self.currentZoomScale = 1;
     
     // 当前屏幕宽高比
     _screenAspectRatio = JKPhotoScreenWidth / JKPhotoScreenHeight;
@@ -283,7 +283,7 @@ CGFloat const dismissDistance = 80;
     
     // 双击缩小
     if (self.scrollView.zoomScale > 1.1) {
-        [self.scrollView setZoomScale:self.defaultZoomScale animated:YES];
+        [self.scrollView setZoomScale:1 animated:YES];
         return;
     }
     
@@ -406,12 +406,9 @@ CGFloat const dismissDistance = 80;
                 
                 self.livePhotoRequestID = [[PHImageManager defaultManager] requestLivePhotoForAsset:self->_photoItem.photoAsset targetSize:PHImageManagerMaximumSize contentMode:PHImageContentModeAspectFit options:options resultHandler:^(PHLivePhoto * _Nullable livePhoto, NSDictionary * _Nullable info) {
                     
-                    /*
-                     PHImageRequestID ID = [[info objectForKey:PHImageResultRequestIDKey] intValue];
-                     
-                     if (ID != self.livePhotoRequestID) {
-                     return;
-                     } //*/
+                    PHImageRequestID ID = [[info objectForKey:PHImageResultRequestIDKey] intValue];
+                    
+                    if (ID != self.livePhotoRequestID) { return; }
                     
                     dispatch_async(dispatch_get_main_queue(), ^{
                         
@@ -508,14 +505,12 @@ CGFloat const dismissDistance = 80;
     
     self.defaultZoomScale = (pictureW + 0.5) / pictureW;
     
-    [self.scrollView setZoomScale:self.defaultZoomScale animated:YES];
-    
     //self.scrollView.alwaysBounceHorizontal = self.imageContainerView.frame.size.width >= self.scrollView.frame.size.width;
 }
 
 - (void)resetView{
     
-    self.currentZoomScale = self.defaultZoomScale;
+    self.currentZoomScale = 1;
     
     self.scrollView.scrollEnabled = YES;
     self.scrollView.contentOffset = CGPointZero;
@@ -566,7 +561,7 @@ CGFloat const dismissDistance = 80;
     
     initialX = self.photoImageView.frame.origin.x;
     
-    self.collectionView.scrollEnabled = NO;
+    //self.collectionView.scrollEnabled = NO;
     
     beginDraggingZoomTranslation = [scrollView.panGestureRecognizer translationInView:scrollView.panGestureRecognizer.view.superview];
     
@@ -618,10 +613,10 @@ CGFloat const dismissDistance = 80;
         
     } else {
         
-        [UIView animateWithDuration:0.25 delay:0 options:(UIViewAnimationOptionAllowUserInteraction) animations:^{
-            [UIView setAnimationCurve:(7)];//CGAffineTransformTranslate(self.photoImageView.transform, 0, 0);
+        [UIView animateWithDuration:0.25 animations:^{
+            [UIView setAnimationCurve:7];
             
-            self.photoImageView.transform = CGAffineTransformIdentity;//transform;//CGAffineTransformTranslate(transform, 0, 0);
+            self.photoImageView.transform = CGAffineTransformIdentity;
             self.controllerView.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:1];
             self.photoImageView.frame = CGRectMake(self->initialX, 0, self.photoImageView.frame.size.width, self.photoImageView.frame.size.height);
             
@@ -630,6 +625,13 @@ CGFloat const dismissDistance = 80;
             scrollView.pinchGestureRecognizer.enabled = YES;
             self.collectionView.scrollEnabled = YES;
         }];
+        
+        if (self.currentZoomScale == self.defaultZoomScale) {
+            
+            self.currentZoomScale = 1;
+            
+            [self.scrollView setZoomScale:1 animated:YES];
+        }
         
         if (self.playVideoButton.isHidden) {
             return;
@@ -714,7 +716,7 @@ CGFloat const dismissDistance = 80;
     if (scrollView.contentOffset.y + scrollView.contentInset.top >= 0) {
         
         if (shouldResetCalculate) {
-
+            
             calculateDistanceY = location.y - self.photoImageView.frame.origin.y;
             calculateDistanceX = location.x - self.photoImageView.frame.origin.x;
             calculateX = self.photoImageView.frame.origin.x;
@@ -755,6 +757,12 @@ CGFloat const dismissDistance = 80;
         calculateDistanceY = location.y - self.photoImageView.frame.origin.y;
         calculateDistanceX = location.x - self.photoImageView.frame.origin.x;
         calculateX = self.photoImageView.frame.origin.x;
+        
+        if (self.currentZoomScale == 1) {
+            
+            self.currentZoomScale = self.defaultZoomScale;
+            [self.scrollView setZoomScale:self.defaultZoomScale animated:NO];
+        }
     }
     
     point.x -=draggingZoomDeltaX;//-(scrollView.contentOffset.x + scrollView.contentInset.left);// -= draggingZoomDeltaX;
@@ -814,13 +822,7 @@ CGFloat const dismissDistance = 80;
 
 - (void)scrollViewDidEndZooming:(UIScrollView *)scrollView withView:(UIView *)view atScale:(CGFloat)scale{
     
-    if (scale == 1) {
-        
-        [self.scrollView setZoomScale:self.defaultZoomScale animated:YES];
-        
-        return;
-    }
-    self.currentZoomScale = MAX(self.defaultZoomScale, scale);
+    self.currentZoomScale = scale;
     self.isZooming = NO;
     [self calculateInset];
     NSLog(@"当前zoomScale ---> %.2f", scale);
