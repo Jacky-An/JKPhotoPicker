@@ -368,7 +368,7 @@ CGFloat const dismissDistance = 80;
         options.networkAccessAllowed = YES;
         options.deliveryMode = PHImageRequestOptionsDeliveryModeOpportunistic;
         
-        self.imageRequestID = [[PHImageManager defaultManager] requestImageForAsset:self->_photoItem.photoAsset targetSize:PHImageManagerMaximumSize contentMode:PHImageContentModeAspectFit options:options resultHandler:^(UIImage * _Nullable result, NSDictionary * _Nullable info) {
+        self.imageRequestID = [[PHImageManager defaultManager] requestImageForAsset:self->_photoItem.photoAsset targetSize:CGSizeMake(JKPhotoScreenWidth * JKPhotoScreenScale, JKPhotoScreenHeight * JKPhotoScreenScale) contentMode:PHImageContentModeAspectFit options:options resultHandler:^(UIImage * _Nullable result, NSDictionary * _Nullable info) {
             
             PHImageRequestID ID = [[info objectForKey:PHImageResultRequestIDKey] intValue];
             
@@ -385,6 +385,7 @@ CGFloat const dismissDistance = 80;
                 }
                 
                 if (result == nil) { return; }
+                
                 self.selectButton.userInteractionEnabled = YES;
                 
                 [self.indicatorView stopAnimating];
@@ -404,7 +405,7 @@ CGFloat const dismissDistance = 80;
                 options.networkAccessAllowed = YES;
                 options.deliveryMode = PHImageRequestOptionsDeliveryModeOpportunistic;
                 
-                self.livePhotoRequestID = [[PHImageManager defaultManager] requestLivePhotoForAsset:self->_photoItem.photoAsset targetSize:PHImageManagerMaximumSize contentMode:PHImageContentModeAspectFit options:options resultHandler:^(PHLivePhoto * _Nullable livePhoto, NSDictionary * _Nullable info) {
+                self.livePhotoRequestID = [[PHImageManager defaultManager] requestLivePhotoForAsset:self->_photoItem.photoAsset targetSize:CGSizeMake(JKPhotoScreenWidth * JKPhotoScreenScale, JKPhotoScreenHeight * JKPhotoScreenScale) contentMode:PHImageContentModeAspectFit options:options resultHandler:^(PHLivePhoto * _Nullable livePhoto, NSDictionary * _Nullable info) {
                     
                     PHImageRequestID ID = [[info objectForKey:PHImageResultRequestIDKey] intValue];
                     
@@ -421,6 +422,7 @@ CGFloat const dismissDistance = 80;
                         }
                         
                         if (livePhoto == nil) { return; }
+                        
                         self.selectButton.userInteractionEnabled = YES;
                         
                         [self.indicatorView stopAnimating];
@@ -441,9 +443,7 @@ CGFloat const dismissDistance = 80;
                 
                 PHImageRequestID ID = [[info objectForKey:PHImageResultRequestIDKey] intValue];
                 
-                if (ID != self.gifRequestID) {
-                    return;
-                }
+                if (ID != self.gifRequestID) { return; }
                 
                 dispatch_async(dispatch_get_main_queue(), ^{
                     

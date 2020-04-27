@@ -118,13 +118,20 @@
     
     self.albumPhotoCountLabel.text = @(_albumItem.imagesCount).stringValue;
     
-    self.thumbImageRequestID = [[PHImageManager defaultManager] requestImageForAsset:_albumItem.thumbAsset targetSize:CGSizeMake(200, 200) contentMode:PHImageContentModeAspectFit options:nil resultHandler:^(UIImage * _Nullable result, NSDictionary * _Nullable info) {
+    PHImageRequestOptions *options = [[PHImageRequestOptions alloc] init];
+    options.networkAccessAllowed = YES;
+    options.resizeMode = PHImageRequestOptionsResizeModeFast;
+    
+    self.thumbImageRequestID = [[PHImageManager defaultManager] requestImageForAsset:_albumItem.thumbAsset targetSize:CGSizeMake(200, 200) contentMode:PHImageContentModeAspectFit options:options resultHandler:^(UIImage * _Nullable result, NSDictionary * _Nullable info) {
         
         PHImageRequestID ID = [[info objectForKey:PHImageResultRequestIDKey] intValue];
         
         if (ID != self.thumbImageRequestID) { return; }
         
-        self.thumImageView.image = result;
+        dispatch_async(dispatch_get_main_queue(), ^{
+            
+            self.thumImageView.image = result;
+        });
     }];
 }
 

@@ -13,17 +13,6 @@
 
 @interface JKPhotoItem ()
 {
-    /** 缩略图 */
-    UIImage *_thumImage;
-    
-    /** 原图 */
-    UIImage *_originalImage;
-    
-    /** 相册缩略图 */
-    UIImage *_albumThumImage;
-    
-//    BOOL _shouldSelected;
-    
     NSString *_videoPath;
 }
 @end
@@ -39,13 +28,6 @@
     
     return self;
 }
-
-//- (BOOL)shouldSelected{
-//
-//    _shouldSelected = self.photoAsset.mediaType == PHAssetMediaTypeImage;
-//
-//    return _shouldSelected;
-//}
 
 - (void)setPhotoAsset:(PHAsset *)photoAsset{
     _photoAsset = photoAsset;
@@ -124,36 +106,6 @@
 //    }
     
     _assetLocalIdentifier = _photoAsset.localIdentifier;
-}
-
-- (UIImage *)thumImage{
-    if (!_thumImage) {
-        
-        [[PHImageManager defaultManager] requestImageForAsset:_photoAsset targetSize:CGSizeMake(200, 200) contentMode:PHImageContentModeAspectFit options:nil resultHandler:^(UIImage * _Nullable result, NSDictionary * _Nullable info) {
-            
-            self->_thumImage = result;
-        }];
-    }
-    return _thumImage;
-}
-
-- (UIImage *)originalImage{
-    if (!_originalImage) {
-        
-        PHImageRequestOptions *options = [[PHImageRequestOptions alloc]init];
-        options.synchronous = YES;
-        options.deliveryMode = PHImageRequestOptionsDeliveryModeFastFormat;
-        
-//        [[PHImageManager defaultManager] requestImageDataForAsset:_photoAsset options:options resultHandler:^(NSData * _Nullable imageData, NSString * _Nullable dataUTI, UIImageOrientation orientation, NSDictionary * _Nullable info) {
-//
-//        }];
-        
-        [[PHImageManager defaultManager] requestImageForAsset:_photoAsset targetSize:PHImageManagerMaximumSize contentMode:PHImageContentModeAspectFit options:options resultHandler:^(UIImage * _Nullable result, NSDictionary * _Nullable info) {
-            
-            self->_originalImage = result;
-        }];
-    }
-    return _originalImage;
 }
 
 - (NSString *)videoPath{

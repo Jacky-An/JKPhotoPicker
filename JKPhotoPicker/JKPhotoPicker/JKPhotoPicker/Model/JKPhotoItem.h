@@ -39,12 +39,6 @@
 /* 当前显示的Image */
 @property (nonatomic, strong) PHAsset *photoAsset;
 
-/** 高清缩略图 */
-@property (nonatomic, strong, readonly) UIImage *thumImage;
-
-/** 原图 */
-@property (nonatomic, strong, readonly) UIImage *originalImage;
-
 /** 照片的标识 */
 @property (nonatomic, copy, readonly) NSString *assetLocalIdentifier;
 

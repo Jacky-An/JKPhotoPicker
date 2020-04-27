@@ -35,6 +35,8 @@ typedef NS_ENUM(NSUInteger, JKPhotoPickerScrollDirection) {
 #define JKPhotoScreenWidth ([UIScreen mainScreen].bounds.size.width)
 /** 屏幕高度 */
 #define JKPhotoScreenHeight ([UIScreen mainScreen].bounds.size.height)
+/** 屏幕scale */
+#define JKPhotoScreenScale ([UIScreen mainScreen].scale)
 
 /** 屏幕bounds */
 #define JKPhotoKeyWindowBounds ([UIApplication sharedApplication].delegate.window.bounds)

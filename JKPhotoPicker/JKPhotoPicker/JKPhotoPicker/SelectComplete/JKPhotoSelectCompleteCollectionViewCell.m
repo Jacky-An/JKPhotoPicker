@@ -14,6 +14,9 @@
 {
     JKPhotoItem *_photoItem;
 }
+
+/** requestID */
+@property (nonatomic, assign) PHImageRequestID requestID;
 @end
 
 @implementation JKPhotoSelectCompleteCollectionViewCell
@@ -31,17 +34,22 @@
     
     self.contentView.hidden = NO;
     
-//    dispatch_async(dispatch_get_global_queue(0, 0), ^{
+    PHImageRequestOptions *options = [[PHImageRequestOptions alloc] init];
+    options.networkAccessAllowed = YES;
+    options.deliveryMode = PHImageRequestOptionsDeliveryModeFastFormat;
     
-//        PHImageRequestOptions *options = [[PHImageRequestOptions alloc]init];
-//        options.synchronous = YES;
+    CGFloat targetSizeWH = JKPhotoScreenScale * 100;
     
-        [[PHImageManager defaultManager] requestImageForAsset:_photoItem.photoAsset targetSize:CGSizeMake(200, 200) contentMode:PHImageContentModeAspectFit options:nil resultHandler:^(UIImage * _Nullable result, NSDictionary * _Nullable info) {
+    self.requestID = [[PHImageManager defaultManager] requestImageForAsset:_photoItem.photoAsset targetSize:CGSizeMake(targetSizeWH, targetSizeWH) contentMode:PHImageContentModeAspectFit options:options resultHandler:^(UIImage * _Nullable result, NSDictionary * _Nullable info) {
+        
+        PHImageRequestID requestID = [[info objectForKey:PHImageResultRequestIDKey] intValue];
+        
+        if (requestID != self.requestID) { return; }
+        
+        dispatch_async(dispatch_get_main_queue(), ^{
             
-//            dispatch_async(dispatch_get_main_queue(), ^{
-               self.photoImageView.image = result;
-//            });
-        }];
-//    });
+            self.photoImageView.image = result;
+        });
+    }];
 }
 @end

@@ -345,8 +345,6 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(deviceOrientationDidChange:) name:UIApplicationDidChangeStatusBarOrientationNotification object:nil];
     
-    //    [self.cachingImageManager startCachingImagesForAssets:[self.dataSourceArr valueForKeyPath:@"photoAsset"] targetSize:PHImageManagerMaximumSize contentMode:(PHImageContentModeAspectFit) options:nil];
-    
     self.view.backgroundColor = [UIColor blackColor];
     
     [self setupCollectionView];
@@ -413,25 +411,6 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
     cell.indexPath = indexPath;
     
     JKPhotoItem *item = self.dataSourceArr[indexPath.item];
-    
-    /*
-     if (indexPath.item > 0 && indexPath.item < self.dataSourceArrCount - 1) {
-     
-     JKPhotoItem *itemPre = self.dataSourceArr[indexPath.item - 1];
-     
-     JKPhotoItem *itemNext = self.dataSourceArr[indexPath.item + 1];
-     
-     [self.cachingImageManager startCachingImagesForAssets:@[itemPre.photoAsset, itemNext.photoAsset] targetSize:PHImageManagerMaximumSize contentMode:PHImageContentModeAspectFit options:nil];
-     } */
-    
-    //    item.isSelected = NO;
-    
-    //    for (JKPhotoItem *it in self.selectedPhotoItems) {
-    //
-    //        if (![it.assetLocalIdentifier isEqualToString:item.assetLocalIdentifier]) continue;
-    //
-    //        item.isSelected = YES;
-    //    }
     
     if (indexPath.item == self.indexPath.item) {
         
