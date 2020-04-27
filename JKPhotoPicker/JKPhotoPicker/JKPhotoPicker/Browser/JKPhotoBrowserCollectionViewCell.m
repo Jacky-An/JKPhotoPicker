@@ -40,10 +40,10 @@
     
     CGFloat initialX;
     CGFloat calculateX;
-    CGFloat initialDistanceX;
-    CGFloat initialDistanceY;
+    CGFloat calculateDistanceX;
+    CGFloat calculateDistanceY;
     
-    BOOL shouldResetFrame;
+    BOOL shouldResetCalculate;
 }
 /** imageContainerView */
 @property (nonatomic, weak) UIView *imageContainerView;
@@ -555,10 +555,6 @@ CGFloat const dismissDistance = 80;
 
 - (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView{
     
-    CGPoint location = [self.scrollView.panGestureRecognizer locationInView:self.scrollView];
-    
-    initialDistanceY = location.y - self.photoImageView.frame.origin.y;
-    initialDistanceX = location.x - self.photoImageView.frame.origin.x;
     initialX = self.photoImageView.frame.origin.x;
     
     self.collectionView.scrollEnabled = NO;
@@ -665,7 +661,7 @@ CGFloat const dismissDistance = 80;
 
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView{
     
-    NSLog(@"contentOffset --> %@", NSStringFromCGPoint(scrollView.contentOffset));
+    //NSLog(@"contentOffset --> %@", NSStringFromCGPoint(scrollView.contentOffset));
     
     if (isDragging) {
         
@@ -708,26 +704,23 @@ CGFloat const dismissDistance = 80;
     
     if (scrollView.contentOffset.y + scrollView.contentInset.top >= 0) {
         
-        if (shouldResetFrame) {
-            
-//            CGRect frame = self.photoImageView.frame;
-//            frame.origin.y = 0;
-//            frame.origin.x = calculateX;
-//            self.photoImageView.frame = frame;
+        if (shouldResetCalculate) {
 
-            initialDistanceY = location.y - self.photoImageView.frame.origin.y;
-            initialDistanceX = location.x - self.photoImageView.frame.origin.x;
+            calculateDistanceY = location.y - self.photoImageView.frame.origin.y;
+            calculateDistanceX = location.x - self.photoImageView.frame.origin.x;
             calculateX = self.photoImageView.frame.origin.x;
             
-            shouldResetFrame = NO;
+            //self.scrollView.alwaysBounceHorizontal = NO;
+            
+            shouldResetCalculate = NO;
         }
         
         return;
     }
     
-    if (!shouldResetFrame) {
+    if (!shouldResetCalculate) {
         
-        shouldResetFrame = YES;
+        shouldResetCalculate = YES;
         
         beginDraggingZoom = NO;
     }
@@ -750,8 +743,8 @@ CGFloat const dismissDistance = 80;
         
         //self.scrollView.alwaysBounceHorizontal = YES;
         
-        initialDistanceY = location.y - self.photoImageView.frame.origin.y;
-        initialDistanceX = location.x - self.photoImageView.frame.origin.x;
+        calculateDistanceY = location.y - self.photoImageView.frame.origin.y;
+        calculateDistanceX = location.x - self.photoImageView.frame.origin.x;
         calculateX = self.photoImageView.frame.origin.x;
     }
     
@@ -789,17 +782,16 @@ CGFloat const dismissDistance = 80;
     
     self.photoImageView.transform = CGAffineTransformMakeScale(self.transformScale, self.transformScale);
     
-    CGFloat currentDistanceX = initialDistanceX * self.transformScale;
-    CGFloat currentDistanceY = initialDistanceY * self.transformScale;
+    CGFloat currentDistanceX = calculateDistanceX * self.transformScale;
+    CGFloat currentDistanceY = calculateDistanceY * self.transformScale;
     
     CGRect frame = self.photoImageView.frame;
     
     frame.origin.x = (location.x - currentDistanceX) / self.currentZoomScale;
     frame.origin.y = (location.y - currentDistanceY) / self.currentZoomScale;
-    
     self.photoImageView.frame = frame;
     
-    NSLog(@"location --> %@", NSStringFromCGPoint(location));
+    //NSLog(@"location --> %@", NSStringFromCGPoint(location));
 }
 
 - (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView{
