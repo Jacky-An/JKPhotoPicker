@@ -242,7 +242,7 @@
             imageView.transform = CGAffineTransformMakeScale(1.3, 1.3);
             imageView.alpha = 0;
             
-        }else{
+        } else {
             
             imageView.frame = self.presentFrame;
         }
@@ -286,7 +286,7 @@
             
             _presentCellFrame = CGRectZero;
             
-        }else{
+        } else {
             
             CGFloat Y = _presentCellFrame.origin.y < bottomOrCompleteRect.origin.y ? bottomOrCompleteRect.origin.y : _presentCellFrame.origin.y;
             
@@ -305,13 +305,13 @@
             _presentCellFrame = CGRectMake(_presentCellFrame.origin.x, Y, width, H);
         }
         
-    }else{
+    } else {
         
         if (!CGRectIntersectsRect(_presentCellFrame, rect)) {
             
             _presentCellFrame = CGRectZero;
             
-        }else{
+        } else {
             
             CGFloat Y = _presentCellFrame.origin.y < JKPhotoNavigationBarHeight() ? JKPhotoNavigationBarHeight() : _presentCellFrame.origin.y;
             

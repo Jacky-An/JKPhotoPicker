@@ -94,8 +94,12 @@ CGFloat const dismissDistance = 80;
     
     [self setupSelectedIcon];
     
+    UIActivityIndicatorViewStyle style = UIActivityIndicatorViewStyleWhiteLarge;
+    if (@available(iOS 13.0, *)) {
+        style = UIActivityIndicatorViewStyleLarge;
+    }
     UIActivityIndicatorView *indicatorView = [[UIActivityIndicatorView alloc] init];
-    indicatorView.activityIndicatorViewStyle = UIActivityIndicatorViewStyleWhiteLarge;
+    indicatorView.activityIndicatorViewStyle = style;
     [self.contentView addSubview:indicatorView];
     self.indicatorView = indicatorView;
     
@@ -585,13 +589,14 @@ CGFloat const dismissDistance = 80;
     
     if (self.isZooming) { return; }
     
-    if (scrollView.contentOffset.y + scrollView.contentInset.top < -dismissDistance && (beginScrollDirection == endScrollDirection)) {
+    if (scrollView.contentOffset.y + scrollView.contentInset.top < -dismissDistance &&
+        (endScrollDirection == JKPhotoPickerScrollDirectionDown)) {
         
         isGonnaDismiss = YES;
         
         [self selfDismiss];
         
-    }else{
+    } else {
         
         CGAffineTransform transform = CGAffineTransformMakeScale(self.currentZoomScale, self.currentZoomScale);
         

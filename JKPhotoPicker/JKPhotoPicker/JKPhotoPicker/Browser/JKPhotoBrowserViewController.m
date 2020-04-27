@@ -150,7 +150,7 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
         
         vc.dataSourceArr = selectedItems;
         
-    }else{
+    } else {
         
         if (vc.allPhotoItemsCount > 1 && (vc.isAllPhotosAlbum && vc.configuration.showTakePhotoIcon)) {
             
@@ -158,7 +158,7 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
             [mArr removeObjectAtIndex:0];
             vc.dataSourceArr = [mArr copy];
             
-        }else{
+        } else {
             
             vc.dataSourceArr = vc.allPhotoItems;
         }
@@ -584,7 +584,7 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
             [self.selectedPhotosIdentifierCache removeObjectForKey:currentCell.photoItem.assetLocalIdentifier];
         }
         
-    }else{
+    } else {
         
         JKPhotoItem *itm = [self.selectedPhotosIdentifierCache objectForKey:currentCell.photoItem.assetLocalIdentifier];
         
@@ -600,7 +600,7 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
                 }
             }
             
-        }else{
+        } else {
             
             [self.selectedPhotosIdentifierCache removeObjectForKey:currentCell.photoItem.assetLocalIdentifier];
         }
@@ -648,7 +648,7 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
         
         self.presentationManager.isZoomUpAnimation = !CGRectIntersectsRect(presentFrame, bottomOrCompleteRect) || (self.initialSelectCount != self.selectedPhotoItems.count);
         
-    }else{
+    } else {
         
         self.presentationManager.isZoomUpAnimation = !CGRectIntersectsRect(presentFrame, rect);
     }

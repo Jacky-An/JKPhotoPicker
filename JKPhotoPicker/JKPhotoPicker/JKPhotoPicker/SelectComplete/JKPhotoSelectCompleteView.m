@@ -48,7 +48,7 @@ static NSString * const reuseID = @"JKPhotoSelectCompleteCollectionViewCell"; //
         
         view.collectionView.alwaysBounceVertical = YES;
         
-    }else{
+    } else {
         
         view.collectionView.alwaysBounceHorizontal = YES;
     }
@@ -1053,7 +1053,7 @@ static NSString *videoCacheDirectoryPath_;
         
         [self.collectionView deleteItemsAtIndexPaths:@[indexPath]];
         
-    }else{
+    } else {
         
         [self.collectionView performBatchUpdates:^{
             

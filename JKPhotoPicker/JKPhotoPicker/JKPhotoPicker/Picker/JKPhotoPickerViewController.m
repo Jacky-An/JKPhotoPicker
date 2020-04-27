@@ -1207,7 +1207,7 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
             }
         }
         
-    }else{
+    } else {
         
         [self.selectedPhotosIdentifierCache removeObjectForKey:itm.assetLocalIdentifier];
     }
@@ -1302,7 +1302,7 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
         
         [self.bottomCollectionView deleteItemsAtIndexPaths:@[indexPath]];
         
-    }else{
+    } else {
         
         [self.selectedPhotoItems removeObject:currentCell.photoItem];
         
@@ -1334,7 +1334,7 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
         
         [self changeSelectedCount];
         
-    }else{
+    } else {
         
         [self.collectionView performBatchUpdates:^{
             
@@ -1564,7 +1564,7 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
                     
                     [self reloadAfterTakePhoto];
                     
-                }else{
+                } else {
                     
                     NSLog(@"保存失败");
                 }

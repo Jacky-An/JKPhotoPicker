@@ -93,7 +93,7 @@
                     dispatch_async(dispatch_get_main_queue(), ^{
                         !finished ? : finished(YES);
                     });
-                }else{
+                } else {
                     //                    NSLog(@"Denied or Restricted");
                     dispatch_async(dispatch_get_main_queue(), ^{
                         !finished ? : finished(NO);
@@ -145,7 +145,7 @@
                     dispatch_async(dispatch_get_main_queue(), ^{
                         !finished ? : finished(YES);
                     });
-                }else{
+                } else {
                     //                    NSLog(@"Denied or Restricted");
                     dispatch_async(dispatch_get_main_queue(), ^{
                         !finished ? : finished(NO);
