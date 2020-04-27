@@ -548,6 +548,8 @@ CGFloat const dismissDistance = 80;
 
 - (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView{
     
+    self.collectionView.scrollEnabled = NO;
+    
     beginDraggingZoomTranslation = [scrollView.panGestureRecognizer translationInView:scrollView.panGestureRecognizer.view.superview];
     
     self.isDoubleTap = NO;
@@ -720,7 +722,7 @@ CGFloat const dismissDistance = 80;
     
     point.y -= (beginDraggingOffset.y + scrollView.contentInset.top);
     
-    CGFloat scale = point.y / JKPhotoScreenHeight;
+    CGFloat scale = point.y / (JKPhotoScreenHeight * 0.8);
     
     self.bgAlpha = 1 - scale;
     
