@@ -235,7 +235,7 @@
     //    fromView.hidden = YES;
     [[transitionContext containerView] setBackgroundColor:[UIColor clearColor]];
     
-    [UIView animateWithDuration:[self transitionDuration:transitionContext] animations:^{
+    [UIView animateWithDuration:[self transitionDuration:transitionContext] delay:0.0 usingSpringWithDamping:1.0 initialSpringVelocity:15.0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
         
         if (self.isZoomUpAnimation) {
             
