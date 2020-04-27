@@ -613,8 +613,14 @@ CGFloat const dismissDistance = 80;
         
     } else {
         
-        [UIView animateWithDuration:0.25 animations:^{
-            [UIView setAnimationCurve:7];
+        if (self.currentZoomScale == self.defaultZoomScale) {
+            
+            self.currentZoomScale = 1;
+            
+            [self.scrollView setZoomScale:1 animated:YES];
+        }
+        
+        [UIView animateWithDuration:0.25 delay:0.0 usingSpringWithDamping:1.0 initialSpringVelocity:15.0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
             
             self.photoImageView.transform = CGAffineTransformIdentity;
             self.controllerView.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:1];
@@ -623,19 +629,11 @@ CGFloat const dismissDistance = 80;
         } completion:^(BOOL finished) {
             
             scrollView.pinchGestureRecognizer.enabled = YES;
+            
             self.collectionView.scrollEnabled = YES;
         }];
         
-        if (self.currentZoomScale == self.defaultZoomScale) {
-            
-            self.currentZoomScale = 1;
-            
-            [self.scrollView setZoomScale:1 animated:YES];
-        }
-        
-        if (self.playVideoButton.isHidden) {
-            return;
-        }
+        if (self.playVideoButton.isHidden) { return; }
         
         [UIView animateWithDuration:0.25 animations:^{
             
