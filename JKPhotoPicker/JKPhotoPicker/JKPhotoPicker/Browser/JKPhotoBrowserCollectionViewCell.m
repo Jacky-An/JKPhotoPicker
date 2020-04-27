@@ -77,6 +77,9 @@
 
 /** playVideoButton */
 @property (nonatomic, weak) UIButton *playVideoButton;
+
+/** defaultZoomScale */
+@property (nonatomic, assign) CGFloat defaultZoomScale;
 @end
 
 CGFloat const dismissDistance = 80;
@@ -92,7 +95,9 @@ CGFloat const dismissDistance = 80;
 
 - (void)initialization{
     
-    self.currentZoomScale = 1;
+    _defaultZoomScale = 1.001;
+    
+    self.currentZoomScale = self.defaultZoomScale;
     
     // 当前屏幕宽高比
     _screenAspectRatio = JKPhotoScreenWidth / JKPhotoScreenHeight;
@@ -277,8 +282,8 @@ CGFloat const dismissDistance = 80;
     }
     
     // 双击缩小
-    if (self.scrollView.zoomScale > 1) {
-        [self.scrollView setZoomScale:1 animated:YES];
+    if (self.scrollView.zoomScale > 1.1) {
+        [self.scrollView setZoomScale:self.defaultZoomScale animated:YES];
         return;
     }
     
@@ -493,7 +498,7 @@ CGFloat const dismissDistance = 80;
         }
     }
     
-    self.scrollView.contentSize = CGSizeMake(pictureW, pictureH);
+    self.scrollView.contentSize = CGSizeMake(0, pictureH);
     
     [self calculateInset];
     
@@ -501,12 +506,16 @@ CGFloat const dismissDistance = 80;
     
     [self.scrollView setContentOffset:CGPointMake(-self.scrollView.contentInset.left, -self.scrollView.contentInset.top) animated:NO];
     
+    self.defaultZoomScale = (pictureW + 0.5) / pictureW;
+    
+    [self.scrollView setZoomScale:self.defaultZoomScale animated:YES];
+    
     //self.scrollView.alwaysBounceHorizontal = self.imageContainerView.frame.size.width >= self.scrollView.frame.size.width;
 }
 
 - (void)resetView{
     
-    self.currentZoomScale = 1;
+    self.currentZoomScale = self.defaultZoomScale;
     
     self.scrollView.scrollEnabled = YES;
     self.scrollView.contentOffset = CGPointZero;
@@ -804,7 +813,14 @@ CGFloat const dismissDistance = 80;
 }
 
 - (void)scrollViewDidEndZooming:(UIScrollView *)scrollView withView:(UIView *)view atScale:(CGFloat)scale{
-    self.currentZoomScale = scale;
+    
+    if (scale == 1) {
+        
+        [self.scrollView setZoomScale:self.defaultZoomScale animated:YES];
+        
+        return;
+    }
+    self.currentZoomScale = MAX(self.defaultZoomScale, scale);
     self.isZooming = NO;
     [self calculateInset];
     NSLog(@"当前zoomScale ---> %.2f", scale);
