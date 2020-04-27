@@ -106,6 +106,21 @@ UIView * JKPhotoStatusBarView (void) {
     return statusBar;
 }
 
+/// 缩略图尺寸
+CGSize JKPhotoThumbSize (void) {
+    
+    static CGSize JKPhotoThumbSize_ = {0, 0};
+    
+    if (CGSizeEqualToSize(JKPhotoThumbSize_, CGSizeZero)) {
+        
+        CGFloat wh = 100 * JKPhotoScreenScale;
+        
+        JKPhotoThumbSize_ = CGSizeMake(wh, wh);
+    }
+    
+    return JKPhotoThumbSize_;
+}
+
 
 /// 让手机振动一下
 void JKPhotoCibrateDevice (void) {

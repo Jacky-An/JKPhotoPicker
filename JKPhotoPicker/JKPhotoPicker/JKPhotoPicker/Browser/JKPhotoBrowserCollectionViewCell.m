@@ -362,13 +362,16 @@ CGFloat const dismissDistance = 80;
     
     self.livePhotoView.hidden = _photoItem.dataType != JKPhotoPickerMediaDataTypePhotoLive;
     
+    CGSize targetSize = CGSizeMake(MIN(JKPhotoScreenWidth, JKPhotoScreenHeight) * JKPhotoScreenScale, MAX(JKPhotoScreenWidth, JKPhotoScreenHeight) * JKPhotoScreenScale);
+    
     dispatch_async(dispatch_get_global_queue(0, 0), ^{
         
         PHImageRequestOptions *options = [[PHImageRequestOptions alloc] init];
         options.networkAccessAllowed = YES;
         options.deliveryMode = PHImageRequestOptionsDeliveryModeOpportunistic;
-        
-        self.imageRequestID = [[PHImageManager defaultManager] requestImageForAsset:self->_photoItem.photoAsset targetSize:CGSizeMake(JKPhotoScreenWidth * JKPhotoScreenScale, JKPhotoScreenHeight * JKPhotoScreenScale) contentMode:PHImageContentModeAspectFit options:options resultHandler:^(UIImage * _Nullable result, NSDictionary * _Nullable info) {
+
+        // 使用requestImageDataForAsset
+        self.imageRequestID = [[PHImageManager defaultManager] requestImageForAsset:self->_photoItem.photoAsset targetSize:targetSize contentMode:PHImageContentModeAspectFit options:options resultHandler:^(UIImage * _Nullable result, NSDictionary * _Nullable info) {
             
             PHImageRequestID ID = [[info objectForKey:PHImageResultRequestIDKey] intValue];
             
@@ -405,11 +408,11 @@ CGFloat const dismissDistance = 80;
                 options.networkAccessAllowed = YES;
                 options.deliveryMode = PHImageRequestOptionsDeliveryModeOpportunistic;
                 
-                self.livePhotoRequestID = [[PHImageManager defaultManager] requestLivePhotoForAsset:self->_photoItem.photoAsset targetSize:CGSizeMake(JKPhotoScreenWidth * JKPhotoScreenScale, JKPhotoScreenHeight * JKPhotoScreenScale) contentMode:PHImageContentModeAspectFit options:options resultHandler:^(PHLivePhoto * _Nullable livePhoto, NSDictionary * _Nullable info) {
+                self.livePhotoRequestID = [[PHImageManager defaultManager] requestLivePhotoForAsset:self->_photoItem.photoAsset targetSize:targetSize contentMode:PHImageContentModeAspectFit options:options resultHandler:^(PHLivePhoto * _Nullable livePhoto, NSDictionary * _Nullable info) {
                     
-                    PHImageRequestID ID = [[info objectForKey:PHImageResultRequestIDKey] intValue];
+                    //PHImageRequestID ID = [[info objectForKey:PHImageResultRequestIDKey] intValue];
                     
-                    if (ID != self.livePhotoRequestID) { return; }
+                    //if (ID != self.livePhotoRequestID) { return; }
                     
                     dispatch_async(dispatch_get_main_queue(), ^{
                         

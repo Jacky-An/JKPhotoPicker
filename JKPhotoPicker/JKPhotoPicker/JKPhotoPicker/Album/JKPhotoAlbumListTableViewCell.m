@@ -122,7 +122,7 @@
     options.networkAccessAllowed = YES;
     options.resizeMode = PHImageRequestOptionsResizeModeFast;
     
-    self.thumbImageRequestID = [[PHImageManager defaultManager] requestImageForAsset:_albumItem.thumbAsset targetSize:CGSizeMake(200, 200) contentMode:PHImageContentModeAspectFit options:options resultHandler:^(UIImage * _Nullable result, NSDictionary * _Nullable info) {
+    self.thumbImageRequestID = [[PHImageManager defaultManager] requestImageForAsset:_albumItem.thumbAsset targetSize:JKPhotoThumbSize() contentMode:PHImageContentModeAspectFit options:options resultHandler:^(UIImage * _Nullable result, NSDictionary * _Nullable info) {
         
         PHImageRequestID ID = [[info objectForKey:PHImageResultRequestIDKey] intValue];
         

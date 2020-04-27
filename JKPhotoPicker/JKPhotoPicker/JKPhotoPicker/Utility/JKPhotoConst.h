@@ -56,7 +56,6 @@ typedef NS_ENUM(NSUInteger, JKPhotoPickerScrollDirection) {
 
 #define JKPhotoSystemRedColor [UIColor colorWithRed:255.0/255.0 green:59.0/255.0 blue:48.0/255.0 alpha:1]
 
-
 #pragma mark
 #pragma mark - 适配
 
@@ -87,6 +86,8 @@ CGFloat JKPhotoCurrentHomeIndicatorHeight (void);
 /// 使用KVC获取当前的状态栏的view
 UIView * JKPhotoStatusBarView (void);
 
+/// 缩略图尺寸
+CGSize JKPhotoThumbSize (void);
 
 /// 让手机振动一下
 void JKPhotoCibrateDevice (void);

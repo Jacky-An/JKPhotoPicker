@@ -36,11 +36,9 @@
     
     PHImageRequestOptions *options = [[PHImageRequestOptions alloc] init];
     options.networkAccessAllowed = YES;
-    options.deliveryMode = PHImageRequestOptionsDeliveryModeFastFormat;
+    options.resizeMode = PHImageRequestOptionsResizeModeFast;
     
-    CGFloat targetSizeWH = JKPhotoScreenScale * 100;
-    
-    self.requestID = [[PHImageManager defaultManager] requestImageForAsset:_photoItem.photoAsset targetSize:CGSizeMake(targetSizeWH, targetSizeWH) contentMode:PHImageContentModeAspectFit options:options resultHandler:^(UIImage * _Nullable result, NSDictionary * _Nullable info) {
+    self.requestID = [[PHImageManager defaultManager] requestImageForAsset:_photoItem.photoAsset targetSize:JKPhotoThumbSize() contentMode:PHImageContentModeAspectFit options:options resultHandler:^(UIImage * _Nullable result, NSDictionary * _Nullable info) {
         
         PHImageRequestID requestID = [[info objectForKey:PHImageResultRequestIDKey] intValue];
         

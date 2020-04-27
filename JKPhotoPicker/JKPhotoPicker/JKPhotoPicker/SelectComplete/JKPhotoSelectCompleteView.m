@@ -135,6 +135,7 @@ NSMutableArray *dataArr_;
     options.synchronous = YES;
     options.networkAccessAllowed = YES;
     
+    // 使用requestImageDataForAsset
     [[PHImageManager defaultManager] requestImageForAsset:item.photoAsset targetSize:PHImageManagerMaximumSize contentMode:PHImageContentModeAspectFit options:options resultHandler:^(UIImage * _Nullable result, NSDictionary * _Nullable info) {
         
         dispatch_async(dispatch_get_main_queue(), ^{
