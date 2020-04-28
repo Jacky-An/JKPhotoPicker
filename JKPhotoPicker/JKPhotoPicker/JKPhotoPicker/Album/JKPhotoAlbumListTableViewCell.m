@@ -62,6 +62,7 @@
 - (void)createUI{
     
     UIImageView *thumImageView = [[UIImageView alloc] init];
+    thumImageView.layer.cornerRadius = 5;
     thumImageView.contentMode = UIViewContentModeScaleAspectFill;
     thumImageView.clipsToBounds = YES;
     [self.contentView addSubview:thumImageView];
@@ -96,7 +97,7 @@
 - (void)layoutSubviews{
     [super layoutSubviews];
     
-    self.thumImageView.frame = CGRectMake(15, (self.bounds.size.height - 60) * 0.5, 60, 60);
+    self.thumImageView.frame = CGRectMake(15, (self.bounds.size.height - 50) * 0.5, 50, 50);
     
     self.albumTitleLabel.frame = CGRectMake(CGRectGetMaxX(self.thumImageView.frame) + 15, 10, self.bounds.size.width - CGRectGetMaxX(self.imageView.frame) - 15 * 2, self.bounds.size.height * 0.5 - 10);
     
@@ -117,6 +118,17 @@
     self.albumTitleLabel.text = _albumItem.albumTitle;
     
     self.albumPhotoCountLabel.text = @(_albumItem.imagesCount).stringValue;
+    
+    if (!_albumItem.thumbAsset) {
+        
+        self.thumImageView.image = nil;
+        
+        self.thumImageView.backgroundColor = JKPhotoAdaptColor([UIColor blackColor], [UIColor whiteColor]);
+        
+        return;
+    }
+    
+    self.thumImageView.backgroundColor = nil;
     
     PHImageRequestOptions *options = [[PHImageRequestOptions alloc] init];
     options.networkAccessAllowed = YES;

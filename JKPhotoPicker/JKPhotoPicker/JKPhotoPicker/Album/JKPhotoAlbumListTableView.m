@@ -40,7 +40,7 @@
 @end
 
 static NSString * const JKPhotoAlbumListTableViewCellReuseID = @"JKPhotoAlbumListTableViewCell";
-static CGFloat const JKPhotoAlbumListTableViewRowHeight = 70;
+static CGFloat const JKPhotoAlbumListTableViewRowHeight = 60;
 
 @implementation JKPhotoAlbumListTableView
 
@@ -301,7 +301,8 @@ static CGFloat const JKPhotoAlbumListTableViewRowHeight = 70;
     [self executeAlbumListTableViewAnimationCompletion:^{
         __strong typeof(weakSelf) strongSelf = weakSelf;
         
-        if ((weakSelf.currentSelectedIndex.section == indexPath.section) && (weakSelf.currentSelectedIndex.row == indexPath.row)) return;
+        if ((weakSelf.currentSelectedIndex.section == indexPath.section) &&
+            (weakSelf.currentSelectedIndex.row == indexPath.row)) { return; }
         
         weakSelf.currentSelectedIndex = indexPath;
         

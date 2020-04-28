@@ -28,77 +28,150 @@ static dispatch_queue_t engineQueue_;
 
 + (void)destroyEngineQueue {
     
-    if (engineQueue_) {
-        engineQueue_ = nil;
-    }
+    if (!engineQueue_) { return; }
+    
+    engineQueue_ = nil;
 }
 
-/// 获取所有相册  albumCollectionList和albumItemList数量可能不同  albumItemList只获取有照片的相册
+#pragma mark
+#pragma mark - 获取相册列表
+
+/// 获取所有相册
 + (void)fetchAllAlbumCollectionIncludeHiddenAlbum:(BOOL)includeHiddenAlbum
-                                         complete:(void(^)(NSArray <PHAssetCollection *> *albumCollectionList))complete {
+                                         complete:(void(^)(NSArray <PHAssetCollection *> *albumCollectionList))complete{
     
     dispatch_async([self engineQueue], ^{
         
-        NSMutableArray *dataArray = [NSMutableArray array];
-        
-        // 获取资源时的参数，为nil时则是使用系统默认值
-        PHFetchOptions *fetchOptions = [[PHFetchOptions alloc] init];
-        
-        // 列出所有的智能相册
-        PHFetchResult *smartAlbumsFetchResult = [PHAssetCollection fetchAssetCollectionsWithType:PHAssetCollectionTypeSmartAlbum subtype:PHAssetCollectionSubtypeAny options:fetchOptions];
-        
-        for (PHAssetCollection *sub in smartAlbumsFetchResult) {
-            
-            if (sub.assetCollectionSubtype == PHAssetCollectionSubtypeSmartAlbumUserLibrary) {
-                
-                [dataArray insertObject:sub atIndex:0];
-                
-                continue;
-                
-            } else if (sub.assetCollectionSubtype == PHAssetCollectionSubtypeSmartAlbumAllHidden &&
-                       !includeHiddenAlbum) {
-                
-                // 隐藏相册 不展示
-                
-                continue;
-            }
-            
-            [dataArray addObject:sub];
-        }
-        
-        // 列出所有用户创建的相册
-        PHFetchResult *smartAlbumsFetchResult1 = [PHAssetCollection fetchTopLevelUserCollectionsWithOptions:fetchOptions];
-        
-        // 遍历
-        for (PHAssetCollection *sub in smartAlbumsFetchResult1) {
-            
-            if ([sub isKindOfClass:[PHCollectionList class]]) {
-                
-                [dataArray addObjectsFromArray:[self getAlbumListFromCollectionList:(PHCollectionList *)sub]];
-                
-                continue;
-            }
-            
-            [dataArray addObject:sub];
-        }
-        
-        
-        
+        NSArray *dataArray = [self getAllAlbumCollectionIncludeHiddenAlbum:includeHiddenAlbum];
         
         dispatch_async(dispatch_get_main_queue(), ^{
             
+            !complete ? : complete(dataArray);
         });
     });
 }
 
+/// 获取所有相册 JKPhotoAlbumItem
++ (void)fetchAllAlbumItemIncludeHiddenAlbum:(BOOL)includeHiddenAlbum
+                                   complete:(void(^)(NSArray <PHAssetCollection *> *albumCollectionList, NSArray <JKPhotoAlbumItem *> *albumItemList, NSCache *albumItemCache))complete{
+    
+    [self fetchAllAlbumCollectionIncludeHiddenAlbum:includeHiddenAlbum complete:^(NSArray<PHAssetCollection *> * _Nonnull albumCollectionList) {
+        
+        dispatch_async([self engineQueue], ^{
+            
+            NSMutableArray *albumItemArray = [NSMutableArray arrayWithCapacity:albumCollectionList.count];
+            
+            NSCache *cache = [[NSCache alloc] init];
+            
+            [albumCollectionList enumerateObjectsUsingBlock:^(PHAssetCollection * _Nonnull assetCollection, NSUInteger index, BOOL * _Nonnull stop) {
+                
+                PHFetchResult *result = [PHAsset fetchAssetsInAssetCollection:assetCollection options:nil];
+                
+                if (index > 0 && result.count <= 0) { return; }
+                
+                JKPhotoAlbumItem *albumItem = [[JKPhotoAlbumItem alloc] init];
+                
+                albumItem.assetCollection = assetCollection;
+                albumItem.fetchResult = result;
+                albumItem.imagesCount = result.count;
+                albumItem.thumbAsset = result.lastObject;
+                
+                [albumItemArray addObject:albumItem];
+                
+                if (cache == nil || albumItem.localIdentifier == nil) { return; }
+                
+                [cache setObject:albumItem forKey:albumItem.localIdentifier];
+            }];
+            
+            dispatch_async(dispatch_get_main_queue(), ^{
+                
+                !complete ? : complete(albumCollectionList, [albumItemArray copy], cache);
+            });
+        });
+    }];
+}
+
+#pragma mark
+#pragma mark - 获取相册中照片集
+
+/// 获取相册PHAsset合集
++ (void)fetchPhotoAssetListWithCollection:(PHAssetCollection *)collection
+                                 complete:(void(^)(NSArray <PHAsset *> *assetList))complete{
+    
+    if (!collection) {
+        
+        !complete ? : complete(nil);
+        
+        return;
+    }
+    
+    dispatch_async([self engineQueue], ^{
+        
+        PHFetchResult *result = [PHAsset fetchAssetsInAssetCollection:collection options:nil];
+        
+        NSMutableArray *dataArray = [NSMutableArray arrayWithCapacity:result.count];
+        
+        [result enumerateObjectsUsingBlock:^(PHAsset * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+            
+            if (!obj) { return; }
+            
+            [dataArray addObject:obj];
+        }];
+        
+        dispatch_async(dispatch_get_main_queue(), ^{
+            
+            !complete ? : complete([dataArray copy]);
+        });
+    });
+}
+
+/// 获取相册JKPhotoItem合集
++ (void)fetchPhotoItemListWithCollection:(PHAssetCollection *)collection
+                                complete:(void(^)(NSArray <PHAsset *> *assetList, NSArray <JKPhotoItem *> *itemList))complete{
+    
+    if (!collection) {
+        
+        !complete ? : complete(nil, nil);
+        
+        return;
+    }
+    
+    dispatch_async([self engineQueue], ^{
+        
+        PHFetchResult *result = [PHAsset fetchAssetsInAssetCollection:collection options:nil];
+        
+        NSMutableArray *assetList = [NSMutableArray arrayWithCapacity:result.count];
+        
+        NSMutableArray *itemList = [NSMutableArray arrayWithCapacity:result.count + 1];
+        
+        [result enumerateObjectsUsingBlock:^(PHAsset * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+            
+            if (!obj) { return; }
+            
+            [assetList addObject:obj];
+            
+            // TODO: JKTODO <#注释#>
+        }];
+        
+        dispatch_async(dispatch_get_main_queue(), ^{
+            
+            !complete ? : complete([assetList copy], [itemList copy]);
+        });
+    });
+}
+
+
+
+#pragma mark
+#pragma mark - Private
+
 /** 获取全部相册 数组中是PHAssetCollection对象 */
-+ (NSMutableArray *)getAlbumCollectionList{
++ (NSArray *)getAllAlbumCollectionIncludeHiddenAlbum:(BOOL)includeHiddenAlbum{
     
     NSMutableArray *dataArray = [NSMutableArray array];
     
     // 获取资源时的参数，为nil时则是使用系统默认值
     PHFetchOptions *fetchOptions = [[PHFetchOptions alloc] init];
-    fetchOptions.includeHiddenAssets = NO;
     
     // 列出所有的智能相册
     PHFetchResult *smartAlbumsFetchResult = [PHAssetCollection fetchAssetCollectionsWithType:PHAssetCollectionTypeSmartAlbum subtype:PHAssetCollectionSubtypeAny options:fetchOptions];
@@ -111,7 +184,8 @@ static dispatch_queue_t engineQueue_;
             
             continue;
             
-        } else if (sub.assetCollectionSubtype == PHAssetCollectionSubtypeSmartAlbumAllHidden) {
+        } else if (sub.assetCollectionSubtype == PHAssetCollectionSubtypeSmartAlbumAllHidden &&
+                   !includeHiddenAlbum) {
             
             // 隐藏相册 不展示
             
@@ -137,11 +211,11 @@ static dispatch_queue_t engineQueue_;
         [dataArray addObject:sub];
     }
     
-    return dataArray;
+    return [dataArray copy];
 }
 
 /** 获取文件夹中的相册 */
-+ (NSMutableArray *)getAlbumListFromCollectionList:(PHCollectionList *)collectionList{
++ (NSArray *)getAlbumListFromCollectionList:(PHCollectionList *)collectionList{
     
     PHFetchOptions *fetchOptions = [[PHFetchOptions alloc] init];
     
@@ -161,13 +235,13 @@ static dispatch_queue_t engineQueue_;
         [dataArray addObject:sub];
     }
  
-    return dataArray;
+    return [dataArray copy];
 }
 
 /** 获取全部相册 数组中是JKPhotoItem对象 */
 + (NSMutableArray *)getAlbumItemListWithCache:(NSCache *)cache{
     
-    NSMutableArray *arr = [JKPhotoPickerEngine getAlbumCollectionList];
+    NSArray *arr = [JKPhotoPickerEngine getAllAlbumCollectionIncludeHiddenAlbum:NO];
     
     NSMutableArray *albumItemArray = [NSMutableArray array];
     

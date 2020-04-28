@@ -8,7 +8,7 @@
 
 #import <UIKit/UIKit.h>
 
-@class PHAssetCollection, PHFetchResult, JKPhotoItem;
+@class PHAssetCollection, PHFetchResult, PHAsset, JKPhotoAlbumItem, JKPhotoItem;
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -21,16 +21,34 @@ NS_ASSUME_NONNULL_BEGIN
 
 + (void)destroyEngineQueue;
 
-/// 获取所有相册  albumCollectionList和albumItemList数量可能不同  albumItemList只获取有照片的相册
-+ (void)fetchAllAlbumListComplete:(void(^)(NSArray <PHAssetCollection *> *albumCollectionList, NSArray <JKPhotoItem *> *albumItemList))complete;
+#pragma mark
+#pragma mark - 获取相册列表
+
+/// 获取所有相册 PHAssetCollection
++ (void)fetchAllAlbumCollectionIncludeHiddenAlbum:(BOOL)includeHiddenAlbum
+                                         complete:(void(^)(NSArray <PHAssetCollection *> *albumCollectionList))complete;
+
+/// 获取所有相册 JKPhotoAlbumItem
++ (void)fetchAllAlbumItemIncludeHiddenAlbum:(BOOL)includeHiddenAlbum
+                                   complete:(void(^)(NSArray <PHAssetCollection *> *albumCollectionList, NSArray <JKPhotoAlbumItem *> *albumItemList, NSCache *albumItemCache))complete;
+
+#pragma mark
+#pragma mark - 获取相册中照片集
+
+/// 获取相册PHAsset合集
++ (void)fetchPhotoAssetListWithCollection:(PHAssetCollection *)collection
+                                 complete:(void(^)(NSArray <PHAsset *> *assetList))complete;
+
+/// 获取相册JKPhotoItem合集
++ (void)fetchPhotoItemListWithCollection:(PHAssetCollection *)collection
+                                complete:(void(^)(NSArray <PHAsset *> *assetList, NSArray <JKPhotoItem *> *itemList))complete;
+
+
 
 
 
 /** 获取全部相册 数组中是JKPhotoItem对象 */
 + (NSMutableArray *)getAlbumItemListWithCache:(NSCache *)cache;
-
-/** 获取全部相册 数组中是PHAssetCollection对象 */
-+ (NSMutableArray *)getAlbumCollectionList;
 
 
 /** 获取相机胶卷所有照片对象 倒序 数组中是PHAsset对象 */
