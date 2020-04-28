@@ -11,7 +11,158 @@
 #import "JKPhotoAlbumItem.h"
 #import "JKPhotoItem.h"
 
+/** 队列 */
+static dispatch_queue_t engineQueue_;
+
 @implementation JKPhotoPickerEngine
+
+#pragma mark
+#pragma mark - 队列
+
++ (dispatch_queue_t)engineQueue {
+    if (!engineQueue_) {
+        engineQueue_ = dispatch_queue_create("com.albert.JKPhotoPickerEngine", DISPATCH_QUEUE_CONCURRENT);
+    }
+    return engineQueue_;
+}
+
++ (void)destroyEngineQueue {
+    
+    if (engineQueue_) {
+        engineQueue_ = nil;
+    }
+}
+
+/// 获取所有相册  albumCollectionList和albumItemList数量可能不同  albumItemList只获取有照片的相册
++ (void)fetchAllAlbumCollectionIncludeHiddenAlbum:(BOOL)includeHiddenAlbum
+                                         complete:(void(^)(NSArray <PHAssetCollection *> *albumCollectionList))complete {
+    
+    dispatch_async([self engineQueue], ^{
+        
+        NSMutableArray *dataArray = [NSMutableArray array];
+        
+        // 获取资源时的参数，为nil时则是使用系统默认值
+        PHFetchOptions *fetchOptions = [[PHFetchOptions alloc] init];
+        
+        // 列出所有的智能相册
+        PHFetchResult *smartAlbumsFetchResult = [PHAssetCollection fetchAssetCollectionsWithType:PHAssetCollectionTypeSmartAlbum subtype:PHAssetCollectionSubtypeAny options:fetchOptions];
+        
+        for (PHAssetCollection *sub in smartAlbumsFetchResult) {
+            
+            if (sub.assetCollectionSubtype == PHAssetCollectionSubtypeSmartAlbumUserLibrary) {
+                
+                [dataArray insertObject:sub atIndex:0];
+                
+                continue;
+                
+            } else if (sub.assetCollectionSubtype == PHAssetCollectionSubtypeSmartAlbumAllHidden &&
+                       !includeHiddenAlbum) {
+                
+                // 隐藏相册 不展示
+                
+                continue;
+            }
+            
+            [dataArray addObject:sub];
+        }
+        
+        // 列出所有用户创建的相册
+        PHFetchResult *smartAlbumsFetchResult1 = [PHAssetCollection fetchTopLevelUserCollectionsWithOptions:fetchOptions];
+        
+        // 遍历
+        for (PHAssetCollection *sub in smartAlbumsFetchResult1) {
+            
+            if ([sub isKindOfClass:[PHCollectionList class]]) {
+                
+                [dataArray addObjectsFromArray:[self getAlbumListFromCollectionList:(PHCollectionList *)sub]];
+                
+                continue;
+            }
+            
+            [dataArray addObject:sub];
+        }
+        
+        
+        
+        
+        dispatch_async(dispatch_get_main_queue(), ^{
+            
+        });
+    });
+}
+
+/** 获取全部相册 数组中是PHAssetCollection对象 */
++ (NSMutableArray *)getAlbumCollectionList{
+    
+    NSMutableArray *dataArray = [NSMutableArray array];
+    
+    // 获取资源时的参数，为nil时则是使用系统默认值
+    PHFetchOptions *fetchOptions = [[PHFetchOptions alloc] init];
+    fetchOptions.includeHiddenAssets = NO;
+    
+    // 列出所有的智能相册
+    PHFetchResult *smartAlbumsFetchResult = [PHAssetCollection fetchAssetCollectionsWithType:PHAssetCollectionTypeSmartAlbum subtype:PHAssetCollectionSubtypeAny options:fetchOptions];
+    
+    for (PHAssetCollection *sub in smartAlbumsFetchResult) {
+        
+        if (sub.assetCollectionSubtype == PHAssetCollectionSubtypeSmartAlbumUserLibrary) {
+            
+            [dataArray insertObject:sub atIndex:0];
+            
+            continue;
+            
+        } else if (sub.assetCollectionSubtype == PHAssetCollectionSubtypeSmartAlbumAllHidden) {
+            
+            // 隐藏相册 不展示
+            
+            continue;
+        }
+        
+        [dataArray addObject:sub];
+    }
+    
+    // 列出所有用户创建的相册
+    PHFetchResult *smartAlbumsFetchResult1 = [PHAssetCollection fetchTopLevelUserCollectionsWithOptions:fetchOptions];
+    
+    // 遍历
+    for (PHAssetCollection *sub in smartAlbumsFetchResult1) {
+        
+        if ([sub isKindOfClass:[PHCollectionList class]]) {
+            
+            [dataArray addObjectsFromArray:[self getAlbumListFromCollectionList:(PHCollectionList *)sub]];
+            
+            continue;
+        }
+        
+        [dataArray addObject:sub];
+    }
+    
+    return dataArray;
+}
+
+/** 获取文件夹中的相册 */
++ (NSMutableArray *)getAlbumListFromCollectionList:(PHCollectionList *)collectionList{
+    
+    PHFetchOptions *fetchOptions = [[PHFetchOptions alloc] init];
+    
+    PHFetchResult *result = [PHAssetCollection fetchCollectionsInCollectionList:collectionList options:fetchOptions];
+    
+    NSMutableArray *dataArray = [NSMutableArray array];
+    
+    for (PHAssetCollection *sub in result) {
+        
+        if ([sub isKindOfClass:[PHCollectionList class]]) {
+            
+            [dataArray addObjectsFromArray:[self getAlbumListFromCollectionList:(PHCollectionList *)sub]];
+            
+            continue;
+        }
+        
+        [dataArray addObject:sub];
+    }
+ 
+    return dataArray;
+}
 
 /** 获取全部相册 数组中是JKPhotoItem对象 */
 + (NSMutableArray *)getAlbumItemListWithCache:(NSCache *)cache{
@@ -45,41 +196,6 @@
     }
     
     return albumItemArray;
-}
-
-/** 获取全部相册 数组中是PHAssetCollection对象 */
-+ (NSMutableArray *)getAlbumCollectionList{
-    
-    NSMutableArray *dataArray = [NSMutableArray array];
-    
-    // 获取资源时的参数，为nil时则是使用系统默认值
-    PHFetchOptions *fetchOptions = [[PHFetchOptions alloc] init];
-    
-    // 列出所有的智能相册
-    PHFetchResult *smartAlbumsFetchResult = [PHAssetCollection fetchAssetCollectionsWithType:PHAssetCollectionTypeSmartAlbum subtype:PHAssetCollectionSubtypeAny options:fetchOptions];
-    
-    for (PHAssetCollection *sub in smartAlbumsFetchResult) {
-        
-        if (sub.assetCollectionSubtype == PHAssetCollectionSubtypeSmartAlbumUserLibrary) {
-            
-            [dataArray insertObject:sub atIndex:0];
-            
-            continue;
-        }
-        
-        [dataArray addObject:sub];
-    }
-    
-    // 列出所有用户创建的相册
-    PHFetchResult *smartAlbumsFetchResult1 = [PHAssetCollection fetchTopLevelUserCollectionsWithOptions:fetchOptions];
-    
-    // 遍历
-    for (PHAssetCollection *sub in smartAlbumsFetchResult1) {
-        
-        [dataArray addObject:sub];
-    }
-    
-    return dataArray;
 }
 
 /** 获取相机胶卷所有照片对象 倒序 数组中是PHAsset对象 */

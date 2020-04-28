@@ -8,11 +8,23 @@
 
 #import <UIKit/UIKit.h>
 
-@class PHAssetCollection, PHFetchResult;
+@class PHAssetCollection, PHFetchResult, JKPhotoItem;
 
 NS_ASSUME_NONNULL_BEGIN
 
 @interface JKPhotoPickerEngine : NSObject
+
+#pragma mark
+#pragma mark - 队列
+
++ (dispatch_queue_t)engineQueue;
+
++ (void)destroyEngineQueue;
+
+/// 获取所有相册  albumCollectionList和albumItemList数量可能不同  albumItemList只获取有照片的相册
++ (void)fetchAllAlbumListComplete:(void(^)(NSArray <PHAssetCollection *> *albumCollectionList, NSArray <JKPhotoItem *> *albumItemList))complete;
+
+
 
 /** 获取全部相册 数组中是JKPhotoItem对象 */
 + (NSMutableArray *)getAlbumItemListWithCache:(NSCache *)cache;
