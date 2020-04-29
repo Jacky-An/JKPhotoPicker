@@ -127,11 +127,14 @@ static dispatch_queue_t engineQueue_;
 
 /// 获取相册JKPhotoItem合集
 + (void)fetchPhotoItemListWithCollection:(PHAssetCollection *)collection
-                                complete:(void(^)(NSArray <PHAsset *> *assetList, NSArray <JKPhotoItem *> *itemList))complete{
+                      reverseResultArray:(BOOL)reverseResultArray
+                       selectedItemCache:(NSCache *)selectedItemCache
+                       showTakePhotoIcon:(BOOL)showTakePhotoIcon
+                         completeHandler:(void(^)(NSArray <PHAssetCollection *> *albumCollectionList, NSArray <JKPhotoAlbumItem *> *albumItemList, NSCache *albumItemCache))completeHandler{
     
     if (!collection) {
         
-        !complete ? : complete(nil, nil);
+        !completeHandler ? : completeHandler(nil, nil, nil);
         
         return;
     }
@@ -140,22 +143,108 @@ static dispatch_queue_t engineQueue_;
         
         PHFetchResult *result = [PHAsset fetchAssetsInAssetCollection:collection options:nil];
         
-        NSMutableArray *assetList = [NSMutableArray arrayWithCapacity:result.count];
+        NSInteger resultCount = result.count;
         
-        NSMutableArray *itemList = [NSMutableArray arrayWithCapacity:result.count + 1];
+        NSMutableArray *assetList = [NSMutableArray arrayWithCapacity:resultCount];
         
-        [result enumerateObjectsUsingBlock:^(PHAsset * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+        NSMutableArray *itemList = [NSMutableArray arrayWithCapacity:resultCount];
+        
+        NSCache *itemCache = [[NSCache alloc] init];
+        
+        //NSMutableArray *seletedNewItems = [NSMutableArray array];
+        //NSMutableArray *seletedNewAssets = [NSMutableArray array];
+        //NSMutableDictionary *seletedNewCache = [NSMutableDictionary dictionary];
+        
+        __block NSInteger index = (reverseResultArray ? resultCount - 1 : 0);
+        
+        [result enumerateObjectsUsingBlock:^(PHAsset * _Nonnull asset, NSUInteger idx, BOOL * _Nonnull stop) {
             
-            if (!obj) { return; }
+            if (reverseResultArray) {
+                
+                index--;
+                
+            } else {
+                
+                index++;
+            }
             
-            [assetList addObject:obj];
+            JKPhotoItem *item = [[JKPhotoItem alloc] init];
             
-            // TODO: JKTODO <#注释#>
+            item.photoAsset = asset;
+            
+            item.browserIndexPath = [NSIndexPath indexPathForItem:index inSection:0];
+            
+            item.currentIndexPath = (showTakePhotoIcon ? [NSIndexPath indexPathForItem:index + 1 inSection:0] : item.browserIndexPath);
+            
+            if (itemCache && item.assetLocalIdentifier) {
+                
+                [itemCache setObject:item forKey:item.assetLocalIdentifier];
+            }
+            
+            /*
+             if ([seletedCache objectForKey:item.assetLocalIdentifier] != nil) {
+             
+             [seletedNewItems addObject:item];
+             [seletedNewAssets addObject:item.photoAsset];
+             [seletedNewCache setObject:item forKey:item.assetLocalIdentifier];
+             } //*/
+            
+            // 反转数组
+            if (reverseResultArray) {
+                
+                [assetList insertObject:asset atIndex:0];
+                
+                [itemList insertObject:item atIndex:0];
+                
+                return;
+            }
+            
+            [assetList addObject:asset];
+            
+            [itemList addObject:item];
         }];
+        
+        
+        
+        /*
+         
+         [fetchResult enumerateObjectsWithOptions:(NSEnumerationReverse) usingBlock:^(PHAsset * _Nonnull asset, NSUInteger idx, BOOL * _Nonnull stop) {
+         
+         i++;
+         
+         JKPhotoItem *item = [[JKPhotoItem alloc] init];
+         item.photoAsset = asset;
+         item.currentIndexPath = [NSIndexPath indexPathForItem:i inSection:0];
+         
+         if (allCache != nil) {
+         
+         [allCache setObject:item forKey:item.assetLocalIdentifier];
+         }
+         
+         if ([seletedCache objectForKey:item.assetLocalIdentifier] != nil) {
+         
+         [seletedNewItems addObject:item];
+         [seletedNewAssets addObject:item.photoAsset];
+         [seletedNewCache setObject:item forKey:item.assetLocalIdentifier];
+         }
+         
+         [dataArray addObject:item];
+         
+         NSMutableDictionary *dictM = [NSMutableDictionary dictionary];
+         
+         dictM[@"allPhotos"] = dataArray;
+         dictM[@"allCache"] = allCache;
+         dictM[@"seletedItems"] = seletedNewItems;
+         dictM[@"seletedAssets"] = seletedNewAssets;
+         dictM[@"seletedCache"] = seletedNewCache;
+         
+         !complete ? : complete(dictM); //*/
+        
+        
         
         dispatch_async(dispatch_get_main_queue(), ^{
             
-            !complete ? : complete([assetList copy], [itemList copy]);
+            !completeHandler ? : completeHandler([assetList copy], [itemList copy], itemCache);
         });
     });
 }

@@ -30,8 +30,11 @@
 /* 是否选中 */
 @property (nonatomic, assign) BOOL isSelected;
 
-/** 在所有照片中的索引 因为有个拍照，所以 +1  */
+/** 照片列表中的索引 在所有照片中的索引 因为有个拍照，所以 +1  */
 @property (nonatomic, strong) NSIndexPath *currentIndexPath;
+
+/** 浏览器中的索引  */
+@property (nonatomic, strong) NSIndexPath *browserIndexPath;
 
 /* 是否显示相机图标 */
 @property (nonatomic, assign) BOOL isShowCameraIcon;

@@ -65,7 +65,7 @@
 @property (nonatomic, strong) NSCache *allPhotosIdentifierCache;
 
 /** 选中的照片标识和item的映射缓存 */
-@property (nonatomic, strong) NSMutableDictionary *selectedPhotosIdentifierCache;
+@property (nonatomic, strong) NSCache *selectedItemCache;
 
 /** 是否present了图片浏览器 */
 @property (nonatomic, assign) BOOL isPhotoBrowserPresented;
@@ -149,7 +149,7 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
     
     for (JKPhotoItem *itm in vc.selectedPhotoItems) {
         
-        [vc.selectedPhotosIdentifierCache setObject:itm forKey:itm.assetLocalIdentifier];
+        [vc.selectedItemCache setObject:itm forKey:itm.assetLocalIdentifier];
         
         [vc.selectedAssetArray addObject:itm.photoAsset];
     }
@@ -308,7 +308,7 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
                                     
                                     [self.selectedPhotoItems replaceObjectAtIndex:realIndex withObject:replacedItem];
 
-                                    [self.selectedPhotosIdentifierCache setObject:replacedItem forKey:replacedItem.assetLocalIdentifier];
+                                    [self.selectedItemCache setObject:replacedItem forKey:replacedItem.assetLocalIdentifier];
                                 }
                             }
                         }
@@ -360,7 +360,7 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
                     
                     if (!removedItem.assetLocalIdentifier) { return; }
                     
-                    JKPhotoItem *item = [self.selectedPhotosIdentifierCache objectForKey:removedItem.assetLocalIdentifier];
+                    JKPhotoItem *item = [self.selectedItemCache objectForKey:removedItem.assetLocalIdentifier];
                     
                     if ([self.selectedAssetArray containsObject:item.photoAsset]) {
                         
@@ -371,7 +371,7 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
                         
                         [self.selectedPhotoItems removeObject:item];
                         
-                        [self.selectedPhotosIdentifierCache removeObjectForKey:removedItem.assetLocalIdentifier];
+                        [self.selectedItemCache removeObjectForKey:removedItem.assetLocalIdentifier];
                     }
                 }];
             }
@@ -476,11 +476,11 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
     return _selectedAssetArray;
 }
 
-- (NSMutableDictionary *)selectedPhotosIdentifierCache{
-    if (!_selectedPhotosIdentifierCache) {
-        _selectedPhotosIdentifierCache = [NSMutableDictionary dictionary];//[[NSCache alloc] init];
+- (NSCache *)selectedItemCache{
+    if (!_selectedItemCache) {
+        _selectedItemCache = [[NSCache alloc] init];//[NSMutableDictionary dictionary];//;
     }
-    return _selectedPhotosIdentifierCache;
+    return _selectedItemCache;
 }
 
 - (JKPhotoAlbumListTableView *)albumListTableView{
@@ -514,7 +514,7 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
                 
 //                [weakSelf.selectedPhotoItems removeAllObjects];
 //                [weakSelf.selectedAssetArray removeAllObjects];
-//                [weakSelf.selectedPhotosIdentifierCache removeAllObjects];
+//                [weakSelf.selectedItemCache removeAllObjects];
                 
                 //[weakSelf.selectAllButton setTitle:@"全选" forState:(UIControlStateNormal)];
             }
@@ -757,7 +757,7 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
     
     [self.selectedAssetArray removeAllObjects];
     [self.selectedPhotoItems removeAllObjects];
-    [self.selectedPhotosIdentifierCache removeAllObjects];
+    [self.selectedItemCache removeAllObjects];
     
     if (isSelectAll) {
         
@@ -788,7 +788,7 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
             
             obj.isSelected = YES;
             
-            [self.selectedPhotosIdentifierCache setObject:obj forKey:obj.assetLocalIdentifier];
+            [self.selectedItemCache setObject:obj forKey:obj.assetLocalIdentifier];
             
             [self.selectedAssetArray addObject:obj.photoAsset];
             
@@ -825,14 +825,14 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
     
     BOOL isLoadAllPhotos = [albumItem.localIdentifier isEqualToString:_albumListTableView.cameraRollAlbumItem.localIdentifier];
     
-    NSMutableArray *photoItems = [JKPhotoPickerEngine getPhotoAssetsWithFetchResult:albumItem.fetchResult optionDict:(isLoadAllPhotos ? @{@"seletedCache" : self.selectedPhotosIdentifierCache, @"showTakePhotoIcon" : @(self.configuration.showTakePhotoIcon)} : @{@"showTakePhotoIcon" : @(self.configuration.showTakePhotoIcon)}) complete:^(NSDictionary *resultDict) {
+    NSMutableArray *photoItems = [JKPhotoPickerEngine getPhotoAssetsWithFetchResult:albumItem.fetchResult optionDict:(isLoadAllPhotos ? @{@"seletedCache" : self.selectedItemCache, @"showTakePhotoIcon" : @(self.configuration.showTakePhotoIcon)} : @{@"showTakePhotoIcon" : @(self.configuration.showTakePhotoIcon)}) complete:^(NSDictionary *resultDict) {
         
         self.allPhotosIdentifierCache = resultDict[@"allCache"];
         
         if (isLoadAllPhotos) {
             
             self.selectedPhotoItems = [resultDict[@"seletedItems"] mutableCopy];
-            self.selectedPhotosIdentifierCache = resultDict[@"seletedCache"];
+            self.selectedItemCache = resultDict[@"seletedCache"];
             self.selectedAssetArray = [resultDict[@"seletedAssets"] mutableCopy];
         }
     }];
@@ -896,7 +896,7 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
     
     item.isSelected = NO;
     
-    if ([self.selectedPhotosIdentifierCache objectForKey:item.assetLocalIdentifier] != nil) {
+    if ([self.selectedItemCache objectForKey:item.assetLocalIdentifier] != nil) {
         
         item.isSelected = YES;
     }
@@ -1156,7 +1156,7 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
     
     currentCell.photoItem.isSelected = YES;
     
-    [self.selectedPhotosIdentifierCache setObject:currentCell.photoItem forKey:currentCell.photoItem.assetLocalIdentifier];
+    [self.selectedItemCache setObject:currentCell.photoItem forKey:currentCell.photoItem.assetLocalIdentifier];
     
     [self.selectedPhotoItems addObject:currentCell.photoItem];
     
@@ -1193,7 +1193,7 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
     
     NSIndexPath *indexPath = nil;
     
-    JKPhotoItem *itm = [self.selectedPhotosIdentifierCache objectForKey:currentCell.photoItem.assetLocalIdentifier];
+    JKPhotoItem *itm = [self.selectedItemCache objectForKey:currentCell.photoItem.assetLocalIdentifier];
     
     if (itm == nil) {
         
@@ -1209,7 +1209,7 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
         
     } else {
         
-        [self.selectedPhotosIdentifierCache removeObjectForKey:itm.assetLocalIdentifier];
+        [self.selectedItemCache removeObjectForKey:itm.assetLocalIdentifier];
     }
     
     itm.isSelected = NO;
@@ -1285,7 +1285,7 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
     
     currentCell.photoItem.isSelected = NO;
     
-    [self.selectedPhotosIdentifierCache removeObjectForKey:currentCell.photoItem.assetLocalIdentifier];
+    [self.selectedItemCache removeObjectForKey:currentCell.photoItem.assetLocalIdentifier];
     
     NSIndexPath *indexPath = [self.bottomCollectionView indexPathForCell:currentCell];
     
@@ -1402,7 +1402,7 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
     dict[@"selectedAssets"] = self.selectedAssetArray;
     
     dict[@"allPhotosCache"] = self.allPhotosIdentifierCache;
-    dict[@"selectedItemsCache"] = self.selectedPhotosIdentifierCache;
+    dict[@"selectedItemsCache"] = self.selectedItemCache;
     dict[@"isAllPhotosAlbum"] = @(self.isAllPhotosAlbum);
     dict[@"configuration"] = self.configuration;
     
@@ -1412,12 +1412,12 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
     dict[@"isSelectedCell"] = @([cell isMemberOfClass:[JKPhotoSelectedCollectionViewCell class]]);
     dict[@"isShowSelectedPhotos"] = @(collectionView == self.bottomCollectionView);
     
-    self.browserVC = [JKPhotoBrowserViewController showWithViewController:self dataDict:dict completion:^(NSArray <JKPhotoItem *> *seletedPhotos, NSArray<PHAsset *> *selectedAssetArray, NSArray <NSIndexPath *> *indexPaths, NSMutableDictionary *selectedPhotosIdentifierCache) {
+    self.browserVC = [JKPhotoBrowserViewController showWithViewController:self dataDict:dict completion:^(NSArray <JKPhotoItem *> *seletedPhotos, NSArray<PHAsset *> *selectedAssetArray, NSArray <NSIndexPath *> *indexPaths, NSCache *selectedItemCache) {
         
         NSInteger preCount = self.selectedPhotoItems.count;
         NSInteger currentCount = seletedPhotos.count;
         
-        self.selectedPhotosIdentifierCache = selectedPhotosIdentifierCache;
+        self.selectedItemCache = selectedItemCache;
         
         JKPhotoItem *preLastItem = nil;
         
@@ -1612,7 +1612,7 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
             itm.isSelected = YES;
             
             [weakSelf.selectedPhotoItems addObject:itm];
-            [weakSelf.selectedPhotosIdentifierCache setObject:itm forKey:itm.assetLocalIdentifier];
+            [weakSelf.selectedItemCache setObject:itm forKey:itm.assetLocalIdentifier];
             
             [weakSelf.selectedAssetArray addObject:itm.photoAsset];
             

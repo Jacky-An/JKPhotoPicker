@@ -41,7 +41,10 @@ NS_ASSUME_NONNULL_BEGIN
 
 /// 获取相册JKPhotoItem合集
 + (void)fetchPhotoItemListWithCollection:(PHAssetCollection *)collection
-                                complete:(void(^)(NSArray <PHAsset *> *assetList, NSArray <JKPhotoItem *> *itemList))complete;
+                      reverseResultArray:(BOOL)reverseResultArray
+                       selectedItemCache:(NSCache *)selectedItemCache
+                       showTakePhotoIcon:(BOOL)showTakePhotoIcon
+                         completeHandler:(void(^)(NSArray <PHAssetCollection *> *albumCollectionList, NSArray <JKPhotoAlbumItem *> *albumItemList, NSCache *albumItemCache))completeHandler;
 
 
 

@@ -1085,7 +1085,7 @@ static NSString *videoCacheDirectoryPath_;
     dict[@"isSelectedCell"] = @(YES);
     dict[@"isShowSelectedPhotos"] = @(YES);
     
-    [JKPhotoBrowserViewController showWithViewController:self.superViewController dataDict:dict completion:^(NSArray <JKPhotoItem *> *seletedPhotos, NSArray<PHAsset *> *selectedAssetArray, NSArray <NSIndexPath *> *indexPaths, NSMutableDictionary *selectedPhotosIdentifierCache) {
+    [JKPhotoBrowserViewController showWithViewController:self.superViewController dataDict:dict completion:^(NSArray <JKPhotoItem *> *seletedPhotos, NSArray<PHAsset *> *selectedAssetArray, NSArray <NSIndexPath *> *indexPaths, NSCache *selectedItemCache) {
         
         if (self.selectedPhotoItems.count == seletedPhotos.count) {
             return;

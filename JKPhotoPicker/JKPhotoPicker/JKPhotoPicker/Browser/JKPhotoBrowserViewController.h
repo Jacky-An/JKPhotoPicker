@@ -17,5 +17,7 @@
 
 //+ (void)showWithViewController:(UIViewController *)viewController allPhotos:(NSArray *)allPhotos selectedItems:(NSArray *)selectedItems maxSelectCount:(NSUInteger)maxSelectCount indexPath:(NSIndexPath *)indexPath imageView:(UIImageView *)imageView completion:(void(^)(NSArray *seletedPhotos))completion;
 
-+ (JKPhotoBrowserViewController *)showWithViewController:(UIViewController *)viewController dataDict:(NSDictionary *)dataDict completion:(void(^)(NSArray <JKPhotoItem *> *seletedPhotos, NSArray<PHAsset *> *selectedAssetArray, NSArray <NSIndexPath *> *indexPaths, NSMutableDictionary *selectedPhotosIdentifierCache))completion;
++ (JKPhotoBrowserViewController *)showWithViewController:(UIViewController *)viewController
+                                                dataDict:(NSDictionary *)dataDict
+                                              completion:(void(^)(NSArray <JKPhotoItem *> *seletedPhotos, NSArray<PHAsset *> *selectedAssetArray, NSArray <NSIndexPath *> *indexPaths, NSCache *selectedItemCache))completion;
 @end
