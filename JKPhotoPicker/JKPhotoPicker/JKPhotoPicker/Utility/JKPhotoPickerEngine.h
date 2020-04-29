@@ -8,7 +8,7 @@
 
 #import <UIKit/UIKit.h>
 
-@class PHAssetCollection, PHFetchResult, PHAsset, JKPhotoAlbumItem, JKPhotoItem;
+@class PHAssetCollection, PHFetchResult, PHAsset, JKPhotoAlbumItem, JKPhotoItem, JKPhotoResultModel;
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -44,7 +44,7 @@ NS_ASSUME_NONNULL_BEGIN
                       reverseResultArray:(BOOL)reverseResultArray
                        selectedItemCache:(NSCache *)selectedItemCache
                        showTakePhotoIcon:(BOOL)showTakePhotoIcon
-                         completeHandler:(void(^)(NSArray <PHAssetCollection *> *albumCollectionList, NSArray <JKPhotoAlbumItem *> *albumItemList, NSCache *albumItemCache))completeHandler;
+                         completeHandler:(void(^)(JKPhotoResultModel *resultModel))completeHandler;
 
 
 

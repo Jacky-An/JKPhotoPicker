@@ -7,8 +7,9 @@
 //
 
 #import "JKPhotoPickerEngine.h"
-#import <Photos/Photos.h>
+#import "JKPhotoResultModel.h"
 #import "JKPhotoAlbumItem.h"
+#import <Photos/Photos.h>
 #import "JKPhotoItem.h"
 
 /** 队列 */
@@ -130,11 +131,11 @@ static dispatch_queue_t engineQueue_;
                       reverseResultArray:(BOOL)reverseResultArray
                        selectedItemCache:(NSCache *)selectedItemCache
                        showTakePhotoIcon:(BOOL)showTakePhotoIcon
-                         completeHandler:(void(^)(NSArray <PHAssetCollection *> *albumCollectionList, NSArray <JKPhotoAlbumItem *> *albumItemList, NSCache *albumItemCache))completeHandler{
+                         completeHandler:(void(^)(JKPhotoResultModel *resultModel))completeHandler{
     
     if (!collection) {
         
-        !completeHandler ? : completeHandler(nil, nil, nil);
+        !completeHandler ? : completeHandler(nil);
         
         return;
     }
@@ -151,9 +152,16 @@ static dispatch_queue_t engineQueue_;
         
         NSCache *itemCache = [[NSCache alloc] init];
         
-        //NSMutableArray *seletedNewItems = [NSMutableArray array];
-        //NSMutableArray *seletedNewAssets = [NSMutableArray array];
-        //NSMutableDictionary *seletedNewCache = [NSMutableDictionary dictionary];
+        NSMutableArray *seletedNewItems = nil;
+        NSMutableArray *seletedNewAssets = nil;
+        NSCache *seletedNewCache = nil;
+        
+        if (selectedItemCache) {
+            
+            seletedNewItems = [NSMutableArray array];
+            seletedNewAssets = [NSMutableArray array];
+            seletedNewCache = [[NSCache alloc] init];
+        }
         
         __block NSInteger index = (reverseResultArray ? resultCount - 1 : 0);
         
@@ -181,13 +189,13 @@ static dispatch_queue_t engineQueue_;
                 [itemCache setObject:item forKey:item.assetLocalIdentifier];
             }
             
-            /*
-             if ([seletedCache objectForKey:item.assetLocalIdentifier] != nil) {
-             
-             [seletedNewItems addObject:item];
-             [seletedNewAssets addObject:item.photoAsset];
-             [seletedNewCache setObject:item forKey:item.assetLocalIdentifier];
-             } //*/
+            if (selectedItemCache &&
+                [selectedItemCache objectForKey:item.assetLocalIdentifier]) {
+                
+                [seletedNewItems addObject:item];
+                [seletedNewAssets addObject:item.photoAsset];
+                [seletedNewCache setObject:item forKey:item.assetLocalIdentifier];
+            }
             
             // 反转数组
             if (reverseResultArray) {
@@ -204,52 +212,22 @@ static dispatch_queue_t engineQueue_;
             [itemList addObject:item];
         }];
         
+        JKPhotoResultModel *resultModel = [JKPhotoResultModel new];
         
+        resultModel.assetList = [assetList copy];
+        resultModel.itemList = [itemList copy];
+        resultModel.itemCache = itemCache;
         
-        /*
-         
-         [fetchResult enumerateObjectsWithOptions:(NSEnumerationReverse) usingBlock:^(PHAsset * _Nonnull asset, NSUInteger idx, BOOL * _Nonnull stop) {
-         
-         i++;
-         
-         JKPhotoItem *item = [[JKPhotoItem alloc] init];
-         item.photoAsset = asset;
-         item.currentIndexPath = [NSIndexPath indexPathForItem:i inSection:0];
-         
-         if (allCache != nil) {
-         
-         [allCache setObject:item forKey:item.assetLocalIdentifier];
-         }
-         
-         if ([seletedCache objectForKey:item.assetLocalIdentifier] != nil) {
-         
-         [seletedNewItems addObject:item];
-         [seletedNewAssets addObject:item.photoAsset];
-         [seletedNewCache setObject:item forKey:item.assetLocalIdentifier];
-         }
-         
-         [dataArray addObject:item];
-         
-         NSMutableDictionary *dictM = [NSMutableDictionary dictionary];
-         
-         dictM[@"allPhotos"] = dataArray;
-         dictM[@"allCache"] = allCache;
-         dictM[@"seletedItems"] = seletedNewItems;
-         dictM[@"seletedAssets"] = seletedNewAssets;
-         dictM[@"seletedCache"] = seletedNewCache;
-         
-         !complete ? : complete(dictM); //*/
-        
-        
+        resultModel.selectedItemList = seletedNewItems;
+        resultModel.selectedAssetList = seletedNewAssets;
+        resultModel.selectedItemCache = seletedNewCache;
         
         dispatch_async(dispatch_get_main_queue(), ^{
             
-            !completeHandler ? : completeHandler([assetList copy], [itemList copy], itemCache);
+            !completeHandler ? : completeHandler(resultModel);
         });
     });
 }
-
-
 
 #pragma mark
 #pragma mark - Private

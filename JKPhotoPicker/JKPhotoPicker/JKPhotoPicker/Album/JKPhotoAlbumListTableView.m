@@ -191,6 +191,8 @@ static CGFloat const JKPhotoAlbumListTableViewRowHeight = 60;
         
     } completion:^(BOOL finished) {
         
+        !self.completion ? : self.completion();
+        
         [UIView animateWithDuration:0.25 animations:^{
             
             self.contentView.frame = CGRectMake(self.frame.origin.x, -[UIScreen mainScreen].bounds.size.height * 0.5 - 15, self.frame.size.width, self.contentView.frame.size.height);
@@ -200,8 +202,6 @@ static CGFloat const JKPhotoAlbumListTableViewRowHeight = 60;
             self.hidden = YES;
             
             self.isAnimating = NO;
-            
-            !self.completion ? : self.completion();
         }];
     }];
 }
@@ -212,26 +212,34 @@ static CGFloat const JKPhotoAlbumListTableViewRowHeight = 60;
 - (void)loadData{
     
     [self loadAlbumData];
-    
-    _currentAlbumItem = _cameraRollAlbumItem;
-    
-    // 默认选中第一个
-    self.currentSelectedIndex = [NSIndexPath indexPathForRow:0 inSection:0];
-    
-    [self.tableView selectRowAtIndexPath:self.currentSelectedIndex animated:NO scrollPosition:(UITableViewScrollPositionNone)];
 }
 
 - (void)loadAlbumData{
     
-    [_albumListArray removeAllObjects];
-    
-    [_albumCache removeAllObjects];
-    
-    _albumListArray = [JKPhotoPickerEngine getAlbumItemListWithCache:self.albumCache];
-    
-    _cameraRollAlbumItem = self.albumListArray.firstObject;
-    
-    if (self.currentAlbumItem.localIdentifier) {
+    [JKPhotoPickerEngine fetchAllAlbumItemIncludeHiddenAlbum:NO complete:^(NSArray<PHAssetCollection *> * _Nonnull albumCollectionList, NSArray<JKPhotoAlbumItem *> * _Nonnull albumItemList, NSCache * _Nonnull albumItemCache) {
+        
+        [self.albumListArray removeAllObjects];
+        [self.albumListArray addObjectsFromArray:albumItemList];
+        
+        [self setNeedsLayout];
+        
+        self.albumCache = albumItemCache;
+        
+        self->_cameraRollAlbumItem = self.albumListArray.firstObject;
+        
+        if (!self.currentAlbumItem.localIdentifier) {
+            
+            !self.selectRowBlock ? : self.selectRowBlock(self.cameraRollAlbumItem, NO);
+            
+            // 默认选中第一个
+            self.currentSelectedIndex = [NSIndexPath indexPathForRow:0 inSection:0];
+            
+            [self.tableView reloadData];
+            
+            [self.tableView selectRowAtIndexPath:self.currentSelectedIndex animated:NO scrollPosition:UITableViewScrollPositionNone];
+            
+            return;
+        }
         
         JKPhotoAlbumItem *currentAlbumItem = [self.albumCache objectForKey:self.currentAlbumItem.localIdentifier];
         
@@ -246,7 +254,7 @@ static CGFloat const JKPhotoAlbumListTableViewRowHeight = 60;
             
             self.currentSelectedIndex = [NSIndexPath indexPathForRow:index inSection:0];
             
-            _currentAlbumItem = currentAlbumItem;
+            self->_currentAlbumItem = currentAlbumItem;
             
         } else { // 当前浏览的相册已被删除
             
@@ -254,15 +262,15 @@ static CGFloat const JKPhotoAlbumListTableViewRowHeight = 60;
             
             self.currentSelectedIndex = [NSIndexPath indexPathForRow:index inSection:0];
             
-            _currentAlbumItem = _cameraRollAlbumItem;
+            self->_currentAlbumItem = self.cameraRollAlbumItem;
             
-            !self.selectRowBlock ? : self.selectRowBlock(_currentAlbumItem, YES);
+            !self.selectRowBlock ? : self.selectRowBlock(self.currentAlbumItem, YES);
         }
-    }
-    
-    [self.tableView reloadData];
-    
-    [self.tableView selectRowAtIndexPath:self.currentSelectedIndex animated:NO scrollPosition:UITableViewScrollPositionMiddle];
+        
+        [self.tableView reloadData];
+        
+        [self.tableView selectRowAtIndexPath:self.currentSelectedIndex animated:NO scrollPosition:UITableViewScrollPositionMiddle];
+    }];
 }
 
 - (void)reloadAlbum{

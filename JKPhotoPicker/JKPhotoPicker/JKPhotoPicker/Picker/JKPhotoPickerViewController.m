@@ -23,6 +23,7 @@
 #import "JKPhotoResourceManager.h"
 #import "JKPhotoConfiguration.h"
 #import "JKPhotoSelectCompleteView.h"
+#import "JKPhotoResultModel.h"
 
 @interface JKPhotoPickerViewController () <UICollectionViewDataSource, UICollectionViewDelegate, UINavigationControllerDelegate, UIImagePickerControllerDelegate, PHPhotoLibraryChangeObserver, UICollectionViewDelegateFlowLayout>
 {
@@ -84,6 +85,9 @@
 
 /** browserVC */
 @property (nonatomic, weak) JKPhotoBrowserViewController *browserVC;
+
+/** indicatorView */
+@property (nonatomic, weak) UIActivityIndicatorView *indicatorView;
 @end
 
 @implementation JKPhotoPickerViewController
@@ -338,10 +342,7 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
             
             if (isCameraRollAlbum) {
                 
-                dispatch_async(dispatch_get_global_queue(0, 0), ^{
-                    
-                    [self loadPhotoWithAlbumItem:self.currentAlbumItem isReload:YES];
-                });
+                [self loadPhotoWithAlbumItem:self.currentAlbumItem isReload:YES];
                 
                 return;
             }
@@ -376,10 +377,8 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
                 }];
             }
             
-            dispatch_async(dispatch_get_global_queue(0, 0), ^{
-                
-                [self loadPhotoWithAlbumItem:self.currentAlbumItem isReload:YES];
-            });
+            [self loadPhotoWithAlbumItem:self.currentAlbumItem isReload:YES];
+            
             /*
             [self.collectionView performBatchUpdates:^{
                 
@@ -491,22 +490,15 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
         [self.view addSubview:albumListTableView];
         _albumListTableView = albumListTableView;
         
-        self.currentAlbumItem = albumListTableView.cameraRollAlbumItem;
-        
-        [self.titleButton setTitle:[albumListTableView.cameraRollAlbumItem.albumTitle stringByAppendingString:@"  "] forState:(UIControlStateNormal)];
-        
-        dispatch_async(dispatch_get_global_queue(0, 0), ^{
-            
-            [self loadPhotoWithAlbumItem:albumListTableView.cameraRollAlbumItem isReload:NO];
-        });
-        
         __weak typeof(self) weakSelf = self;
 #pragma mark - 选中相册
         [albumListTableView setSelectRowBlock:^(JKPhotoAlbumItem *albumItem, BOOL isReload) {
             
+            [weakSelf.titleButton setTitle:[albumItem.albumTitle stringByAppendingString:@"  "] forState:(UIControlStateNormal)];
+            
             weakSelf.currentAlbumItem = albumItem;
             
-            [weakSelf.titleButton setTitle:[albumItem.albumTitle stringByAppendingString:@"  "] forState:(UIControlStateNormal)];
+            weakSelf.titleButton.hidden = NO;
             weakSelf.titleButton.selected = NO;
             weakSelf.isAllPhotosAlbum = [albumItem.localIdentifier isEqualToString:weakSelf.albumListTableView.cameraRollAlbumItem.localIdentifier];
             
@@ -519,10 +511,7 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
                 //[weakSelf.selectAllButton setTitle:@"全选" forState:(UIControlStateNormal)];
             }
             
-            dispatch_async(dispatch_get_global_queue(0, 0), ^{
-                
-                [weakSelf loadPhotoWithAlbumItem:albumItem isReload:isReload];
-            });
+            [weakSelf loadPhotoWithAlbumItem:albumItem isReload:isReload];
         }];
     }
     return _albumListTableView;
@@ -576,6 +565,20 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
     [self setupCollectionView];
     
     [self albumListTableView];
+    
+    UIActivityIndicatorViewStyle style = UIActivityIndicatorViewStyleGray;
+    
+    if (@available(iOS 13.0, *)) {
+        
+        style = UIActivityIndicatorViewStyleMedium;
+    }
+    
+    UIActivityIndicatorView *indicatorView = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:style];
+    indicatorView.center = self.view.center;
+    [self.view addSubview:indicatorView];
+    _indicatorView = indicatorView;
+    
+    [self.indicatorView startAnimating];
 }
 
 - (void)setupNav{
@@ -587,9 +590,10 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
     self.navigationItem.rightBarButtonItems = @[rightItem];
     
     JKPhotoTitleButton *titleButton = [JKPhotoTitleButton buttonWithType:(UIButtonTypeCustom)];
+    titleButton.hidden = YES;
     titleButton.frame = CGRectMake(0, 0, 200, 40);
-    [titleButton setTitleColor:JKPhotoAdaptColor([UIColor colorWithRed:51.0/255.0 green:51.0/255.0 blue:51.0/255.0 alpha:1], [UIColor colorWithRed:204.0/255.0 green:204.0/255.0 blue:204.0/255.0 alpha:1]) forState:(UIControlStateNormal)];
-    
+    [titleButton setTitleColor:JKPhotoAdaptColor([UIColor blackColor], [UIColor whiteColor]) forState:(UIControlStateNormal)];
+    [titleButton setTitle:@" " forState:(UIControlStateNormal)];
     [titleButton setImage:[JKPhotoResourceManager jk_imageNamed:@"arrow_down@2x"] forState:(UIControlStateNormal)];
     [titleButton setImage:[JKPhotoResourceManager jk_imageNamed:@"arrow_up@2x"] forState:(UIControlStateSelected)];
     
@@ -598,7 +602,7 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
     self.navigationItem.titleView = titleButton;
     self.titleButton = titleButton;
     
-    NSDictionary *attrDict = @{NSFontAttributeName : [UIFont systemFontOfSize:15]};
+    NSDictionary *attrDict = @{NSFontAttributeName : [UIFont systemFontOfSize:15], NSForegroundColorAttributeName : JKPhotoAdaptColor([UIColor blackColor], [UIColor whiteColor])};
     
     [self.navigationItem.leftBarButtonItem setTitleTextAttributes:attrDict forState:(UIControlStateNormal)];
     [self.navigationItem.leftBarButtonItem setTitleTextAttributes:attrDict forState:(UIControlStateDisabled)];
@@ -821,9 +825,73 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
 
 - (void)loadPhotoWithAlbumItem:(JKPhotoAlbumItem *)albumItem isReload:(BOOL)isReload{
     
-    [self.allPhotosIdentifierCache removeAllObjects];
-    
     BOOL isLoadAllPhotos = [albumItem.localIdentifier isEqualToString:_albumListTableView.cameraRollAlbumItem.localIdentifier];
+    
+    [JKPhotoPickerEngine fetchPhotoItemListWithCollection:albumItem.assetCollection reverseResultArray:YES selectedItemCache:(isLoadAllPhotos ? self.selectedItemCache : nil) showTakePhotoIcon:self.configuration.showTakePhotoIcon completeHandler:^(JKPhotoResultModel * _Nonnull resultModel) {
+        
+        [self.indicatorView stopAnimating];
+        
+        [self.allPhotoItems removeAllObjects];
+        
+        if ([resultModel.itemList.firstObject isShowCameraIcon] == NO &&
+            self.configuration.showTakePhotoIcon &&
+            isLoadAllPhotos) {
+            
+            JKPhotoItem *item1 = [[JKPhotoItem alloc] init];
+            item1.isShowCameraIcon = YES;
+            [self.allPhotoItems addObject:item1];
+        }
+        
+        [self.allPhotoItems addObjectsFromArray:resultModel.itemList];
+        
+        self.allPhotosIdentifierCache = resultModel.itemCache;
+        
+        if (isLoadAllPhotos) {
+            
+            [self.selectedPhotoItems removeAllObjects];
+            [self.selectedPhotoItems addObjectsFromArray:resultModel.selectedItemList];
+            
+            [self.selectedAssetArray removeAllObjects];
+            [self.selectedAssetArray addObjectsFromArray:resultModel.selectedAssetList];
+            
+            self.selectedItemCache = resultModel.selectedItemCache;
+        }
+        
+        !self.albumListTableView.reloadCompleteBlock ? : self.albumListTableView.reloadCompleteBlock();
+        self.albumListTableView.reloadCompleteBlock = nil;
+        
+        if (isReload) {
+            
+            [self.collectionView performBatchUpdates:^{
+               
+                [self.collectionView reloadSections:[NSIndexSet indexSetWithIndex:0]];
+                
+            } completion:^(BOOL finished) {
+                
+            }];
+            
+            [self.bottomCollectionView performBatchUpdates:^{
+               
+                [self.bottomCollectionView reloadSections:[NSIndexSet indexSetWithIndex:0]];
+                
+            } completion:^(BOOL finished) {
+                
+            }];
+            
+        } else {
+            
+            [self.collectionView reloadData];
+            [self.bottomCollectionView reloadData];
+            
+            [self.collectionView setContentOffset:CGPointMake(0, -self.collectionView.contentInset.top) animated:YES];
+        }
+        
+        [self changeSelectedCount];
+    }];
+    
+    return;
+    
+    [self.allPhotosIdentifierCache removeAllObjects];
     
     NSMutableArray *photoItems = [JKPhotoPickerEngine getPhotoAssetsWithFetchResult:albumItem.fetchResult optionDict:(isLoadAllPhotos ? @{@"seletedCache" : self.selectedItemCache, @"showTakePhotoIcon" : @(self.configuration.showTakePhotoIcon)} : @{@"showTakePhotoIcon" : @(self.configuration.showTakePhotoIcon)}) complete:^(NSDictionary *resultDict) {
         
@@ -849,6 +917,8 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
     self.allPhotoItems = photoItems;
     
     dispatch_async(dispatch_get_main_queue(), ^{
+        
+        [self.indicatorView stopAnimating];
         
         !self.albumListTableView.reloadCompleteBlock ? : self.albumListTableView.reloadCompleteBlock();
         self.albumListTableView.reloadCompleteBlock = nil;
