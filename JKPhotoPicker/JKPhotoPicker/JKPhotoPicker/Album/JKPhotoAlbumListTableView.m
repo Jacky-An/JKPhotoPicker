@@ -323,13 +323,6 @@ static CGFloat const JKPhotoAlbumListTableViewRowHeight = 60;
 #pragma mark
 #pragma mark - Property
 
-- (NSCache *)albumCache{
-    if (!_albumCache) {
-        _albumCache = [[NSCache alloc] init];
-    }
-    return _albumCache;
-}
-
 - (NSMutableArray *)albumListArray{
     if (!_albumListArray) {
         _albumListArray = [NSMutableArray array];

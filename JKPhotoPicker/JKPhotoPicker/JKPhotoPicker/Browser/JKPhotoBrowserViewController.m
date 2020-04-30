@@ -505,7 +505,7 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
             [self.dismissReloadIndexPaths addObject:itm.currentIndexPath];
         }
         
-        //        JKPhotoItem *itm = [self.allPhotosIdentifierCache objectForKey:currentCell.photoItem.assetLocalIdentifier];
+        //        JKPhotoItem *itm = [self.iemCache objectForKey:currentCell.photoItem.assetLocalIdentifier];
         //
         //        if (itm != nil) {
         //

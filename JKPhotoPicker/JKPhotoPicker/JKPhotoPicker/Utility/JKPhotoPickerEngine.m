@@ -167,6 +167,14 @@ static dispatch_queue_t engineQueue_;
         
         [result enumerateObjectsUsingBlock:^(PHAsset * _Nonnull asset, NSUInteger idx, BOOL * _Nonnull stop) {
             
+            JKPhotoItem *item = [[JKPhotoItem alloc] init];
+            
+            item.photoAsset = asset;
+            
+            item.browserIndexPath = [NSIndexPath indexPathForItem:index inSection:0];
+            
+            item.currentIndexPath = (showTakePhotoIcon ? [NSIndexPath indexPathForItem:index + 1 inSection:0] : item.browserIndexPath);
+            
             if (reverseResultArray) {
                 
                 index--;
@@ -175,14 +183,6 @@ static dispatch_queue_t engineQueue_;
                 
                 index++;
             }
-            
-            JKPhotoItem *item = [[JKPhotoItem alloc] init];
-            
-            item.photoAsset = asset;
-            
-            item.browserIndexPath = [NSIndexPath indexPathForItem:index inSection:0];
-            
-            item.currentIndexPath = (showTakePhotoIcon ? [NSIndexPath indexPathForItem:index + 1 inSection:0] : item.browserIndexPath);
             
             if (itemCache && item.assetLocalIdentifier) {
                 
