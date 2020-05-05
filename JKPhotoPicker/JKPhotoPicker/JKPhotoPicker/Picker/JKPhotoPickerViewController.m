@@ -543,6 +543,7 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
 }
 
 #pragma mark - 初始化
+
 - (void)viewDidLoad {
     [super viewDidLoad];
     
@@ -557,8 +558,6 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
     
     [self setupCollectionView];
     
-    [self albumListTableView];
-    
     UIActivityIndicatorViewStyle style = UIActivityIndicatorViewStyleGray;
     
     if (@available(iOS 13.0, *)) {
@@ -571,7 +570,7 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
     [self.view addSubview:indicatorView];
     _indicatorView = indicatorView;
     
-    [self.indicatorView startAnimating];
+    [self albumListTableView];
 }
 
 - (void)setupNav{
@@ -843,6 +842,8 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
 #pragma mark - 加载数据
 
 - (void)loadPhotoWithAlbumItem:(JKPhotoAlbumItem *)albumItem isReload:(BOOL)isReload{
+    
+    [self.indicatorView startAnimating];
     
     BOOL isLoadAllPhotos = [albumItem.localIdentifier isEqualToString:_albumListTableView.cameraRollAlbumItem.localIdentifier];
     
