@@ -45,78 +45,165 @@ static CGFloat const JKPhotoAlbumListTableViewRowHeight = 60;
 @implementation JKPhotoAlbumListTableView
 
 #pragma mark
-#pragma mark - 生命周期
+#pragma mark - Public Methods
 
-- (void)dealloc{
-    
-    [[NSNotificationCenter defaultCenter] removeObserver:self];
+
+
+#pragma mark
+#pragma mark - Override
+
+- (void)dealloc {
     
     NSLog(@"[ClassName: %@], %d, %s", NSStringFromClass([self class]), __LINE__, __func__);
 }
 
-#pragma mark
-#pragma mark - 初始化
-
-- (instancetype)initWithFrame:(CGRect)frame{
+- (instancetype)initWithFrame:(CGRect)frame {
     if (self = [super initWithFrame:frame]) {
         [self initialization];
     }
     return self;
 }
 
-- (instancetype)initWithCoder:(NSCoder *)aDecoder{
+- (instancetype)initWithCoder:(NSCoder *)aDecoder {
     if (self = [super initWithCoder:aDecoder]) {
         [self initialization];
     }
     return self;
 }
 
+- (void)layoutSubviews {
+    [super layoutSubviews];
+    
+    CGFloat Y = self.hidden ? -[UIScreen mainScreen].bounds.size.height * 0.5 - 15 : 0;
+    
+    self.contentView.frame = CGRectMake(0, Y, self.frame.size.width, (JKPhotoAlbumListTableViewRowHeight * self.albumListArray.count + JKPhotoNavigationBarHeight() > [UIScreen mainScreen].bounds.size.height * 0.5) ? [UIScreen mainScreen].bounds.size.height * 0.5 : JKPhotoAlbumListTableViewRowHeight * self.albumListArray.count + JKPhotoNavigationBarHeight());
+    
+    self.tableView.frame = CGRectMake(0, JKPhotoNavigationBarHeight(), self.contentView.frame.size.width, self.contentView.frame.size.height - JKPhotoNavigationBarHeight());
+}
+
+#pragma mark
+#pragma mark - Private Methods
+
+
+
+#pragma mark
+#pragma mark - Private Selector
+
+
+
+#pragma mark
+#pragma mark - UITableViewDataSource & UITableViewDelegate
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+    return self.albumListArray.count;
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+    
+    JKPhotoAlbumListTableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:JKPhotoAlbumListTableViewCellReuseID];
+    
+    cell.albumItem = self.albumListArray[indexPath.row];
+    
+    return cell;
+}
+
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    
+    __weak typeof(self) weakSelf = self;
+    
+    [self executeAlbumListTableViewAnimationCompletion:^{
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        
+        if ((weakSelf.currentSelectedIndex.section == indexPath.section) &&
+            (weakSelf.currentSelectedIndex.row == indexPath.row)) { return; }
+        
+        weakSelf.currentSelectedIndex = indexPath;
+        
+        strongSelf->_currentAlbumItem = weakSelf.albumListArray[indexPath.row];
+        
+        !weakSelf.didselectAlbumHandler ? : weakSelf.didselectAlbumHandler(weakSelf.currentAlbumItem, NO);
+    }];
+}
+
+#pragma mark
+#pragma mark - Custom Delegates
+
+
+
+#pragma mark
+#pragma mark - Initialization & Build UI
+
 /** 初始化自身属性 交给子类重写 super自动调用该方法 */
-- (void)initializeProperty{
+- (void)initializeProperty {
     
 }
 
 /** 构造函数初始化时调用 注意调用super */
-- (void)initialization{
+- (void)initialization {
     
     [self initializeProperty];
     [self createUI];
     [self layoutUI];
     [self initializeUIData];
-}
-
-/** 创建UI 交给子类重写 super自动调用该方法 */
-- (void)createUI{
-    
-    UIButton *backgroundButton = [UIButton buttonWithType:(UIButtonTypeCustom)];
-    [self insertSubview:backgroundButton atIndex:0];
-    _backgroundButton = backgroundButton;
-    
-    [backgroundButton addTarget:self action:@selector(executeAnimation) forControlEvents:(UIControlEventTouchUpInside)];
-    
-    // backgroundButton约束
-    backgroundButton.translatesAutoresizingMaskIntoConstraints = NO;
-    NSArray *backgroundButtonCons1 = [NSLayoutConstraint constraintsWithVisualFormat:@"H:|-0-[backgroundButton]-0-|" options:0 metrics:nil views:@{@"backgroundButton" : backgroundButton}];
-    [self addConstraints:backgroundButtonCons1];
-    
-    NSArray *backgroundButtonCons2 = [NSLayoutConstraint constraintsWithVisualFormat:@"V:|-0-[backgroundButton]-0-|" options:0 metrics:nil views:@{@"backgroundButton" : backgroundButton}];
-    [self addConstraints:backgroundButtonCons2];
-    
-    [self tableView];
     
     [self loadData];
 }
 
-/** 布局UI 交给子类重写 super自动调用该方法 */
-- (void)layoutUI{
+/** 创建UI 交给子类重写 super自动调用该方法 */
+- (void)createUI {
     
+    UIView *backgroundView = [[UIView alloc] init];
+    [self addSubview:backgroundView];
+    _backgroundView = backgroundView;
+    
+    UIButton *backgroundButton = [UIButton buttonWithType:(UIButtonTypeCustom)];
+    [self addSubview:backgroundButton];
+    _backgroundButton = backgroundButton;
+    
+    [backgroundButton addTarget:self action:@selector(executeAnimation) forControlEvents:(UIControlEventTouchUpInside)];
+    
+    UIView *contentView = [[UIView alloc] init];
+    contentView.backgroundColor = JKPhotoAdaptColor([UIColor colorWithRed:239.0 / 255.0 green:239.0 / 255.0 blue:239.0 / 255.0 alpha:1], [UIColor colorWithRed:16.0 / 255.0 green:16.0 / 255.0 blue:16.0 / 255.0 alpha:1]);
+    [self addSubview:contentView];
+    _contentView = contentView;
+    
+    [self tableView];
+}
+
+/** 布局UI 交给子类重写 super自动调用该方法 */
+- (void)layoutUI {
+    
+    // backgroundButton约束
+    self.backgroundView.translatesAutoresizingMaskIntoConstraints = NO;
+    NSArray *cons1 = [NSLayoutConstraint constraintsWithVisualFormat:@"H:|-0-[view]-0-|" options:0 metrics:nil views:@{@"view" : self.backgroundView}];
+    [self addConstraints:cons1];
+    
+    NSArray *cons2 = [NSLayoutConstraint constraintsWithVisualFormat:@"V:|-0-[view]-0-|" options:0 metrics:nil views:@{@"view" : self.backgroundView}];
+    [self addConstraints:cons2];
+    
+    // backgroundButton约束
+    self.backgroundButton.translatesAutoresizingMaskIntoConstraints = NO;
+    cons1 = [NSLayoutConstraint constraintsWithVisualFormat:@"H:|-0-[view]-0-|" options:0 metrics:nil views:@{@"view" : self.backgroundButton}];
+    [self addConstraints:cons1];
+    
+    cons2 = [NSLayoutConstraint constraintsWithVisualFormat:@"V:|-0-[view]-0-|" options:0 metrics:nil views:@{@"view" : self.backgroundButton}];
+    [self addConstraints:cons2];
 }
 
 /** 初始化UI数据 交给子类重写 super自动调用该方法 */
-- (void)initializeUIData{
+- (void)initializeUIData {
     
-    self.backgroundColor = [UIColor clearColor];
+    self.backgroundColor = nil;
+    
+    self.backgroundView.backgroundColor = JKPhotoAdaptColor([[UIColor blackColor] colorWithAlphaComponent:0], [[UIColor whiteColor] colorWithAlphaComponent:0]);
 }
+
+#pragma mark
+#pragma mark - Private Property
+
+
+
+
 
 #pragma mark
 #pragma mark - Override
@@ -126,16 +213,6 @@ static CGFloat const JKPhotoAlbumListTableViewRowHeight = 60;
     frame = [UIScreen mainScreen].bounds;
     
     [super setFrame:frame];
-}
-
-- (void)layoutSubviews{
-    [super layoutSubviews];
-    
-    CGFloat Y = self.hidden ? -[UIScreen mainScreen].bounds.size.height * 0.5 - 15 : 0;
-    
-    self.contentView.frame = CGRectMake(0, Y, self.frame.size.width, (JKPhotoAlbumListTableViewRowHeight * self.albumListArray.count + JKPhotoNavigationBarHeight() > [UIScreen mainScreen].bounds.size.height * 0.5) ? [UIScreen mainScreen].bounds.size.height * 0.5 : JKPhotoAlbumListTableViewRowHeight * self.albumListArray.count + JKPhotoNavigationBarHeight());
-    
-    self.tableView.frame = CGRectMake(0, JKPhotoNavigationBarHeight(), self.contentView.frame.size.width, self.contentView.frame.size.height - JKPhotoNavigationBarHeight());
 }
 
 #pragma mark
@@ -162,10 +239,13 @@ static CGFloat const JKPhotoAlbumListTableViewRowHeight = 60;
         
         !self.completion ? : self.completion();
         
+        !self.showBlock ? : self.showBlock(YES);
+        
         [UIView animateWithDuration:0.25 animations:^{
             
             self.contentView.frame = CGRectMake(0, 15, self.frame.size.width, self.contentView.frame.size.height);
-            self.backgroundButton.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:0.3];
+             
+            self.backgroundView.backgroundColor = JKPhotoAdaptColor([[UIColor blackColor] colorWithAlphaComponent:0.4], [[UIColor whiteColor] colorWithAlphaComponent:0.3]);
             
         } completion:^(BOOL finished) {
             
@@ -187,15 +267,17 @@ static CGFloat const JKPhotoAlbumListTableViewRowHeight = 60;
         
         self.contentView.frame = CGRectMake(self.frame.origin.x, 15, self.frame.size.width, self.contentView.frame.size.height);
         
-        self.backgroundButton.backgroundColor = [UIColor clearColor];
-        
     } completion:^(BOOL finished) {
         
         !self.completion ? : self.completion();
         
+        !self.showBlock ? : self.showBlock(NO);
+        
         [UIView animateWithDuration:0.25 animations:^{
             
             self.contentView.frame = CGRectMake(self.frame.origin.x, -[UIScreen mainScreen].bounds.size.height * 0.5 - 15, self.frame.size.width, self.contentView.frame.size.height);
+            
+            self.backgroundView.backgroundColor = JKPhotoAdaptColor([[UIColor blackColor] colorWithAlphaComponent:0], [[UIColor whiteColor] colorWithAlphaComponent:0]);
             
         } completion:^(BOOL finished) {
             
@@ -229,7 +311,7 @@ static CGFloat const JKPhotoAlbumListTableViewRowHeight = 60;
         
         if (!self.currentAlbumItem.localIdentifier) {
             
-            !self.selectRowBlock ? : self.selectRowBlock(self.cameraRollAlbumItem, NO);
+            !self.didselectAlbumHandler ? : self.didselectAlbumHandler(self.cameraRollAlbumItem, NO);
             
             // 默认选中第一个
             self.currentSelectedIndex = [NSIndexPath indexPathForRow:0 inSection:0];
@@ -264,7 +346,7 @@ static CGFloat const JKPhotoAlbumListTableViewRowHeight = 60;
             
             self->_currentAlbumItem = self.cameraRollAlbumItem;
             
-            !self.selectRowBlock ? : self.selectRowBlock(self.currentAlbumItem, YES);
+            !self.didselectAlbumHandler ? : self.didselectAlbumHandler(self.currentAlbumItem, YES);
         }
         
         [self.tableView reloadData];
@@ -273,7 +355,7 @@ static CGFloat const JKPhotoAlbumListTableViewRowHeight = 60;
     }];
 }
 
-- (void)reloadAlbum{
+- (void)reloadAlbumList {
     
     [self loadAlbumData];
 }
@@ -289,61 +371,19 @@ static CGFloat const JKPhotoAlbumListTableViewRowHeight = 60;
 #pragma mark
 #pragma mark - tableView数据源及代理
 
-- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section{
-    return self.albumListArray.count;
-}
-
-- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath{
-    
-    JKPhotoAlbumListTableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:JKPhotoAlbumListTableViewCellReuseID];
-    
-    cell.albumItem = self.albumListArray[indexPath.row];
-    
-    return cell;
-}
-
-- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath{
-    
-    __weak typeof(self) weakSelf = self;
-    
-    [self executeAlbumListTableViewAnimationCompletion:^{
-        __strong typeof(weakSelf) strongSelf = weakSelf;
-        
-        if ((weakSelf.currentSelectedIndex.section == indexPath.section) &&
-            (weakSelf.currentSelectedIndex.row == indexPath.row)) { return; }
-        
-        weakSelf.currentSelectedIndex = indexPath;
-        
-        strongSelf->_currentAlbumItem = weakSelf.albumListArray[indexPath.row];
-        
-        !weakSelf.selectRowBlock ? : weakSelf.selectRowBlock(weakSelf.currentAlbumItem, NO);
-    }];
-}
-
 #pragma mark
 #pragma mark - Property
 
-- (NSMutableArray *)albumListArray{
+- (NSMutableArray *)albumListArray {
     if (!_albumListArray) {
         _albumListArray = [NSMutableArray array];
     }
     return _albumListArray;
 }
 
-- (UIView *)contentView{
-    if (!_contentView) {
-        UIView *contentView = [[UIView alloc] init];
-        contentView.backgroundColor = JKPhotoAdaptColor([UIColor colorWithRed:239.0 / 255.0 green:239.0 / 255.0 blue:239.0 / 255.0 alpha:1], [UIColor colorWithRed:16.0 / 255.0 green:16.0 / 255.0 blue:16.0 / 255.0 alpha:1]);
-        [self addSubview:contentView];
-        _contentView = contentView;
-    }
-    return _contentView;
-}
-
-- (UITableView *)tableView{
+- (UITableView *)tableView {
     if (!_tableView) {
-        
-        UITableView *tableView = [[UITableView alloc] init];
+        UITableView *tableView = [[UITableView alloc] initWithFrame:CGRectZero style:(UITableViewStylePlain)];
         [self.contentView addSubview:tableView];
         _tableView = tableView;
         

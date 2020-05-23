@@ -27,5 +27,9 @@
     self.imageView.frame = CGRectMake(CGRectGetMaxX(self.titleLabel.frame), self.imageView.frame.origin.y, self.imageView.frame.size.width, self.imageView.frame.size.height);
 }
 
-- (void)setHighlighted:(BOOL)highlighted{}
+- (void)setHighlighted:(BOOL)highlighted{
+    [super setHighlighted:highlighted];
+    
+    self.alpha = highlighted ? 0.5 : 1.0;
+}
 @end

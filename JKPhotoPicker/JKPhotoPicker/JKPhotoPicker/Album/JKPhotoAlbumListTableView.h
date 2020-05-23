@@ -10,18 +10,16 @@
 
 @class JKPhotoAlbumItem;
 
-@protocol JKPhotoAlbumListTableViewDelegate;
-
 @interface JKPhotoAlbumListTableView : UIView
 
-/** delegate */
-@property (nonatomic, weak) id<JKPhotoAlbumListTableViewDelegate> delegate;
-
 /** 监听点击选中cell的block */
-@property (nonatomic, copy) void(^selectRowBlock)(JKPhotoAlbumItem *albumItem, BOOL isReload);
+@property (nonatomic, copy) void(^didselectAlbumHandler)(JKPhotoAlbumItem *albumItem, BOOL isReload);
 
 /** 监听重新加载相册完成的block */
 @property (nonatomic, copy) void(^reloadCompleteBlock)(void);
+
+/** showBlock */
+@property (nonatomic, copy) void (^showBlock)(BOOL isShow);
 
 /** 相机胶卷的相册item */
 @property (nonatomic, strong, readonly) JKPhotoAlbumItem *cameraRollAlbumItem;
@@ -36,13 +34,29 @@
 - (void)executeAlbumListTableViewAnimationCompletion:(void(^)(void))completion;
 
 /** 重新加载相册 */
-- (void)reloadAlbum;
-@end
+- (void)reloadAlbumList;
 
+#pragma mark
+#pragma mark - Private
 
-@protocol JKPhotoAlbumListTableViewDelegate <NSObject>
+/** backgroundView */
+@property (nonatomic, weak, readonly) UIView *backgroundView;
 
-@optional
+/** contentView */
+@property (nonatomic, weak, readonly) UIView *contentView;
 
-- (void)albumListTableView:(JKPhotoAlbumListTableView *)albumListTableView didSelectAlbumItem:(JKPhotoAlbumItem *)albumItem isReload:(BOOL)isReload;
+/** 初始化自身属性 交给子类重写 super自动调用该方法 */
+- (void)initializeProperty NS_REQUIRES_SUPER;
+
+/** 构造函数初始化时调用 注意调用super */
+- (void)initialization NS_REQUIRES_SUPER;
+
+/** 创建UI 交给子类重写 super自动调用该方法 */
+- (void)createUI NS_REQUIRES_SUPER;
+
+/** 布局UI 交给子类重写 super自动调用该方法 */
+- (void)layoutUI NS_REQUIRES_SUPER;
+
+/** 初始化数据 交给子类重写 super自动调用该方法 */
+- (void)initializeUIData NS_REQUIRES_SUPER;
 @end
