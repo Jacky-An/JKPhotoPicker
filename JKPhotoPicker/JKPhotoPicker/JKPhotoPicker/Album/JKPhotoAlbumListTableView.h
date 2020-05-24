@@ -18,8 +18,11 @@
 /** 监听重新加载相册完成的block */
 @property (nonatomic, copy) void(^reloadCompleteBlock)(void);
 
-/** showBlock */
-@property (nonatomic, copy) void (^showBlock)(BOOL isShow);
+/** albumListDidShowHandler */
+@property (nonatomic, copy) void (^albumListDidShowHandler)(void);
+
+/** albumListDidDismissHandler */
+@property (nonatomic, copy) void (^albumListDidDismissHandler)(void);
 
 /** 相机胶卷的相册item */
 @property (nonatomic, strong, readonly) JKPhotoAlbumItem *cameraRollAlbumItem;
@@ -30,8 +33,11 @@
 /** navigationController */
 @property (nonatomic, weak) UINavigationController *navigationController;
 
-/** 执行动画 */
-- (void)executeAlbumListTableViewAnimationCompletion:(void(^)(void))completion;
+/// 展示动画
+- (void)executeShowAlbumListAnimation;
+
+/// 隐藏动画
+- (void)executeDismissAlbumListAnimation;
 
 /** 重新加载相册 */
 - (void)reloadAlbumList;

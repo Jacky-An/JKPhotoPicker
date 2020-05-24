@@ -8,7 +8,7 @@
 
 #import <UIKit/UIKit.h>
 
-@class PHAssetCollection, JKPhotoAlbumItem;
+@class JKPhotoAlbumItem;
 
 @interface JKPhotoAlbumListTableViewCell : UITableViewCell
 
