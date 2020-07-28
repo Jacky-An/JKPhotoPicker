@@ -10,7 +10,7 @@
 #import "JKPhotoAlbumListTableViewCell.h"
 #import "JKPhotoPickerEngine.h"
 #import "JKPhotoAlbumItem.h"
-#import "JKPhotoConst.h"
+#import "JKPhotoUtility.h"
 
 @interface JKPhotoAlbumListTableView () <UITableViewDataSource, UITableViewDelegate>
 
@@ -146,9 +146,9 @@ static CGFloat const JKPhotoAlbumListTableViewRowHeight = 60;
     
     CGFloat Y = self.hidden ? -[UIScreen mainScreen].bounds.size.height * 0.5 - 15 : 0;
     
-    self.contentView.frame = CGRectMake(0, Y, self.frame.size.width, (JKPhotoAlbumListTableViewRowHeight * self.albumListArray.count + JKPhotoNavigationBarHeight() > [UIScreen mainScreen].bounds.size.height * 0.5) ? [UIScreen mainScreen].bounds.size.height * 0.5 : JKPhotoAlbumListTableViewRowHeight * self.albumListArray.count + JKPhotoNavigationBarHeight());
+    self.contentView.frame = CGRectMake(0, Y, self.frame.size.width, (JKPhotoAlbumListTableViewRowHeight * self.albumListArray.count + JKPhotoUtility.navigationBarHeight > [UIScreen mainScreen].bounds.size.height * 0.5) ? [UIScreen mainScreen].bounds.size.height * 0.5 : JKPhotoAlbumListTableViewRowHeight * self.albumListArray.count + JKPhotoUtility.navigationBarHeight);
     
-    self.tableView.frame = CGRectMake(0, JKPhotoNavigationBarHeight(), self.contentView.frame.size.width, self.contentView.frame.size.height - JKPhotoNavigationBarHeight());
+    self.tableView.frame = CGRectMake(0, JKPhotoUtility.navigationBarHeight, self.contentView.frame.size.width, self.contentView.frame.size.height - JKPhotoUtility.navigationBarHeight);
 }
 
 #pragma mark

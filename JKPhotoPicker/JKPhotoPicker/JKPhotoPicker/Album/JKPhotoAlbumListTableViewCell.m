@@ -8,7 +8,7 @@
 
 #import "JKPhotoAlbumListTableViewCell.h"
 #import "JKPhotoAlbumItem.h"
-#import "JKPhotoConst.h"
+#import "JKPhotoUtility.h"
 #import <Photos/Photos.h>
 
 @interface JKPhotoAlbumListTableViewCell ()
@@ -53,7 +53,7 @@
     options.networkAccessAllowed = YES;
     options.resizeMode = PHImageRequestOptionsResizeModeFast;
     
-    self.thumbImageRequestID = [[PHImageManager defaultManager] requestImageForAsset:_albumItem.thumbAsset targetSize:JKPhotoThumbSize() contentMode:PHImageContentModeAspectFit options:options resultHandler:^(UIImage * _Nullable result, NSDictionary * _Nullable info) {
+    self.thumbImageRequestID = [[PHImageManager defaultManager] requestImageForAsset:_albumItem.thumbAsset targetSize:JKPhotoUtility.thumbSize contentMode:PHImageContentModeAspectFit options:options resultHandler:^(UIImage * _Nullable result, NSDictionary * _Nullable info) {
         
         PHImageRequestID ID = [[info objectForKey:PHImageResultRequestIDKey] intValue];
         

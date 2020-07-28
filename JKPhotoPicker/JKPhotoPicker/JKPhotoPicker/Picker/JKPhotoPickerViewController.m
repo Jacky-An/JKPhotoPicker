@@ -121,7 +121,7 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
     
     if (!presentVC) {
         
-        presentVC = [UIApplication sharedApplication].delegate.window.rootViewController;
+        presentVC = JKPhotoUtility.keyWindow.rootViewController;
         
         while (presentVC.presentedViewController) {
             
@@ -690,9 +690,9 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
         safeAreaInsets = self.view.safeAreaInsets;
     }
     
-    self.collectionView.frame = CGRectMake(safeAreaInsets.left, JKPhotoNavigationBarHeight(), self.view.frame.size.width - safeAreaInsets.left - safeAreaInsets.right, self.view.frame.size.height - JKPhotoNavigationBarHeight() - JKPhotoCurrentHomeIndicatorHeight() - 70);
+    self.collectionView.frame = CGRectMake(safeAreaInsets.left, JKPhotoUtility.navigationBarHeight, self.view.frame.size.width - safeAreaInsets.left - safeAreaInsets.right, self.view.frame.size.height - JKPhotoUtility.navigationBarHeight - JKPhotoUtility.currentHomeIndicatorHeight - 70);
     
-    self.bottomContentView.frame = CGRectMake(0, CGRectGetMaxY(self.collectionView.frame), self.view.frame.size.width, 70 + JKPhotoCurrentHomeIndicatorHeight());
+    self.bottomContentView.frame = CGRectMake(0, CGRectGetMaxY(self.collectionView.frame), self.view.frame.size.width, 70 + JKPhotoUtility.currentHomeIndicatorHeight);
     
     self.selectedCountButton.frame = CGRectMake(CGRectGetMaxX(self.collectionView.frame) - 60, 10, 50, 50);
     
@@ -711,7 +711,7 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
     
     UICollectionViewFlowLayout *flowLayout = [[UICollectionViewFlowLayout alloc] init];
     
-    UICollectionView *collectionView = [[UICollectionView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height - 70 - JKPhotoCurrentHomeIndicatorHeight()) collectionViewLayout:flowLayout];
+    UICollectionView *collectionView = [[UICollectionView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height - 70 - JKPhotoUtility.currentHomeIndicatorHeight) collectionViewLayout:flowLayout];
     collectionView.backgroundColor = [UIColor clearColor];
     collectionView.alwaysBounceVertical = YES;
     collectionView.dataSource = self;
@@ -733,7 +733,7 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
     [collectionView registerClass:[JKPhotoCollectionViewCell class] forCellWithReuseIdentifier:reuseID];
     
     UIView *bottomContentView = [[UIView alloc] init];
-    bottomContentView.frame = CGRectMake(0, CGRectGetMaxY(collectionView.frame), self.view.frame.size.width, 70 + JKPhotoCurrentHomeIndicatorHeight());
+    bottomContentView.frame = CGRectMake(0, CGRectGetMaxY(collectionView.frame), self.view.frame.size.width, 70 + JKPhotoUtility.currentHomeIndicatorHeight);
     bottomContentView.backgroundColor = JKPhotoAdaptColor([UIColor colorWithRed:250.0 / 255.0 green:250.0 / 255.0 blue:250.0 / 255.0 alpha:1], [UIColor colorWithRed:5.0 / 255.0 green:5.0 / 255.0 blue:5.0 / 255.0 alpha:1]);
     [self.view addSubview:bottomContentView];
     _bottomContentView = bottomContentView;

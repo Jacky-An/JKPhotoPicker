@@ -8,7 +8,7 @@
 
 #import "JKPhotoBrowserPresentationManager.h"
 #import "JKPhotoBrowserPresentationController.h"
-#import "JKPhotoConst.h"
+#import "JKPhotoUtility.h"
 #import "JKPhotoResourceManager.h"
 
 @interface JKPhotoBrowserPresentationManager ()
@@ -184,7 +184,7 @@
     CGFloat pictureW = self.calculateFrameSize.width;
     CGFloat pictureH = pictureW * image.size.height / image.size.width;
     
-    if (JKPhotoIsDeviceiPad() || JKPhotoIsLandscape()) {
+    if (JKPhotoUtility.isDeviceiPad || JKPhotoUtility.isLandscape) {
         
         if (pictureH > self.calculateFrameSize.height) {
             
@@ -259,7 +259,7 @@
 
 - (CGRect)calculateImageCoverViewFrameWithImageView:(UIImageView *)imageView{
     
-    CGRect rect = [imageView.superview convertRect:imageView.frame toView:[UIApplication sharedApplication].delegate.window];
+    CGRect rect = [imageView.superview convertRect:imageView.frame toView:JKPhotoUtility.keyWindow];
     
     return rect;
 }
@@ -276,9 +276,9 @@
     
     if (self.whiteView == nil) { return; }
     
-    CGRect rect = CGRectMake(0, JKPhotoNavigationBarHeight(), JKPhotoKeyWindowWidth, JKPhotoKeyWindowHeight - JKPhotoNavigationBarHeight() - (70 + JKPhotoCurrentHomeIndicatorHeight()));
+    CGRect rect = CGRectMake(0, JKPhotoUtility.navigationBarHeight, JKPhotoKeyWindowWidth, JKPhotoKeyWindowHeight - JKPhotoUtility.navigationBarHeight - (70 + JKPhotoUtility.currentHomeIndicatorHeight));
     
-    CGRect bottomOrCompleteRect = [[UIApplication sharedApplication].delegate.window convertRect:self.fromCollectionView.frame fromView:self.fromCollectionView.superview];
+    CGRect bottomOrCompleteRect = [JKPhotoUtility.keyWindow convertRect:self.fromCollectionView.frame fromView:self.fromCollectionView.superview];
     
     if (self.isSelectedCell) {
         
@@ -313,9 +313,9 @@
             
         } else {
             
-            CGFloat Y = _presentCellFrame.origin.y < JKPhotoNavigationBarHeight() ? JKPhotoNavigationBarHeight() : _presentCellFrame.origin.y;
+            CGFloat Y = _presentCellFrame.origin.y < JKPhotoUtility.navigationBarHeight ? JKPhotoUtility.navigationBarHeight : _presentCellFrame.origin.y;
             
-            CGFloat bottomY = JKPhotoKeyWindowHeight - (JKPhotoIsDeviceX() ? 104 : 70);
+            CGFloat bottomY = JKPhotoKeyWindowHeight - (JKPhotoUtility.isDeviceX ? 104 : 70);
             
             CGFloat H = (Y > bottomY ? CGRectGetMaxY(_presentCellFrame) : (CGRectGetMaxY(_presentCellFrame) > bottomY ? bottomY : CGRectGetMaxY(_presentCellFrame))) - Y;
             

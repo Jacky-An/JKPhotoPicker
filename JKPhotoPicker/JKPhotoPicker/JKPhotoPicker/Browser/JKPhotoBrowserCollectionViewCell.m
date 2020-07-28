@@ -306,7 +306,7 @@ CGFloat const dismissDistance = 80;
     NSArray *selectButtonCons1 = [NSLayoutConstraint constraintsWithVisualFormat:@"H:[selectButton(70)]-0-|" options:0 metrics:nil views:@{@"selectButton" : selectButton}];
     [self.contentView addConstraints:selectButtonCons1];
     
-    NSArray *selectButtonCons2 = [NSLayoutConstraint constraintsWithVisualFormat:[NSString stringWithFormat:@"V:[selectButton(70)]-%.0f-|", JKPhotoCurrentHomeIndicatorHeight()] options:0 metrics:nil views:@{@"selectButton" : selectButton}];
+    NSArray *selectButtonCons2 = [NSLayoutConstraint constraintsWithVisualFormat:[NSString stringWithFormat:@"V:[selectButton(70)]-%.0f-|", JKPhotoUtility.currentHomeIndicatorHeight] options:0 metrics:nil views:@{@"selectButton" : selectButton}];
     [self.contentView addConstraints:selectButtonCons2];
     
     // 照片选中标识
@@ -323,7 +323,7 @@ CGFloat const dismissDistance = 80;
     NSArray *selectIconImageViewCons1 = [NSLayoutConstraint constraintsWithVisualFormat:@"H:[selectIconImageView(25)]-10-|" options:0 metrics:nil views:@{@"selectIconImageView" : selectIconImageView}];
     [self.contentView addConstraints:selectIconImageViewCons1];
     
-    NSArray *selectIconImageViewCons2 = [NSLayoutConstraint constraintsWithVisualFormat:[NSString stringWithFormat:@"V:[selectIconImageView(25)]-%.0f-|", JKPhotoCurrentHomeIndicatorHeight() + 10] options:0 metrics:nil views:@{@"selectIconImageView" : selectIconImageView}];
+    NSArray *selectIconImageViewCons2 = [NSLayoutConstraint constraintsWithVisualFormat:[NSString stringWithFormat:@"V:[selectIconImageView(25)]-%.0f-|", JKPhotoUtility.currentHomeIndicatorHeight + 10] options:0 metrics:nil views:@{@"selectIconImageView" : selectIconImageView}];
     [self.contentView addConstraints:selectIconImageViewCons2];
 }
 
@@ -469,7 +469,7 @@ CGFloat const dismissDistance = 80;
     CGFloat pictureW = self.browserContentView.frame.size.width;
     CGFloat pictureH = pictureW * image.size.height / image.size.width;
     
-    if (JKPhotoIsDeviceiPad() || JKPhotoIsLandscape()) {
+    if (JKPhotoUtility.isDeviceiPad || JKPhotoUtility.isLandscape) {
         
         if (pictureH > self.browserContentView.frame.size.height) {
             
@@ -647,7 +647,7 @@ CGFloat const dismissDistance = 80;
 
 - (void)selfDismiss{
     
-    CGRect rect = [self.photoImageView.superview convertRect:self.photoImageView.frame toView:[UIApplication sharedApplication].delegate.window];
+    CGRect rect = [self.photoImageView.superview convertRect:self.photoImageView.frame toView:JKPhotoUtility.keyWindow];
     
     rect.origin.x += 10;
     

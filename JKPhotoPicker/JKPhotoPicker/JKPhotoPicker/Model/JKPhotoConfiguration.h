@@ -7,7 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "JKPhotoConst.h"
+#import "JKPhotoUtility.h"
 
 @class JKPhotoItem;
 

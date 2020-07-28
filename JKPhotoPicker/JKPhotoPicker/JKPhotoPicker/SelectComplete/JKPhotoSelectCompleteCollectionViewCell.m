@@ -38,7 +38,7 @@
     options.networkAccessAllowed = YES;
     options.resizeMode = PHImageRequestOptionsResizeModeFast;
     
-    self.requestID = [[PHImageManager defaultManager] requestImageForAsset:_photoItem.photoAsset targetSize:JKPhotoThumbSize() contentMode:PHImageContentModeAspectFit options:options resultHandler:^(UIImage * _Nullable result, NSDictionary * _Nullable info) {
+    self.requestID = [[PHImageManager defaultManager] requestImageForAsset:_photoItem.photoAsset targetSize:JKPhotoUtility.thumbSize contentMode:PHImageContentModeAspectFit options:options resultHandler:^(UIImage * _Nullable result, NSDictionary * _Nullable info) {
         
         PHImageRequestID requestID = [[info objectForKey:PHImageResultRequestIDKey] intValue];
         

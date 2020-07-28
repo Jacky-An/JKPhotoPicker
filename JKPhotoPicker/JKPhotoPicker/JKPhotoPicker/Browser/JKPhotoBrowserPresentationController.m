@@ -7,6 +7,7 @@
 //
 
 #import "JKPhotoBrowserPresentationController.h"
+#import "JKPhotoUtility.h"
 
 @interface JKPhotoBrowserPresentationController ()
 /** dismissButton */
@@ -43,7 +44,7 @@
      */
     
     // 设置presentedView的frame
-    self.presentedView.frame = [UIApplication sharedApplication].delegate.window.bounds;
+    self.presentedView.frame = JKPhotoUtility.keyWindow.bounds;
     
     self.presentedView.userInteractionEnabled = YES;
     

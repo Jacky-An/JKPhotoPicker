@@ -1,5 +1,5 @@
 //
-//  JKPhotoConst.h
+//  JKPhotoUtility.h
 //  JKPhotoPicker
 //
 //  Created by albert on 2019/4/20.
@@ -8,6 +8,8 @@
 
 #import <UIKit/UIKit.h>
 
+#pragma mark
+#pragma mark - 枚举
 
 typedef NS_ENUM(NSUInteger, JKPhotoPickerMediaDataType) {
     JKPhotoPickerMediaDataTypeUnknown = 0,
@@ -26,6 +28,7 @@ typedef NS_ENUM(NSUInteger, JKPhotoPickerScrollDirection) {
 };
 
 
+
 #pragma mark
 #pragma mark - 宏定义
 
@@ -39,14 +42,11 @@ typedef NS_ENUM(NSUInteger, JKPhotoPickerScrollDirection) {
 #define JKPhotoScreenScale ([UIScreen mainScreen].scale)
 
 /** 屏幕bounds */
-#define JKPhotoKeyWindowBounds ([UIApplication sharedApplication].delegate.window.bounds)
+#define JKPhotoKeyWindowBounds (JKPhotoUtility.keyWindow.bounds)
 /** 屏幕宽度 */
-#define JKPhotoKeyWindowWidth ([UIApplication sharedApplication].delegate.window.frame.size.width)
+#define JKPhotoKeyWindowWidth (JKPhotoUtility.keyWindow.frame.size.width)
 /** 屏幕高度 */
-#define JKPhotoKeyWindowHeight ([UIApplication sharedApplication].delegate.window.frame.size.height)
-
-/// 当前导航条高度
-#define JKPhotoCurrentTabBarHeight (JKPhotoIsLandscape() ? self.tabBarController.tabBar.frame.size.height : JKPhotoTabBarHeight())
+#define JKPhotoKeyWindowHeight (JKPhotoUtility.keyWindow.frame.size.height)
 
 // 快速设置颜色
 #define JKPhotoColor(r, g, b) [UIColor colorWithRed:(r)/255.0 green:(g)/255.0 blue:(b)/255.0 alpha:1]
@@ -56,41 +56,39 @@ typedef NS_ENUM(NSUInteger, JKPhotoPickerScrollDirection) {
 
 #define JKPhotoSystemRedColor [UIColor colorWithRed:255.0/255.0 green:59.0/255.0 blue:48.0/255.0 alpha:1]
 
+
+
 #pragma mark
 #pragma mark - 适配
 
-/// 是否X设备
-BOOL JKPhotoIsDeviceX (void);
-
-/// 是否iPad
-BOOL JKPhotoIsDeviceiPad (void);
-
-/// 当前是否横屏
-BOOL JKPhotoIsLandscape (void);
-
-/// 状态栏高度
-CGFloat JKPhotoStatusBarHeight (void);
-
-/// 导航条高度
-CGFloat JKPhotoNavigationBarHeight (void);
-
-/// tabBar高度
-CGFloat JKPhotoTabBarHeight (void);
-
-/// X设备底部indicator高度
-UIKIT_EXTERN CGFloat const JKPhotoHomeIndicatorHeight;
-
-/// 当前设备底部indicator高度 非X为0
-CGFloat JKPhotoCurrentHomeIndicatorHeight (void);
-
-/// 使用KVC获取当前的状态栏的view
-UIView * JKPhotoStatusBarView (void);
-
-/// 缩略图尺寸
-CGSize JKPhotoThumbSize (void);
-
-/// 让手机振动一下
-void JKPhotoCibrateDevice (void);
-
 /// 颜色适配
 UIColor * JKPhotoAdaptColor (UIColor *lightColor, UIColor *darkColor);
+
+
+
+#pragma mark
+#pragma mark - JKPhotoUtility
+
+@interface JKPhotoUtility : NSObject
+
+/// 是否X设备
+@property (class, nonatomic, readonly) BOOL isDeviceX;
+
+/// 是否iPad
+@property (class, nonatomic, readonly) BOOL isDeviceiPad;
+
+/// 当前是否横屏
+@property (class, nonatomic, readonly) BOOL isLandscape;
+
+/** keyWindow */
+@property (class, nonatomic, readonly) UIWindow *keyWindow;
+
+/// 导航条高度
+@property (class, nonatomic, readonly) CGFloat navigationBarHeight;
+
+/// 当前HomeIndicator高度
+@property (class, nonatomic, readonly) CGFloat currentHomeIndicatorHeight;
+
+/// 缩略图尺寸
+@property (class, nonatomic, readonly) CGSize thumbSize;
+@end

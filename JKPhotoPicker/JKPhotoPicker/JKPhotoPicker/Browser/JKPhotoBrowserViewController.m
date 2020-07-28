@@ -95,7 +95,7 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
     JKPhotoBrowserViewController *vc = [[self alloc] init];
     
     UIImageView *imageView = dataDict[@"imageView"];
-    CGRect presentFrame = [imageView.superview convertRect:imageView.frame toView:[UIApplication sharedApplication].delegate.window];
+    CGRect presentFrame = [imageView.superview convertRect:imageView.frame toView:JKPhotoUtility.keyWindow];
     
     vc.transitioningDelegate  = vc.presentationManager;
     vc.presentationManager.navigationController = viewController.navigationController;
@@ -108,7 +108,7 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
     vc.presentationManager.fromCollectionView = dataDict[@"collectionView"];
     vc.presentationManager.presentFrame       = presentFrame;
     
-    UIWindow *keyWindow = [UIApplication sharedApplication].delegate.window;
+    UIWindow *keyWindow = JKPhotoUtility.keyWindow;
     
     UIEdgeInsets safeAreaInsets = UIEdgeInsetsZero;
     
@@ -214,7 +214,7 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
 }
 
 - (BOOL)prefersHomeIndicatorAutoHidden{
-    return JKPhotoIsLandscape();
+    return JKPhotoUtility.isLandscape;
 }
 
 - (BOOL)shouldAutorotate{
@@ -613,15 +613,15 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
     JKPhotoCollectionViewCell *fromCell = (JKPhotoCollectionViewCell *)[self.fromCollectionView cellForItemAtIndexPath:self.indexPath];
     self.presentationManager.fromImageView = fromCell.photoImageView;
     
-    CGRect presentFrame = (fromCell.frame.size.width != fromCell.photoImageView.frame.size.width) ? [[UIApplication sharedApplication].delegate.window convertRect:fromCell.photoImageView.frame fromView:fromCell.photoImageView.superview] : [[UIApplication sharedApplication].delegate.window convertRect:fromCell.frame fromView:fromCell.superview];
+    CGRect presentFrame = (fromCell.frame.size.width != fromCell.photoImageView.frame.size.width) ? [JKPhotoUtility.keyWindow convertRect:fromCell.photoImageView.frame fromView:fromCell.photoImageView.superview] : [JKPhotoUtility.keyWindow convertRect:fromCell.frame fromView:fromCell.superview];
     NSLog(@"presentFrame--->%@", NSStringFromCGRect(presentFrame));
-    //    CGRect presentFrame = [fromCell.superview convertRect:fromCell.frame toView:[UIApplication sharedApplication].delegate.window];
+    //    CGRect presentFrame = [fromCell.superview convertRect:fromCell.frame toView:JKPhotoUtility.keyWindow];
     
-    //    CGRect fromCollectionViewFrame = [self.fromCollectionView.superview convertRect:self.fromCollectionView.frame toView:[UIApplication sharedApplication].delegate.window];
+    //    CGRect fromCollectionViewFrame = [self.fromCollectionView.superview convertRect:self.fromCollectionView.frame toView:JKPhotoUtility.keyWindow];
     
-    CGRect rect = CGRectMake(0, JKPhotoNavigationBarHeight(), JKPhotoScreenWidth, JKPhotoScreenHeight - JKPhotoNavigationBarHeight() - (70 + JKPhotoCurrentHomeIndicatorHeight()));
+    CGRect rect = CGRectMake(0, JKPhotoUtility.navigationBarHeight, JKPhotoScreenWidth, JKPhotoScreenHeight - JKPhotoUtility.navigationBarHeight - (70 + JKPhotoUtility.currentHomeIndicatorHeight));
     
-    CGRect bottomOrCompleteRect = [[UIApplication sharedApplication].delegate.window convertRect:self.fromCollectionView.frame fromView:self.fromCollectionView.superview];
+    CGRect bottomOrCompleteRect = [JKPhotoUtility.keyWindow convertRect:self.fromCollectionView.frame fromView:self.fromCollectionView.superview];
     
     self.presentationManager.isZoomUpAnimation = NO;
     
@@ -725,7 +725,7 @@ static NSString * const reuseID = @"JKPhotoBrowserCollectionViewCell"; // 重用
     
     JKPhotoCollectionViewCell *fromCell = (JKPhotoCollectionViewCell *)[self.fromCollectionView cellForItemAtIndexPath:self.indexPath];
     
-    CGRect presentFrame = (fromCell.frame.size.width != fromCell.photoImageView.frame.size.width) ? [[UIApplication sharedApplication].delegate.window convertRect:fromCell.photoImageView.frame fromView:fromCell.photoImageView.superview] : [[UIApplication sharedApplication].delegate.window convertRect:fromCell.frame fromView:fromCell.superview];
+    CGRect presentFrame = (fromCell.frame.size.width != fromCell.photoImageView.frame.size.width) ? [JKPhotoUtility.keyWindow convertRect:fromCell.photoImageView.frame fromView:fromCell.photoImageView.superview] : [JKPhotoUtility.keyWindow convertRect:fromCell.frame fromView:fromCell.superview];
     
     self.presentationManager.presentFrame = presentFrame;
 }

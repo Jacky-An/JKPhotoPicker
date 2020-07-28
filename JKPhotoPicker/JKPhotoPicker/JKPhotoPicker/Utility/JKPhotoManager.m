@@ -8,6 +8,7 @@
 
 #import "JKPhotoManager.h"
 #import <Photos/Photos.h>
+#import "JKPhotoUtility.h"
 
 @implementation JKPhotoManager
 
@@ -174,7 +175,7 @@
         [[UIApplication sharedApplication]openURL:[NSURL URLWithString:UIApplicationOpenSettingsURLString]];
     }]];
     
-    [(presentVc ? presentVc : [UIApplication sharedApplication].delegate.window.rootViewController) presentViewController:alertVc animated:YES completion:nil];
+    [(presentVc ? presentVc : JKPhotoUtility.keyWindow.rootViewController) presentViewController:alertVc animated:YES completion:nil];
 }
 
 + (void)showRestrictAlertWithText:(NSString *)text presentVc:(UIViewController *)presentVc{
@@ -183,6 +184,6 @@
     
     [alertVc addAction:[UIAlertAction actionWithTitle:@"确定" style:(UIAlertActionStyleDefault) handler:nil]];
     
-    [(presentVc ? presentVc : [UIApplication sharedApplication].delegate.window.rootViewController) presentViewController:alertVc animated:YES completion:nil];
+    [(presentVc ? presentVc : JKPhotoUtility.keyWindow.rootViewController) presentViewController:alertVc animated:YES completion:nil];
 }
 @end
