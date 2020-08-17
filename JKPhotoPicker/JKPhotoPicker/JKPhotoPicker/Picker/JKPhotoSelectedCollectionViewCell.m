@@ -25,7 +25,7 @@
         UIButton *deleteButton = [UIButton buttonWithType:(UIButtonTypeCustom)];
         [self.contentView addSubview:deleteButton];
         
-        [deleteButton setBackgroundImage:[JKPhotoResourceManager jk_imageNamed:@"delete_icon@3x"] forState:(UIControlStateNormal)];
+        [deleteButton setBackgroundImage:[JKPhotoResourceManager jk_imageNamed:@"delete_icon"] forState:(UIControlStateNormal)];
         _deleteButton = deleteButton;
         
         [deleteButton addTarget:self action:@selector(deleteButtonClick) forControlEvents:(UIControlEventTouchUpInside)];

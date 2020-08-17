@@ -12,13 +12,13 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface JKPhotoResourceManager : NSObject
 
-+ (NSBundle *)jk_photoPickerBundle;
-
-/** 默认type为png */
-+ (UIImage *)jk_imageNamed:(NSString *)name;
++ (NSBundle *)resourceBundle;
 
 /** 名称和type分开 */
 + (UIImage *)jk_imageNamed:(NSString *)name type:(NSString *)type;
+
+/** 默认type为png */
++ (UIImage *)jk_imageNamed:(NSString *)name;
 @end
 
 NS_ASSUME_NONNULL_END

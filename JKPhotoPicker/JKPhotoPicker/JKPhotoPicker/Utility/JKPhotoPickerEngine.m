@@ -365,8 +365,8 @@ static dispatch_queue_t engineQueue_;
 
 /** 从某一个相册结果集中获取图片实体，并把图片结果存放到数组中，返回值数组中是PHAsset对象 */
 + (NSMutableArray *)getPhotoAssetsWithFetchResult:(PHFetchResult *)fetchResult
-                                       optionDict:(NSDictionary * _Nullable)optionDict
-                                         complete:(void(^ _Nullable)(NSDictionary *resultDict))complete {
+                                       optionDict:(NSDictionary *)optionDict
+                                         complete:(void(^)(NSDictionary *resultDict))complete {
     
     NSCache *allCache = [[NSCache alloc] init];
     NSDictionary *seletedCache = optionDict[@"seletedCache"];

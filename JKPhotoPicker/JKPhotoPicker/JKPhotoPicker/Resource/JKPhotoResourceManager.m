@@ -10,28 +10,28 @@
 
 @implementation JKPhotoResourceManager
 
-+ (NSBundle *)jk_photoPickerBundle{
++ (NSBundle *)resourceBundle {
     
     static NSBundle *jk_photoPickerBundle = nil;
     
     if (jk_photoPickerBundle == nil) {
         
         // 这里不使用mainBundle是为了适配pod 1.x和0.x
-        jk_photoPickerBundle = [NSBundle bundleWithPath:[[NSBundle bundleForClass:[JKPhotoResourceManager class]] pathForResource:@"JKPhotoPickerResource" ofType:@"bundle"]];
+        jk_photoPickerBundle = [NSBundle bundleWithPath:[[NSBundle bundleForClass:[self class]] pathForResource:@"JKPhotoPickerResource" ofType:@"bundle"]];
     }
     
     return jk_photoPickerBundle;
 }
 
-/** 默认type为png */
-+ (UIImage *)jk_imageNamed:(NSString *)name{
+/** 名称和type分开 */
++ (UIImage *)jk_imageNamed:(NSString *)name type:(NSString *)type {
     
-    return [self jk_imageNamed:name type:@"png"];
+    return [self jk_imageNamed:(type == nil ? name : [name stringByAppendingPathExtension:type])];
 }
 
-/** 名称和type分开 */
-+ (UIImage *)jk_imageNamed:(NSString *)name type:(NSString *)type{
+/** 默认type为png */
++ (UIImage *)jk_imageNamed:(NSString *)name {
     
-    return [[[UIImage imageWithContentsOfFile:[[self jk_photoPickerBundle] pathForResource:name ofType:type]] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
+    return [UIImage imageNamed:name inBundle:[self resourceBundle] compatibleWithTraitCollection:nil];
 }
 @end

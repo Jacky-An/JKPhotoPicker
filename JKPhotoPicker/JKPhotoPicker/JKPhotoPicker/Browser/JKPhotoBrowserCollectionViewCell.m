@@ -175,7 +175,7 @@ CGFloat const dismissDistance = 80;
     
     [playVideoButton addTarget:self action:@selector(playVideoButtonClick:) forControlEvents:(UIControlEventTouchUpInside)];
     
-    [playVideoButton setBackgroundImage:[JKPhotoResourceManager jk_imageNamed:@"video-play@3x"] forState:(UIControlStateNormal)];
+    [playVideoButton setBackgroundImage:[JKPhotoResourceManager jk_imageNamed:@"video-play"] forState:(UIControlStateNormal)];
     
     // 播放按钮约束
     playVideoButton.translatesAutoresizingMaskIntoConstraints = NO;
@@ -313,8 +313,8 @@ CGFloat const dismissDistance = 80;
     UIImageView *selectIconImageView = [[UIImageView alloc] init];
     selectIconImageView.contentMode = PHImageContentModeAspectFit;
     
-    selectIconImageView.image = [JKPhotoResourceManager jk_imageNamed:@"deselected_icon@3x"];
-    selectIconImageView.highlightedImage = [JKPhotoResourceManager jk_imageNamed:@"selected_icon@3x"];
+    selectIconImageView.image = [JKPhotoResourceManager jk_imageNamed:@"deselected_icon"];
+    selectIconImageView.highlightedImage = [JKPhotoResourceManager jk_imageNamed:@"selected_icon"];
     [self.contentView addSubview:selectIconImageView];
     self.selectIconImageView = selectIconImageView;
     

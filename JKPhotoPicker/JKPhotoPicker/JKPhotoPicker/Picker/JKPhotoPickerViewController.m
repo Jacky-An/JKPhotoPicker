@@ -641,16 +641,16 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
     
     if (isLight) {
         
-        [self.titleButton setImage:[JKPhotoResourceManager jk_imageNamed:@"arrow_down@3x"] forState:(UIControlStateNormal)];
-        [self.titleButton setImage:[JKPhotoResourceManager jk_imageNamed:@"arrow_up@3x"] forState:(UIControlStateSelected)];
-        [self.titleButton setImage:[JKPhotoResourceManager jk_imageNamed:@"arrow_up@3x"] forState:(UIControlStateHighlighted | UIControlStateSelected)];
+        [self.titleButton setImage:[JKPhotoResourceManager jk_imageNamed:@"arrow_down"] forState:(UIControlStateNormal)];
+        [self.titleButton setImage:[JKPhotoResourceManager jk_imageNamed:@"arrow_up"] forState:(UIControlStateSelected)];
+        [self.titleButton setImage:[JKPhotoResourceManager jk_imageNamed:@"arrow_up"] forState:(UIControlStateHighlighted | UIControlStateSelected)];
         
         return;
     }
     
-    [self.titleButton setImage:[JKPhotoResourceManager jk_imageNamed:@"arrow_down_white@3x"] forState:(UIControlStateNormal)];
-    [self.titleButton setImage:[JKPhotoResourceManager jk_imageNamed:@"arrow_up_white@3x"] forState:(UIControlStateSelected)];
-    [self.titleButton setImage:[JKPhotoResourceManager jk_imageNamed:@"arrow_up_white@3x"] forState:(UIControlStateHighlighted | UIControlStateSelected)];
+    [self.titleButton setImage:[JKPhotoResourceManager jk_imageNamed:@"arrow_down_white"] forState:(UIControlStateNormal)];
+    [self.titleButton setImage:[JKPhotoResourceManager jk_imageNamed:@"arrow_up_white"] forState:(UIControlStateSelected)];
+    [self.titleButton setImage:[JKPhotoResourceManager jk_imageNamed:@"arrow_up_white"] forState:(UIControlStateHighlighted | UIControlStateSelected)];
 }
 
 - (void)titleViewClick:(UIButton *)button {
@@ -1105,7 +1105,7 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
             break;
         case JKPhotoPickerMediaDataTypeVideo:
         {
-            sourceType = UIImagePickerControllerSourceTypeCamera;
+            //sourceType = UIImagePickerControllerSourceTypeCamera;
             
             [JKPhotoManager checkCameraAccessWithPresentVc:presentVc finished:^(BOOL isAccessed) {
                 

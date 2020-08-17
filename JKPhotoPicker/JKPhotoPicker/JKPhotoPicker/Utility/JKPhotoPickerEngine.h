@@ -10,8 +10,6 @@
 
 @class PHAssetCollection, PHFetchResult, PHAsset, JKPhotoAlbumItem, JKPhotoItem, JKPhotoResultModel;
 
-NS_ASSUME_NONNULL_BEGIN
-
 @interface JKPhotoPickerEngine : NSObject
 
 #pragma mark
@@ -68,11 +66,9 @@ NS_ASSUME_NONNULL_BEGIN
 
 /** 从某一个相册结果集中获取图片实体，并把图片结果存放到数组中，返回值数组中是PHAsset对象 */
 + (NSMutableArray *)getPhotoAssetsWithFetchResult:(PHFetchResult *)fetchResult
-                                       optionDict:(NSDictionary * _Nullable)optionDict
-                                         complete:(void(^ _Nullable)(NSDictionary *resultDict))complete ;
+                                       optionDict:(NSDictionary *)optionDict
+                                         complete:(void(^)(NSDictionary *resultDict))complete ;
 
 /** 只获取相机胶卷结果集 */
 + (PHFetchResult *)getCameraRollFetchResult;
 @end
-
-NS_ASSUME_NONNULL_END

@@ -150,8 +150,8 @@
     // 照片选中标识
     UIImageView *selectIconImageView = [[UIImageView alloc] init];
     
-    selectIconImageView.image = [JKPhotoResourceManager jk_imageNamed:@"deselected_icon@3x"];
-    selectIconImageView.highlightedImage = [JKPhotoResourceManager jk_imageNamed:@"selected_icon@3x"];
+    selectIconImageView.image = [JKPhotoResourceManager jk_imageNamed:@"deselected_icon"];
+    selectIconImageView.highlightedImage = [JKPhotoResourceManager jk_imageNamed:@"selected_icon"];
     [self.contentView addSubview:selectIconImageView];
     self.selectIconImageView = selectIconImageView;
     
