@@ -800,14 +800,19 @@ CGFloat const dismissDistance = 80;
     
     self.photoImageView.transform = CGAffineTransformMakeScale(self.transformScale, self.transformScale);
     
-    CGFloat currentDistanceX = calculateDistanceX * self.transformScale;
-    CGFloat currentDistanceY = calculateDistanceY * self.transformScale;
-    
-    CGRect frame = self.photoImageView.frame;
-    
-    frame.origin.x = (location.x - currentDistanceX) / self.currentZoomScale;
-    frame.origin.y = (location.y - currentDistanceY) / self.currentZoomScale;
-    self.photoImageView.frame = frame;
+    if (@available(iOS 14.0, *)) {
+        
+    } else {
+        
+        CGFloat currentDistanceX = calculateDistanceX * self.transformScale;
+        CGFloat currentDistanceY = calculateDistanceY * self.transformScale;
+        
+        CGRect frame = self.photoImageView.frame;
+        
+        frame.origin.x = (location.x - currentDistanceX) / self.currentZoomScale;
+        frame.origin.y = (location.y - currentDistanceY) / self.currentZoomScale;
+        self.photoImageView.frame = frame;
+    }
     
     //NSLog(@"location --> %@", NSStringFromCGPoint(location));
 }

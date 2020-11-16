@@ -91,4 +91,7 @@ UIColor * JKPhotoAdaptColor (UIColor *lightColor, UIColor *darkColor);
 
 /// 缩略图尺寸
 @property (class, nonatomic, readonly) CGSize thumbSize;
+
+/// 目前iPhone屏幕最大宽度
+@property (class, nonatomic, readonly) CGFloat iPhoneMaxScreenWidth;
 @end

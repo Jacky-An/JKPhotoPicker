@@ -557,7 +557,7 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
 - (void)viewDidLoad {
     [super viewDidLoad];
     
-    columnCount = JKPhotoScreenWidth > 414 ? 6 : 4;
+    columnCount = JKPhotoScreenWidth > JKPhotoUtility.iPhoneMaxScreenWidth ? 6 : 4;
     
     self.automaticallyAdjustsScrollViewInsets = NO;
     self.view.backgroundColor = JKPhotoAdaptColor([UIColor whiteColor], [UIColor blackColor]);
@@ -677,7 +677,7 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
 - (void)viewWillTransitionToSize:(CGSize)size withTransitionCoordinator:(id<UIViewControllerTransitionCoordinator>)coordinator{
     [super viewWillTransitionToSize:size withTransitionCoordinator:coordinator];
     
-    columnCount = size.width > 414 ? 6 : 4;
+    columnCount = size.width > JKPhotoUtility.iPhoneMaxScreenWidth ? 6 : 4;
 }
 
 - (void)viewDidLayoutSubviews{
