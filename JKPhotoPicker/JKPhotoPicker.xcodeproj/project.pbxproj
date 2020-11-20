@@ -37,6 +37,7 @@
 		50B23CFB1E09256200D9926B /* JKPhotoPickerUITests.m in Sources */ = {isa = PBXBuildFile; fileRef = 50B23CFA1E09256200D9926B /* JKPhotoPickerUITests.m */; };
 		50B577F2235EE235007B5B40 /* JKPhotoPickerEngine.m in Sources */ = {isa = PBXBuildFile; fileRef = 50B577F1235EE235007B5B40 /* JKPhotoPickerEngine.m */; };
 		50B577F5235EF3AF007B5B40 /* JKPhotoAlbumItem.m in Sources */ = {isa = PBXBuildFile; fileRef = 50B577F4235EF3AF007B5B40 /* JKPhotoAlbumItem.m */; };
+		50E2FFA825679BB40022E36C /* JKPhotoTapGestureRecognizer.m in Sources */ = {isa = PBXBuildFile; fileRef = 50E2FFA725679BB40022E36C /* JKPhotoTapGestureRecognizer.m */; };
 		C0A7EA6B2459D5F1009F3AE4 /* JKPhotoResultModel.m in Sources */ = {isa = PBXBuildFile; fileRef = C0A7EA6A2459D5F1009F3AE4 /* JKPhotoResultModel.m */; };
 /* End PBXBuildFile section */
 
@@ -117,6 +118,8 @@
 		50B577F1235EE235007B5B40 /* JKPhotoPickerEngine.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = JKPhotoPickerEngine.m; sourceTree = "<group>"; };
 		50B577F3235EF3AF007B5B40 /* JKPhotoAlbumItem.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = JKPhotoAlbumItem.h; sourceTree = "<group>"; };
 		50B577F4235EF3AF007B5B40 /* JKPhotoAlbumItem.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = JKPhotoAlbumItem.m; sourceTree = "<group>"; };
+		50E2FFA625679BB40022E36C /* JKPhotoTapGestureRecognizer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = JKPhotoTapGestureRecognizer.h; sourceTree = "<group>"; };
+		50E2FFA725679BB40022E36C /* JKPhotoTapGestureRecognizer.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = JKPhotoTapGestureRecognizer.m; sourceTree = "<group>"; };
 		C0A7EA692459D5F1009F3AE4 /* JKPhotoResultModel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = JKPhotoResultModel.h; sourceTree = "<group>"; };
 		C0A7EA6A2459D5F1009F3AE4 /* JKPhotoResultModel.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = JKPhotoResultModel.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -199,14 +202,16 @@
 		505AD61D1E1A5A6E0037BF3B /* Utility */ = {
 			isa = PBXGroup;
 			children = (
-				50873C52226B08360003FD90 /* JKPhotoUtility.h */,
-				50873C53226B08360003FD90 /* JKPhotoUtility.m */,
-				50B577F0235EE235007B5B40 /* JKPhotoPickerEngine.h */,
-				50B577F1235EE235007B5B40 /* JKPhotoPickerEngine.m */,
 				505AD6411E1A5B3E0037BF3B /* JKPhotoManager.h */,
 				505AD6421E1A5B3E0037BF3B /* JKPhotoManager.m */,
+				50B577F0235EE235007B5B40 /* JKPhotoPickerEngine.h */,
+				50B577F1235EE235007B5B40 /* JKPhotoPickerEngine.m */,
+				50E2FFA625679BB40022E36C /* JKPhotoTapGestureRecognizer.h */,
+				50E2FFA725679BB40022E36C /* JKPhotoTapGestureRecognizer.m */,
 				505AD6431E1A5B3E0037BF3B /* JKPhotoTitleButton.h */,
 				505AD6441E1A5B3E0037BF3B /* JKPhotoTitleButton.m */,
+				50873C52226B08360003FD90 /* JKPhotoUtility.h */,
+				50873C53226B08360003FD90 /* JKPhotoUtility.m */,
 			);
 			path = Utility;
 			sourceTree = "<group>";
@@ -477,6 +482,7 @@
 				50B577F5235EF3AF007B5B40 /* JKPhotoAlbumItem.m in Sources */,
 				50B23CD71E09256200D9926B /* main.m in Sources */,
 				50873C51226B00E80003FD90 /* JKPhotoResourceManager.m in Sources */,
+				50E2FFA825679BB40022E36C /* JKPhotoTapGestureRecognizer.m in Sources */,
 				505AD62E1E1A5ADE0037BF3B /* JKPhotoBrowserPresentationManager.m in Sources */,
 				505AD6381E1A5B0F0037BF3B /* JKPhotoSelectedCollectionViewCell.m in Sources */,
 			);

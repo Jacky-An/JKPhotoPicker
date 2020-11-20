@@ -13,6 +13,7 @@
 #import <WebKit/WebKit.h>
 #import "JKPhotoResourceManager.h"
 #import "JKPhotoBrowserViewController.h"
+#import "JKPhotoTapGestureRecognizer.h"
 
 @interface JKPhotoBrowserCollectionViewCell () <UIScrollViewDelegate, UIGestureRecognizerDelegate>
 {
@@ -156,11 +157,11 @@ CGFloat const dismissDistance = 80;
     [self.imageContainerView insertSubview:photoImageView atIndex:0];
     _photoImageView = photoImageView;
     
-    UITapGestureRecognizer *doubleTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(doubleTap:)];
+    JKPhotoTapGestureRecognizer *doubleTap = [[JKPhotoTapGestureRecognizer alloc] initWithTarget:self action:@selector(doubleTap:)];
     doubleTap.numberOfTapsRequired = 2;
     [self.contentView addGestureRecognizer:doubleTap];
     
-    UITapGestureRecognizer *singleTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(singleTap:)];
+    JKPhotoTapGestureRecognizer *singleTap = [[JKPhotoTapGestureRecognizer alloc] initWithTarget:self action:@selector(singleTap:)];
     singleTap.numberOfTapsRequired = 1;
     [self.contentView addGestureRecognizer:singleTap];
     
