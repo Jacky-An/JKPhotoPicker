@@ -627,30 +627,36 @@ static NSString * const reuseIDSelected = @"JKPhotoSelectedCollectionViewCell"; 
 - (void)traitCollectionDidChange:(UITraitCollection *)previousTraitCollection {
     [super traitCollectionDidChange:previousTraitCollection];
     
-    [self updateNavButton];
+    if (@available(iOS 13.0, *)) {
+        
+        if ([self.traitCollection hasDifferentColorAppearanceComparedToTraitCollection:previousTraitCollection]) {
+            
+            [self updateNavButton];
+        }
+    }
 }
 
-- (void)updateNavButton{
+- (void)updateNavButton {
     
-    BOOL isLight = YES;
+    BOOL isDark = NO;
     
     if (@available(iOS 13.0, *)) {
         
-        isLight = (self.traitCollection.userInterfaceStyle == UIUserInterfaceStyleLight);
+        isDark = (self.traitCollection.userInterfaceStyle == UIUserInterfaceStyleDark);
     }
     
-    if (isLight) {
+    if (isDark) {
         
-        [self.titleButton setImage:[JKPhotoResourceManager jk_imageNamed:@"arrow_down"] forState:(UIControlStateNormal)];
-        [self.titleButton setImage:[JKPhotoResourceManager jk_imageNamed:@"arrow_up"] forState:(UIControlStateSelected)];
-        [self.titleButton setImage:[JKPhotoResourceManager jk_imageNamed:@"arrow_up"] forState:(UIControlStateHighlighted | UIControlStateSelected)];
+        [self.titleButton setImage:[JKPhotoResourceManager jk_imageNamed:@"arrow_down_white"] forState:(UIControlStateNormal)];
+        [self.titleButton setImage:[JKPhotoResourceManager jk_imageNamed:@"arrow_up_white"] forState:(UIControlStateSelected)];
+        [self.titleButton setImage:[JKPhotoResourceManager jk_imageNamed:@"arrow_up_white"] forState:(UIControlStateHighlighted | UIControlStateSelected)];
         
         return;
     }
     
-    [self.titleButton setImage:[JKPhotoResourceManager jk_imageNamed:@"arrow_down_white"] forState:(UIControlStateNormal)];
-    [self.titleButton setImage:[JKPhotoResourceManager jk_imageNamed:@"arrow_up_white"] forState:(UIControlStateSelected)];
-    [self.titleButton setImage:[JKPhotoResourceManager jk_imageNamed:@"arrow_up_white"] forState:(UIControlStateHighlighted | UIControlStateSelected)];
+    [self.titleButton setImage:[JKPhotoResourceManager jk_imageNamed:@"arrow_down"] forState:(UIControlStateNormal)];
+    [self.titleButton setImage:[JKPhotoResourceManager jk_imageNamed:@"arrow_up"] forState:(UIControlStateSelected)];
+    [self.titleButton setImage:[JKPhotoResourceManager jk_imageNamed:@"arrow_up"] forState:(UIControlStateHighlighted | UIControlStateSelected)];
 }
 
 - (void)titleViewClick:(UIButton *)button {
